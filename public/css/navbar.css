@@ -1,0 +1,96 @@
+/* Estilos generales de la navbar */
+.navbar-custom {
+    background-color: #005f7f;
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    width: 100%;
+}
+
+.navbar-light .navbar-brand img {
+    height: 30px; /* Ajustado a un tamaño visible */
+}
+
+.navbar-light .navbar-nav .nav-link {
+    color: #005f7f;
+}
+
+.navbar-light .navbar-nav .nav-link:hover {
+    color: #003f5f; 
+}
+
+.navbar-light .btn-outline-success {
+    border-color: #005f7f;
+    color: #005f7f;
+}
+
+.navbar-light .btn-outline-success:hover {
+    background-color: #005f7f;
+    color: #fff;
+}
+
+.navbar-light .form-control {
+    border-radius: 0;
+}
+
+/* Estilo adicional para manejar submenús */
+.dropdown-submenu {
+    position: relative;
+}
+
+.dropdown-submenu > .dropdown-menu {
+    top: 0;
+    left: 100%;
+    margin-top: -6px;
+}
+
+.dropdown-submenu:hover > .dropdown-menu {
+    display: block;
+}
+
+/* Estilo para el dropdown principal */
+.navbar-dark .dropdown-menu {
+    background-color: #89c7db;
+    border-color: #343a40;
+}
+
+.navbar-dark .dropdown-menu .dropdown-item {
+    color: #0a545e;
+}
+
+.navbar-dark .dropdown-menu .dropdown-item:hover,
+.navbar-dark .dropdown-menu .dropdown-item:focus {
+    background-color: #ffffff;
+    color: #ffffff;
+}
+
+/* Estilo para los submenús */
+.navbar-dark .dropdown-menu .dropdown-submenu .dropdown-menu {
+    background-color: #ffffff;
+}
+
+.navbar-dark .dropdown-menu .dropdown-submenu .dropdown-item {
+    color: #237379;
+}
+
+.navbar-dark .dropdown-menu .dropdown-submenu .dropdown-item:hover,
+.navbar-dark .dropdown-menu .dropdown-submenu .dropdown-item:focus {
+    background-color: #495057;
+    color: #ffffff;
+}
+
+/* Ajuste de bordes y flechas */
+.navbar-dark .dropdown-menu,
+.navbar-dark .dropdown-menu .dropdown-submenu .dropdown-menu {
+    border: 1px solid #495057;
+}
+
+.navbar-dark .dropdown-toggle::after {
+    border-top-color: #ffffff;
+}
+
+.navbar-dark .dropdown-toggle:hover::after,
+.navbar-dark .dropdown-toggle:focus::after {
+    border-top-color: #ffffff;
+}

@@ -1,0 +1,179 @@
+
+
+/* Estilo del carrusel */
+.carousel-custom-size {
+    width: 100%; /* Ajusta el ancho según sea necesario */
+    max-width: 80%; /* Ancho máximo del carrusel */
+    height: 450px; /* Altura fija del carrusel */
+    margin: 20px auto 0; /* Margen superior para bajar el carrusel */
+}
+
+.carousel-inner {
+    width: 100%;
+    height: 100%; /* Asegura que el carrusel ocupe la altura completa del contenedor */
+}
+
+.carousel-inner img {
+    object-fit: contain; /* Ajusta la imagen dentro del contenedor sin distorsión */
+    width: 100%;
+    height: 100%;
+}
+
+/* Estilo para los indicadores del carrusel */
+.carousel-indicators li {
+    background-color: #005f7f; /* Color de los indicadores */
+    width: 12px;
+    height: 12px;
+    border-radius: 50%; /* Indicadores como puntos */
+}
+
+.carousel-indicators button {
+    background-color: #444444!important; /* Color para los indicadores inactivos */
+}
+
+.carousel-indicators .active {
+    background-color: #70cbce!important; /* Color del indicador activo */
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    background-color: #333; /* Color de las flechas */
+    border-radius: 50%; /* Forma redondeada */
+    width: 40px;
+    height: 40px;
+}
+
+/* Estilo general para los productos */
+.product-container {
+    position: relative; /* Necesario para que la superposición funcione correctamente */
+    overflow: hidden; /* Oculta cualquier cosa que se salga del contenedor */
+    text-align: center; /* Centra todo el contenido dentro del contenedor */
+    padding: 15px; /* Espaciado interno */
+    background-color: #f9f9f9; /* Fondo claro */
+    border-radius: 10px; /* Bordes redondeados */
+    transition: all 0.3s ease; /* Transición suave */
+    width: 100% !important; /* Asegura que el contenedor use todo el espacio disponible */
+    max-width: 250px !important; /* Establece un ancho máximo constante */
+    height: 350px !important; /* Establece una altura constante */
+    margin: 0 auto; /* Centra horizontalmente */
+}
+
+.product-container img {
+    width: 100% !important; /* Asegura que la imagen use todo el ancho del contenedor */
+    height: auto !important; /* Mantiene la proporción original de la imagen */
+    max-height: 100% !important; /* Limita la altura máxima al contenedor */
+    object-fit: contain !important; /* Asegura que la imagen se ajuste al contenedor sin distorsionarse */
+    border-radius: 5px !important; /* Bordes redondeados para las imágenes */
+    margin-bottom: 10px !important; /* Espacio entre la imagen y el texto */
+}
+
+/* Superposición para el botón "Ver" */
+.product-container .overlay {
+    position: absolute;
+    left: 50%; /* Centra horizontalmente */
+    top: 50%; /* Ajusta esta posición para mover el rectángulo más arriba */
+    transform: translate(-50%, -50%); /* Centra el rectángulo */
+    background-color: rgba(80, 193, 231, 0.9); /* Color azul con transparencia */
+    color: white;
+    padding: 3% 100%; /* Ajusta el tamaño del rectángulo */
+    border-radius: 5px; /* Bordes redondeados */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+.product-container:hover .overlay {
+    opacity: 1;
+    visibility: visible;
+}
+
+.overlay-text {
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* Información del producto (nombre, marca, precio) */
+.product-info {
+    margin-top: 10px; /* Espacio superior para separar de la imagen */
+}
+
+/* Estilo para el nombre del producto */
+.product-container p:first-of-type {
+    font-weight: bold; /* Negrita para el nombre del producto */
+    font-size: 16px; /* Tamaño de fuente */
+    color: #333; /* Color de texto */
+}
+
+/* Estilo para la marca del producto */
+.product-container p:nth-of-type(2) {
+    font-size: 14px; /* Tamaño de fuente más pequeño */
+    color: #666; /* Color de texto gris */
+}
+
+/* Estilo para el precio del producto */
+.product-container p:nth-of-type(3) {
+    font-size: 18px; /* Tamaño de fuente más grande */
+    color: #e74c3c; /* Color de texto rojo para el precio */
+    font-weight: bold; /* Negrita para destacar el precio */
+    margin-top: 10px; /* Espacio superior */
+    background-color: #fce4e4; /* Fondo rosado para resaltar */
+    padding: 5px; /* Espaciado interno alrededor del precio */
+    border-radius: 5px; /* Bordes redondeados para el precio */
+    display: inline-block; /* Para que el fondo se ajuste al texto */
+}
+
+/* Efecto hover en el contenedor del producto */
+.product-container:hover {
+    transform: translateY(-10px); /* Levantar el contenedor */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Sombra más intensa */
+}
+
+/* Estilo para botones o enlaces dentro del contenedor del producto */
+.product-container a,
+.product-container button {
+    display: inline-block;
+    margin-top: 2px; /* Espacio superior */
+    padding: 10px 20px; /* Espaciado interno */
+    background-color: #005f7f; /* Fondo azul oscuro */
+    color: white; /* Texto blanco */
+    border-radius: 5px; /* Bordes redondeados */
+    text-decoration: none; /* Sin subrayado en enlaces */
+    transition: background-color 0.3s ease; /* Transición suave */
+}
+
+/* Efecto hover para botones o enlaces */
+.product-container a:hover,
+.product-container button:hover {
+    background-color: #00455f; /* Cambiar color de fondo en hover */
+}
+
+/* Estilo específico para el ID #item-centrado */
+#item-centrado {
+    font-size: 20px; /* Tamaño de la fuente */
+    color: #007399; /* Color del texto */
+    font-weight: bold; /* Negrita */
+    text-align: center;
+    height: 2vh; /* Centrado horizontal */
+}
+
+/* Estilo para imágenes pequeñas */
+.small-img {
+    max-width: 100%;
+    max-height: 100px; /* Ajusta este valor para hacer las imágenes más pequeñas */
+    object-fit: cover;
+}
+/* Ajustes específicos para pantallas pequeñas */
+@media (max-width: 768px) {
+    .product-container .overlay {
+        top: 62%; /* Ajusta la posición vertical en pantallas pequeñas */
+    }
+}
+
+/* Ajustes específicos para pantallas extra pequeñas */
+@media (max-width: 480px) {
+    .product-container .overlay {
+        top: 65%; /* Ajusta aún más la posición vertical para pantallas muy pequeñas */
+    }
+}
+

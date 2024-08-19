@@ -1,0 +1,84 @@
+/* Color de fondo para la sección superior (logo y redes sociales) */
+footer .footer-top {
+    background-color: #aaaaaa; /* Cambia este color al que desees */
+    color: white;
+    height: 70px;
+}
+
+/* Color de fondo para la sección de widgets y enlaces */
+footer .footer-widgets {
+    background-color: #386c7e !important; /* Cambia este color al que desees */
+    color: white;
+}
+
+/* Color de fondo para la sección de copyright */
+footer .footer-bottom {
+    background-color: #005f7f!important; /* Cambia este color al que desees */
+    color: white;
+    padding: 20px 0; /* Ajusta el padding superior e inferior */
+    text-align: center; /* Centra el texto */
+    border-top: 2px solid #004b61; /* Agrega un borde superior con un color más oscuro */
+    font-size: 14px; /* Ajusta el tamaño de la fuente */
+}
+
+/* Cambiar el estilo del texto en la sección de copyright */
+footer .footer-bottom a {
+    color: #b1b1b1 !important; /* Cambia el color de los enlaces en el footer */
+    text-decoration: none; /* Quita la subrayado de los enlaces */
+}
+
+footer .footer-bottom a:hover {
+    text-decoration: underline; /* Agrega subrayado al pasar el ratón */
+    color: #ffffff; /* Cambia el color del enlace al pasar el ratón */
+}
+
+/* Espacio entre los elementos dentro del footer */
+footer .footer-bottom .row > div {
+    margin-bottom: 10px; /* Agrega espacio entre las columnas */
+}
+
+/* Alineación específica para dispositivos móviles */
+@media (max-width: 768px) {
+    footer .footer-bottom {
+        text-align: left; /* Alinea el texto a la izquierda en pantallas pequeñas */
+        padding: 15px 10px; /* Reduce el padding en dispositivos móviles */
+    }
+}
+
+/* Estilo de íconos de redes sociales */
+footer .footer-bottom .social-icons a {
+    color: #ffffff; /* Color de los íconos */
+    font-size: 18px; /* Tamaño de los íconos */
+    margin-right: 15px; /* Espacio entre íconos */
+}
+
+
+footer .footer-bottom .credit-wrapper {
+    color: #cccccc !important; /* Cambia el color del ícono al pasar el ratón */
+}
+footer .footer-bottom .social-icons a:hover {
+    color: #ffd700; /* Cambia el color del ícono al pasar el ratón */
+}
+
+
+footer .footer-widgets a {
+    color: #9ecae4 !important; /* Cambia el color de los enlaces */
+}
+
+footer .footer-widgets a:hover {
+    color: #17a2ac !important; /* Cambia el color al pasar el ratón sobre los enlaces */
+}
+
+/* Estilos para los textos del copyright */
+footer .copyright-wrapper {
+    color: #2aa6c5; /* Cambia el color del texto de copyright */
+}
+
+footer .credit-wrapper a {
+    color: #2aa6c5; /* Cambia el color de los enlaces en la sección de créditos */
+}
+
+footer .credit-wrapper a:hover {
+    color: #17a2ac !important; /* Cambia el color al pasar el ratón sobre los enlaces en la sección de créditos */
+}
+
