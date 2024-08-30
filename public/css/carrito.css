@@ -1,0 +1,104 @@
+@media (width <= 900px) 
+{
+    #btnCart .dropdown-menu
+    {
+        position: absolute;
+        width: auto !important;
+        /* margin-top: -200px !important; */
+    }
+    
+}
+
+@media (orientation: landscape) and (width <= 1200px) 
+{
+    #btnCart .dropdown-menu 
+    {
+        position: absolute !important;
+        margin-top: -200px !important;
+        /* width: 620px !important; */
+    }
+}
+
+/* Estilo para el contenedor del dropdown del carrito */
+#btnCart .dropdown-menu {
+    background-color: #005f7f; /* Fondo del dropdown */
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1); /* Sombra */
+    padding: 15px; /* Padding interno */
+    width: 620px; /* Ancho fijo */
+    max-height: 700px; /* Altura máxima */
+    overflow-y: auto; /* Scroll si el contenido excede la altura */
+}
+#cart-items
+{
+    max-height: 300px;
+    overflow-x: hidden; 
+    overflow-y: scroll;
+}
+
+/* Estilo para los items del carrito */
+.cart-item {
+    display: flex; /* Flexbox para alinear el contenido */
+    align-items: center; /* Centrar verticalmente */
+    justify-content: space-between; /* Separar imagen y botón */
+    border-bottom: 1px solid #ddd; /* Separador entre items */
+    padding-bottom: 10px; /* Espaciado interno */
+    margin-bottom: 10px; /* Espacio entre items */
+}
+
+/* Estilo de la imagen del producto */
+.cart-item .item-img {
+    min-height: 64px;
+    width: 100px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover; /* Ajuste de la imagen */
+    border-radius: 5px;
+}
+
+/* Estilo para la descripción del producto */
+.cart-item p {
+    font-size: 14px;
+    color: #333;
+    margin: 0;
+    flex-grow: 1; /* La descripción ocupa el espacio restante */
+    padding-left: 10px; /* Espaciado entre la imagen y el texto */
+}
+
+/* Estilo del botón eliminar */
+.remove-from-cart {
+    background-color: #e74c3c;
+    border: none;
+    color: white;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.remove-from-cart:hover {
+    background-color: #c0392b;
+}
+
+/* Personalización del scrollbar */
+#navbarDropdownCart + .dropdown-menu::-webkit-scrollbar {
+    width: 8px; /* Ancho del scrollbar */
+}
+
+#navbarDropdownCart + .dropdown-menu::-webkit-scrollbar-track {
+    background: #f1f1f1; /* Fondo del track */
+}
+
+#navbarDropdownCart + .dropdown-menu::-webkit-scrollbar-thumb {
+    background-color: #888; /* Color del pulgar */
+    border-radius: 8px; /* Bordes redondeados */
+}
+
+/* Estilo para los botones dentro del dropdown */
+#navbarDropdownCart + .dropdown-menu .btn {
+    width: 100%; /* Botones ocupan todo el ancho */
+    margin-top: 10px; /* Margen superior */
+    border-radius: 4px; /* Bordes redondeados */
+    padding: 10px; /* Padding interno */
+    font-weight: bold; /* Texto en negrita */
+}

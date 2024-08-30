@@ -1,0 +1,159 @@
+@media (width<=900px)
+{
+   
+    .megamenu-content
+    {
+        position: relative !important;
+        margin-left: 0px !important; 
+        /* left:auto !important; */
+        width: auto !important;
+
+    }
+
+    .submenu {
+        position: absolute;
+        width: auto !important;
+        left: 0px !important;
+        margin-left: -15px;
+        margin-top: 0px;
+        max-height: 800px;
+    }
+}
+
+@media (orientation: landscape) and (width <= 1200px)
+{
+    .megamenu-content
+    {
+        position: absolute;
+        margin-left:0px !important; 
+        width: auto !important;
+    }
+
+    .submenu {
+        position: absolute;
+        width: auto !important;
+        left: auto !important;
+        margin-left: -45px;
+        margin-top: 40px;
+    }
+}
+
+/* Estilos del megamenú */
+.megamenu-content ul.ms-3 {
+    list-style-type: none; /* Elimina los puntos */
+    padding-left: 0; /* Elimina el espacio de la izquierda */
+}
+
+.megamenu {
+    position: relative;
+}
+
+.megamenu-content {
+    border-radius: 0%;
+    display: none ;
+    position: absolute;
+    top: 100%;
+    left: 0px;
+    margin-left: -150px;
+    width: 1000px;
+    height: 800px;
+    background-color: #C4D0D6 !important;
+    padding-left: 0px;
+    z-index: 100px;
+    border-right: 100px;
+    padding: 10px 20px;
+}
+
+.megamenu:hover .megamenu-content {
+    display: block !important;
+}
+
+.megamenu-content .dropdown-item,
+.megamenu-content a {
+    color: #2ba1be !important;
+    text-decoration: none !important;
+    display: inline-block !important;
+    font-size: 12px !important;
+    border-radius: 0px !important;
+    /* background-color: #f1f1f1 !important; */
+    margin: 3px 0 !important;
+    transition: background-color 0.3s ease-in-out !important;
+}
+
+.megamenu-content .dropdown-item:hover {
+    color: #005f7f !important;
+    text-decoration: underline !important;
+}
+
+/* Ocultar todas las subcategorías por defecto */
+.submenu {
+    display: true !important;
+    background-color: #f8f9fa !important;
+}
+
+/* Mostrar subcategoría al hacer hover */
+.submenu.active {
+    display: block ;
+}
+
+.megamenu-content h5 {
+    font-size: 18px !important;
+    color: #005f7f !important;
+    margin-bottom: 15px !important;
+    font-weight: bold !important;
+}
+
+.megamenu-content .list-unstyled {
+    margin: 0% !important;
+    padding: 0% !important;
+}
+
+.megamenu-content .dropdown-item {
+    color: #333 !important;
+    text-decoration: none !important;
+    padding: 8px 0 !important;
+    display: block !important;
+    font-size: 16px !important;
+}
+
+.megamenu-content .dropdown-item:hover {
+    color: #005f7f !important;
+    text-decoration: underline !important;
+}
+
+/* Ajustes generales para asegurar la visibilidad */
+.navbar-custom .navbar-nav .nav-link {
+    color: #ffffff !important;
+}
+
+.megamenu .nav-link {
+    color: #ffffff !important;
+}
+
+
+
+/* Estilo para la columna de las subcategorías */
+.submenu {
+    border-radius: 1px;
+    position: absolute ;
+    top: 0 ;
+    left: 250px ;
+    width: 859px ;
+    background-color: #ffffff ;
+    padding: 20px ;
+    height: 797px ;
+    z-index: 998 ;
+    overflow-y: auto ; /* Habilitar scrollbar vertical */
+}
+
+/* Cambiar el fondo de la categoría general al hacer hover */
+.megamenu-content .category-item:hover {
+    background-color: #C4D0D6 !important; /* Mismo color que el fondo del menú de subcategorías */
+}
+
+/* Mostrar subcategoría al pasar el mouse sobre la categoría */
+.megamenu-content .col-md-3 .category-item:hover + .submenu {
+    display: block !important;
+    visibility: visible !important;
+}
+

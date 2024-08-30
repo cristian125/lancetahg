@@ -1,3 +1,56 @@
+@media (width <=900px) {
+    #login-dropdown .dropdown-menu {
+        margin-left: 0px !important;
+    }
+}
+
+@media (orientation: landscape) and (width <=1200px) {
+    #login-dropdown .dropdown-menu {
+        margin-left: 0px !important;
+    }
+}
+
+/* Estilo para el dropdown de inicio de sesión */
+#login-dropdown .dropdown-menu {
+    margin-left: -150px;
+    background-color: #f8f9fa; /* Fondo más claro para contraste */
+    border: 1px solid #dee2e6; /* Borde suave */
+    border-radius: 8px; /* Bordes redondeados */
+    padding: 20px; /* Espaciado adicional */
+}
+
+#login-dropdown .form-label {
+    color: #495057; /* Color de texto */
+    font-weight: 600; /* Negrita para mayor legibilidad */
+}
+
+#login-dropdown .form-control {
+    border-radius: 4px; /* Bordes ligeramente redondeados */
+    border: 1px solid #ced4da; /* Borde claro */
+    font-size: 14px; /* Tamaño de fuente consistente */
+}
+
+#login-dropdown .btn {
+    background-color: #007bff; /* Color azul primario */
+    color: #fff; /* Texto blanco */
+    border-radius: 4px; /* Bordes ligeramente redondeados */
+}
+
+#login-dropdown .btn:hover {
+    background-color: #0056b3; /* Color azul más oscuro en hover */
+}
+
+#login-dropdown .small {
+    font-size: 12px; /* Tamaño de fuente pequeño */
+    color: #0056b3; /* Color azul */
+}
+
+#login-dropdown .small:hover {
+    text-decoration: underline; /* Subrayado en hover */
+}
+
+
+
 /* Estilos generales de la navbar */
 .navbar-custom {
     background-color: #005f7f;

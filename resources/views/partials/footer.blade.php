@@ -1,7 +1,7 @@
-<!-- Footer 17 - Bootstrap Brain Component -->
+<!-- Footer - Updated Version -->
 <footer class="pt-3 pt-md-4 pt-xl-5">
 
-  <!-- Logo & SM - Bootstrap Brain Component -->
+  <!-- Logo & Social Media -->
   <div class="footer-top">
     <div class="container">
       <div class="row gy-3 align-items-center">
@@ -57,15 +57,15 @@
     </div>
   </div>
 
-  <!-- Widgets - Bootstrap Brain Component -->
+  <!-- Widgets -->
   <section class="py-4 py-md-5 py-xl-6 footer-widgets">
     <div class="container">
       <div class="row gy-3">
         <div class="col-12 col-lg-7 col-xl-6">
           <div class="widget">
-            <h4 class="widget-title mb-3">SUSCRIBETE A NUESTRO NEWSLETTER</h4>
+            <h4 class="widget-title mb-3">SUSCRÍBETE A NUESTRO NEWSLETTER</h4>
             <p class="mb-4">
-            No te pierdas la oportunidad de recibir nuestras ofertas.
+              No te pierdas la oportunidad de recibir nuestras ofertas.
             </p>
             <form action="#!">
               <div class="row gy-4">
@@ -76,7 +76,7 @@
                         <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4Zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2Zm13 2.383-4.708 2.825L15 11.105V5.383Zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741ZM1 11.105l4.708-2.897L1 5.383v5.722Z" />
                       </svg>
                     </span>
-                    <input type="email" class="form-control" id="email-newsletter" value="" placeholder="Correro Electrónico" aria-label="email-newsletter" aria-describedby="email-newsletter-addon" required>
+                    <input type="email" class="form-control" id="email-newsletter" value="" placeholder="Correo Electrónico" aria-label="email-newsletter" aria-describedby="email-newsletter-addon" required>
                   </div>
                 </div>
                 <div class="col-12 col-lg-8">
@@ -113,7 +113,7 @@
               </li>
               <li class="mb-3">
                 <a href="#!" class="link-dark text-decoration-none link-opacity-75-hover">
-                  Nuestas Sucursales
+                  Nuestras Sucursales
                 </a>
               </li>
               <li>
@@ -127,6 +127,16 @@
         <div class="col-6 col-lg-3 col-xl-4">
           <div class="link-wrapper">
             <ul class="m-0 list-unstyled">
+              <li class="mb-3">
+                <a href="{{ route('terminosyc') }}" class="link-dark text-decoration-none link-opacity-75-hover">
+                  Términos y Condiciones
+                </a>
+              </li>
+              <li class="mb-3">
+                <a href="{{ route('avisoprivacidad') }}" class="link-dark text-decoration-none link-opacity-75-hover">
+                  Aviso de Privacidad
+                </a>
+              </li>
               <li class="mb-3">
                 <a href="#!" class="link-dark text-decoration-none link-opacity-75-hover">
                   Nuestras Sucursales
@@ -154,7 +164,7 @@
     </div>
   </section>
 
-
+  <!-- Footer Bottom -->
   <div class="py-3 py-md-4 py-xl-5 footer-bottom">
     <div class="container">
       <div class="row g-3 align-items-center">
@@ -181,11 +191,11 @@
               </li>
               <li>
                 <a href="#!" class="link-underline-opacity-0 link-opacity-75-hover link-underline-opacity-100-hover link-offset-1 link-secondary fs-8 d-flex align-items-center pe-2 pe-md-3 bsb-sep bsb-sep-border">
-                  Garantia
+                  Garantía
                 </a>
               </li>
               <li>
-                <a href="#!" class="link-underline-opacity-0 link-opacity-75-hover link-underline-opacity-100-hover link-offset-1 link-secondary fs-8 d-flex align-items-center pe-2 pe-md-3 bsb-sep bsb-sep-border">
+                <a href="{{ route('avisoprivacidad') }}" class="link-underline-opacity-0 link-opacity-75-hover link-underline-opacity-100-hover link-offset-1 link-secondary fs-8 d-flex align-items-center pe-2 pe-md-3 bsb-sep bsb-sep-border">
                   Privacidad
                 </a>
               </li>

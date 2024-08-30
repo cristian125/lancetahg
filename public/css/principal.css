@@ -1,23 +1,31 @@
-
-
-/* Estilo del carrusel */
+/* Estilo del contenedor del carrusel */
 .carousel-custom-size {
-    width: 100%; /* Ajusta el ancho según sea necesario */
-    max-width: 80%; /* Ancho máximo del carrusel */
-    height: 450px; /* Altura fija del carrusel */
-    margin: 20px auto 0; /* Margen superior para bajar el carrusel */
+    width: 100%; /* Ocupa todo el ancho disponible */
+    /*max-width: 80%; /* Ancho máximo del carrusel */
+    aspect-ratio: 16 / 9; /* Mantiene la proporción 16:9 */
+    margin: 20px auto 0; /* Centra el carrusel horizontalmente y agrega un margen superior */
+    overflow: hidden; /* Esconde cualquier contenido que sobresalga del contenedor */
+    background-color: #f5f5f5; /* Color de fondo por si las imágenes no ocupan todo el espacio */
+    position: relative; /* Asegura que los elementos dentro del carrusel se comporten de forma relativa al contenedor */
 }
 
+/* Estilo para las imágenes dentro del carrusel */
 .carousel-inner {
-    width: 100%;
-    height: 100%; /* Asegura que el carrusel ocupe la altura completa del contenedor */
+    width: 100%; /* Ocupa todo el ancho del contenedor */
+    height: 100%; /* Ocupa todo el alto del contenedor */
+    display: center; /* Utiliza flexbox para alinear contenido */
+    justify-content: center; /* Centra las imágenes horizontalmente */
+    align-items: center; /* Centra las imágenes verticalmente */
 }
 
 .carousel-inner img {
-    object-fit: contain; /* Ajusta la imagen dentro del contenedor sin distorsión */
-    width: 100%;
-    height: 100%;
+    max-width: 100%; /* Asegura que la imagen no se salga horizontalmente */
+    max-height: 100%; /* Asegura que la imagen no se salga verticalmente */
+    object-fit: contain; /* Ajusta la imagen al contenedor manteniendo su proporción */
+    display: block; /* Elimina posibles márgenes o espacios indeseados */
+    margin: 0 auto; /* Centra la imagen en su contenedor */
 }
+
 
 /* Estilo para los indicadores del carrusel */
 .carousel-indicators li {
@@ -43,37 +51,135 @@
     height: 40px;
 }
 
-/* Estilo general para los productos */
+
+
+/* Estilo para el contenedor que divide las secciones */
+#item-centrado {
+    font-size: 24px; /* Tamaño de fuente grande para destacar el texto */
+    font-weight: bold; /* Negrita para resaltar el texto */
+    color: #005f7f; /* Color del texto */
+    padding: 10px 0; /* Espaciado interno superior e inferior */
+    border-bottom: 2px solid #2396e2; /* Línea inferior para separación visual */
+    margin-top: 40px; /* Margen superior para separación con el contenido anterior */
+    margin-bottom: 40px; /* Margen inferior para separación con el contenido siguiente */
+}
+
+/* Estilo para el contenedor de la fila */
+.row.justify-content-center.align-items-center {
+    margin-bottom: 20px; /* Espacio adicional entre esta fila y el contenido siguiente */
+}
+
+
+
+
+
+/* Estilo general para los productos destacados */
 .product-container {
-    position: relative; /* Necesario para que la superposición funcione correctamente */
+    position: relative; /* Necesario para que el botón y otros elementos se posicionen correctamente */
     overflow: hidden; /* Oculta cualquier cosa que se salga del contenedor */
     text-align: center; /* Centra todo el contenido dentro del contenedor */
-    padding: 15px; /* Espaciado interno */
+    padding: 10px; /* Espaciado interno */
     background-color: #f9f9f9; /* Fondo claro */
     border-radius: 10px; /* Bordes redondeados */
     transition: all 0.3s ease; /* Transición suave */
-    width: 100% !important; /* Asegura que el contenedor use todo el espacio disponible */
-    max-width: 250px !important; /* Establece un ancho máximo constante */
-    height: 350px !important; /* Establece una altura constante */
+    width: 280px !important; /* Establece un ancho máximo constante */
+    height: 355px !important; /* Establece una altura constante */
     margin: 0 auto; /* Centra horizontalmente */
 }
 
+
+/* Estilo para las imágenes */
 .product-container img {
     width: 100% !important; /* Asegura que la imagen use todo el ancho del contenedor */
-    height: auto !important; /* Mantiene la proporción original de la imagen */
-    max-height: 100% !important; /* Limita la altura máxima al contenedor */
-    object-fit: contain !important; /* Asegura que la imagen se ajuste al contenedor sin distorsionarse */
+    height: 200px !important; /* Fija la altura de la imagen para mantener proporción cuadrada */
+    object-fit: cover !important; /* Cubre el contenedor con la imagen, recortando si es necesario */
     border-radius: 5px !important; /* Bordes redondeados para las imágenes */
     margin-bottom: 10px !important; /* Espacio entre la imagen y el texto */
+    background-color: #f5f5f5; /* Fondo gris claro para mostrar mientras carga la imagen */
 }
+
+/* Estilo para la información del producto */
+.product-info {
+    color: #444 !important; /* Color gris oscuro para facilitar la lectura */
+    width: 100%;
+    height: 35%;
+    font-size: 12px !important; /* Tamaño de fuente más pequeño para la lectura */
+    line-height: 1 !important; /* Espaciado entre líneas para mejor legibilidad */
+    font-weight: 400 !important; /* Peso de fuente regular */
+    /* background-color: #ffffff !important; /* Fondo blanco */
+    padding: 5px !important; /* Espaciado interno */
+    border-radius: 8px !important; /* Bordes redondeados */
+    box-shadow: none !important; /* Sin sombra */
+    text-align: left !important; /* Alinear texto al centro para una presentación más uniforme */
+    margin-bottom: 10px !important; /* Espacio inferior para dar lugar al precio */
+}
+
+/* Estilo para el número de serie */
+.product-serial {
+    font-size: 12px !important; /* Tamaño de fuente más pequeño */
+    color: #007bff !important; /* Color azul para destacar */
+    font-weight: bold !important; /* Negrita para enfatizar */
+    margin-bottom: 5px !important; /* Espacio inferior */
+    display: block !important; /* Mantiene el formato en bloque */
+}
+
+/* Estilo para el precio del producto */
+.product-container .product-price {
+    font-size: 16px !important; /* Tamaño de fuente adecuado */
+    color: #2396e2 !important; /* Color azul oscuro para el precio */
+    font-weight: bold !important; /* Negrita para destacar el precio */
+    background-color: transparent !important; /* Elimina el fondo */
+    padding: 0 !important; /* Sin espaciado interno */
+    display: block !important; /* Para que el fondo se ajuste al texto */
+    text-align: center !important; /* Centrar el texto */
+    position: absolute; /* Posiciona el precio de forma absoluta */
+    bottom: 10%; /* Fija el precio a 10px del fondo del contenedor */
+    left: 0; /* Alinea a la izquierda */
+    right: 0; /* Alinea a la derecha */
+    text-shadow: none !important; /* Sin sombra de texto */
+    border: none !important; /* Sin bordes */
+    letter-spacing: normal !important; /* Espaciado normal entre letras */
+    margin: 0 !important; /* Sin margen adicional */
+}
+
+
+
+/* Estilo para el botón */
+.product-container button {
+    position: absolute;
+    bottom: 10px; /* Espaciado desde el fondo del contenedor */
+    left: 10px; /* Alineado a la izquierda */
+    right: 10px; /* Alineado a la derecha */
+    width: calc(100% - 20px); /* Ajusta el ancho para dar espacio a los márgenes */
+    padding: 10px;
+    background-color: #ff9900; /* Color naranja del botón */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+/* Efecto hover para el botón */
+.product-container button:hover {
+    background-color: #e67e22; /* Cambiar color del botón al pasar el mouse */
+}
+
+/* Efecto hover en el contenedor del producto */
+.product-container:hover {
+    transform: translateY(-5px); /* Levantar el contenedor ligeramente */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Sombra más intensa */
+}
+
 
 /* Superposición para el botón "Ver" */
 .product-container .overlay {
     position: absolute;
     left: 50%; /* Centra horizontalmente */
-    top: 50%; /* Ajusta esta posición para mover el rectángulo más arriba */
+    top: 65%; /* Ajusta esta posición para mover el rectángulo más arriba */
     transform: translate(-50%, -50%); /* Centra el rectángulo */
-    background-color: rgba(80, 193, 231, 0.9); /* Color azul con transparencia */
+    background-color: #005f7f; /* Color azul con transparencia */
     color: white;
     padding: 3% 100%; /* Ajusta el tamaño del rectángulo */
     border-radius: 5px; /* Bordes redondeados */
@@ -82,7 +188,22 @@
     transition: opacity 0.5s ease, visibility 0.5s ease;
 }
 
-.product-container:hover .overlay {
+/* Superposición para el botón "Añadir al Carrito" */
+.product-container .overlay-cart {
+    position: absolute;
+    left: 50%; /* Centra horizontalmente */
+    top: 83%; /* Ajusta esta posición para mover el rectángulo más abajo */
+    transform: translate(-50%, -50%); /* Centra el rectángulo */
+    color: white;
+    padding: 3% 100%; /* Ajusta el tamaño del rectángulo */
+    border-radius: 5px; /* Bordes redondeados */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+.product-container:hover .overlay,
+.product-container:hover .overlay-cart {
     opacity: 1;
     visibility: visible;
 }
@@ -93,87 +214,50 @@
     text-align: center;
 }
 
-/* Información del producto (nombre, marca, precio) */
-.product-info {
-    margin-top: 10px; /* Espacio superior para separar de la imagen */
+/* Estilo para el botón "Añadir al Carrito" en el overlay */
+.overlay-cart button {
+    margin: 0;
+    background-color: #00B398;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
-/* Estilo para el nombre del producto */
-.product-container p:first-of-type {
-    font-weight: bold; /* Negrita para el nombre del producto */
-    font-size: 16px; /* Tamaño de fuente */
-    color: #333; /* Color de texto */
+.overlay-cart button:hover {
+    background-color: #00B398;
 }
 
-/* Estilo para la marca del producto */
-.product-container p:nth-of-type(2) {
-    font-size: 14px; /* Tamaño de fuente más pequeño */
-    color: #666; /* Color de texto gris */
+
+/* Superposición adicional para mostrar la descripción y número de serie */
+.product-container .overlay-info {
+    position: absolute;
+    left: 0; /* Alinea el overlay al borde izquierdo del contenedor */
+    right: 0; /* Alinea el overlay al borde derecho del contenedor */
+    top: 50.2%; /* Centra verticalmente el overlay */
+    transform: translateY(-50%); /* Ajusta la posición para mantenerlo centrado */
+    background-color: #00B398; /* Fondo oscuro con transparencia */
+    color: white;
+    height: 18%;
+    padding: 5px 10px; /* Espaciado interno reducido */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+    text-align: center; /* Centra el texto dentro del overlay */
+    font-size: 11px; /* Tamaño de fuente más pequeño */
+    line-height: 1.2; /* Reduce el espacio entre líneas */
 }
 
-/* Estilo para el precio del producto */
-.product-container p:nth-of-type(3) {
-    font-size: 18px; /* Tamaño de fuente más grande */
-    color: #e74c3c; /* Color de texto rojo para el precio */
-    font-weight: bold; /* Negrita para destacar el precio */
-    margin-top: 10px; /* Espacio superior */
-    background-color: #fce4e4; /* Fondo rosado para resaltar */
-    padding: 5px; /* Espaciado interno alrededor del precio */
-    border-radius: 5px; /* Bordes redondeados para el precio */
-    display: inline-block; /* Para que el fondo se ajuste al texto */
+/* Mostrar el overlay al hacer hover sobre el contenedor */
+.product-container:hover .overlay-info {
+    opacity: 1;
+    visibility: visible;
 }
 
-/* Efecto hover en el contenedor del producto */
-.product-container:hover {
-    transform: translateY(-10px); /* Levantar el contenedor */
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Sombra más intensa */
+/* Ajustes específicos para el número de serie y la descripción */
+.overlay-info p {
+    margin: 2px 0; /* Reduce el margen entre el número de serie y la descripción */
 }
-
-/* Estilo para botones o enlaces dentro del contenedor del producto */
-.product-container a,
-.product-container button {
-    display: inline-block;
-    margin-top: 2px; /* Espacio superior */
-    padding: 10px 20px; /* Espaciado interno */
-    background-color: #005f7f; /* Fondo azul oscuro */
-    color: white; /* Texto blanco */
-    border-radius: 5px; /* Bordes redondeados */
-    text-decoration: none; /* Sin subrayado en enlaces */
-    transition: background-color 0.3s ease; /* Transición suave */
-}
-
-/* Efecto hover para botones o enlaces */
-.product-container a:hover,
-.product-container button:hover {
-    background-color: #00455f; /* Cambiar color de fondo en hover */
-}
-
-/* Estilo específico para el ID #item-centrado */
-#item-centrado {
-    font-size: 20px; /* Tamaño de la fuente */
-    color: #007399; /* Color del texto */
-    font-weight: bold; /* Negrita */
-    text-align: center;
-    height: 2vh; /* Centrado horizontal */
-}
-
-/* Estilo para imágenes pequeñas */
-.small-img {
-    max-width: 100%;
-    max-height: 100px; /* Ajusta este valor para hacer las imágenes más pequeñas */
-    object-fit: cover;
-}
-/* Ajustes específicos para pantallas pequeñas */
-@media (max-width: 768px) {
-    .product-container .overlay {
-        top: 62%; /* Ajusta la posición vertical en pantallas pequeñas */
-    }
-}
-
-/* Ajustes específicos para pantallas extra pequeñas */
-@media (max-width: 480px) {
-    .product-container .overlay {
-        top: 65%; /* Ajusta aún más la posición vertical para pantallas muy pequeñas */
-    }
-}
-
