@@ -48956,4 +48956,8 @@ svg:not(:host).svg-inline--fa, svg:not(:root).svg-inline--fa {
 }
 .form-input .input-group-text {
   background-color: #26d2b6 !important;
+}
+
+.hidden {
+  display: none;
 }/*# sourceMappingURL=app.css.map */

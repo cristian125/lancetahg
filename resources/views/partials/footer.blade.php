@@ -63,9 +63,9 @@
       <div class="row gy-3">
         <div class="col-12 col-lg-7 col-xl-6">
           <div class="widget">
-            <h4 class="widget-title mb-3">SUSCRÍBETE A NUESTRO NEWSLETTER</h4>
+            <h4 class="widget-title mb-3">SUSCRÍBASE A NUESTRO NEWSLETTER</h4>
             <p class="mb-4">
-              No te pierdas la oportunidad de recibir nuestras ofertas.
+              No se pierda la oportunidad de recibir nuestras ofertas.
             </p>
             <form action="#!">
               <div class="row gy-4">
@@ -92,36 +92,30 @@
           <div class="link-wrapper">
             <ul class="m-0 list-unstyled">
               <li class="mb-3">
-                <a href="#!" class="link-dark text-decoration-none link-opacity-75-hover">
+                <a href="{{ route('ventatelefonica') }}"  class="link-dark text-decoration-none link-opacity-75-hover">
                   Ventas
                 </a>
               </li>
               <li class="mb-3">
-                <a href="#!" class="link-dark text-decoration-none link-opacity-75-hover">
-                  Centro de Ayuda
+                <a href="{{ route('formasdepago') }}" class="link-dark text-decoration-none link-opacity-75-hover">
+                  Formas de pago
                 </a>
               </li>
               <li class="mb-3">
-                <a href="#!" class="link-dark text-decoration-none link-opacity-75-hover">
+                <a href="{{ route('nosotros') }}" class="link-dark text-decoration-none link-opacity-75-hover">
                   Nosotros
                 </a>
               </li>
               <li class="mb-3">
-                <a href="#!" class="link-dark text-decoration-none link-opacity-75-hover">
-                  Preguntas Frecuentes
-                </a>
-              </li>
-              <li class="mb-3">
-                <a href="#!" class="link-dark text-decoration-none link-opacity-75-hover">
+                <a href="{{ route('sucursales') }}" class="link-dark text-decoration-none link-opacity-75-hover">
                   Nuestras Sucursales
                 </a>
               </li>
-              <li>
-                <a href="#!" class="link-dark text-decoration-none link-opacity-75-hover">
-                  Atención al Cliente
+              <li class="mb-3">
+                <a href="{{ route('promociones') }}" class="link-dark text-decoration-none link-opacity-75-hover">
+                  Promociones
                 </a>
               </li>
-            </ul>
           </div>
         </div>
         <div class="col-6 col-lg-3 col-xl-4">
@@ -137,23 +131,19 @@
                   Aviso de Privacidad
                 </a>
               </li>
+
               <li class="mb-3">
-                <a href="#!" class="link-dark text-decoration-none link-opacity-75-hover">
-                  Nuestras Sucursales
+                <a href="{{ route('proveedores') }}" class="link-dark text-decoration-none link-opacity-75-hover">
+                  Proveedores
                 </a>
               </li>
               <li class="mb-3">
-                <a href="#!" class="link-dark text-decoration-none link-opacity-75-hover">
-                  Venta Telefónica
+                <a href="{{ route('preguntasfrec') }}" class="link-dark text-decoration-none link-opacity-75-hover">
+                  Preguntas Frecuentes
                 </a>
               </li>
               <li class="mb-3">
-                <a href="#!" class="link-dark text-decoration-none link-opacity-75-hover">
-                  Bolsa de Trabajo
-                </a>
-              </li>
-              <li>
-                <a href="#!" class="link-dark text-decoration-none link-opacity-75-hover">
+                <a href="{{ route('clientedistinguido') }}" class="link-dark text-decoration-none link-opacity-75-hover">
                   Tarjeta Cliente Distinguido
                 </a>
               </li>
@@ -180,7 +170,8 @@
           <div class="link-wrapper">
             <ul class="m-0 list-unstyled d-flex justify-content-center justify-content-lg-end gap-2 gap-md-3">
               <li>
-                <a href="#!" class="link-underline-opacity-0 link-opacity-75-hover link-underline-opacity-100-hover link-offset-1 link-secondary fs-8 d-flex align-items-center pe-2 pe-md-3 bsb-sep bsb-sep-border">
+
+                <a href="{{ route('envios') }}"  class="link-underline-opacity-0 link-opacity-75-hover link-underline-opacity-100-hover link-offset-1 link-secondary fs-8 d-flex align-items-center pe-2 pe-md-3 bsb-sep bsb-sep-border">
                   Envíos
                 </a>
               </li>
@@ -212,3 +203,30 @@
   </div>
 
 </footer>
+
+
+<style>
+
+
+
+/* Ajustes específicos para pantallas pequeñas */
+@media (max-width: 576px) {
+    .footer-top {
+        padding: 2rem 0; /* Ajusta el padding para móviles */
+    }
+
+    .social-media-wrapper {
+        flex-direction: row;
+        justify-content: space-around;
+        margin-top: -1.5rem; /* Ajusta el espacio para que los íconos estén más cerca del logo */
+    }
+
+    .footer-logo-wrapper {
+        justify-content: center;
+        margin-bottom: 0.5rem; /* Espacio reducido entre logo y redes sociales */
+        margin-top: -1.5rem;
+    }
+}
+
+
+</style>

@@ -40,3 +40,62 @@
   color: #ffffff;
 }
 
+/* Estilos para alinear todos los contenedores a la misma altura */
+.product-card {
+  height: 300px; /* Establece una altura mínima para los contenedores */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 1px solid #ddd;
+  padding: 15px;
+  border-radius: 10px;
+  background-color: #ffffff;
+}
+
+.product-card img {
+  max-height: 150px; /* Asegúrate de que las imágenes no superen esta altura */
+  object-fit: contain;
+  margin-bottom: 15px;
+}
+
+.product-info {
+  text-align: center; /* Centra el texto */
+  flex-grow: 1;
+}
+
+.product-info h6 {
+  margin-bottom: 10px;
+}
+
+.product-info p {
+  margin-bottom: 0;
+  font-weight: bold;
+  color: #333;
+}
+
+.owl-carousel .item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+.owl-nav {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.owl-nav .owl-prev,
+.owl-nav .owl-next {
+  background-color: #007bff;
+  color: white;
+  padding: 5px 15px;
+  border-radius: 5px;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+.owl-nav .owl-prev:hover,
+.owl-nav .owl-next:hover {
+  background-color: #0056b3;
+}

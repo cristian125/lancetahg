@@ -147,3 +147,135 @@
 .navbar-dark .dropdown-toggle:focus::after {
     border-top-color: #ffffff;
 }
+
+
+
+/***********************************************/
+/* Asegura que el dropdown tenga un tamaño consistente */
+#dropdown-container {
+    min-width: 130%;
+    max-height: 400px;
+    overflow: hidden;
+    background-color: #005f7f;
+    border-radius: 8px;
+    border: none;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+}
+
+/* Contenedor de la lista de resultados */
+#items-search-list {
+    overflow-y: auto;
+    max-height: 300px;
+    margin-bottom: 0;
+    padding-right: 10px;
+}
+
+/* Estilo del mensaje de conteo de resultados */
+#item-result-count {
+    padding: 12px;
+    background-color: #007bff;
+    color: #ffffff;
+    text-align: center;
+    border-radius: 0 0 8px 8px;
+    flex-shrink: 0;
+    font-size: 16px;
+}
+
+/* Estilo básico para las imágenes de los productos */
+.item-img {
+    width: 75px;
+    height: 75px;
+    border-radius: 8px;
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
+    margin-right: 10px;
+}
+
+/* Fondo y estilo constante para los items de la lista */
+.item-template {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.15);
+    text-decoration: none;
+    color: #333333;
+    overflow: hidden;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+/* Efecto hover para los items */
+.item-template:hover {
+    background-color: #f1f1f1;
+    transform: translateY(-2px);
+}
+
+/* Espaciado y formato del texto */
+.item-template p {
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+    font-size: 14px;
+    color: #333333;
+}
+
+/* Estilo y visibilidad del precio */
+.product-price {
+    font-size: 16px;
+    font-weight: bold;
+    color: #005f7f;
+    margin-bottom: 4px;
+}
+
+/* Estilo y visibilidad del precio con descuento */
+.product-discount {
+    font-size: 14px;
+    color: #ff6f61;
+    margin-top: 4px;
+}
+
+/* Estilo para el botón de añadir al carrito */
+.btn-add-to-cart {
+    background-color: #28a745;
+    border: none;
+    border-radius: 4px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.15);
+    transition: background-color 0.3s ease;
+}
+
+/* Efecto hover para el botón de añadir al carrito */
+.btn-add-to-cart:hover {
+    background-color: #218838;
+}
+
+/* Estilo personalizado para el scrollbar */
+#items-search-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+#items-search-list::-webkit-scrollbar-track {
+    background: #003f5f;
+    border-radius: 8px;
+}
+
+#items-search-list::-webkit-scrollbar-thumb {
+    background-color: #007bff;
+    border-radius: 8px;
+    border: 2px solid #003f5f;
+}
+
+#items-search-list::-webkit-scrollbar-thumb:hover {
+    background-color: #005f7f;
+}

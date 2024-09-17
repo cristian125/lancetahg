@@ -1,21 +1,14 @@
-@media (width <= 900px) 
-{
-    #btnCart .dropdown-menu
-    {
+@media (width <= 900px) {
+    #btnCart .dropdown-menu {
         position: absolute;
         width: auto !important;
-        /* margin-top: -200px !important; */
     }
-    
 }
 
-@media (orientation: landscape) and (width <= 1200px) 
-{
-    #btnCart .dropdown-menu 
-    {
+@media (orientation: landscape) and (width <= 1200px) {
+    #btnCart .dropdown-menu {
         position: absolute !important;
         margin-top: -200px !important;
-        /* width: 620px !important; */
     }
 }
 
@@ -28,10 +21,10 @@
     max-height: 700px; /* Altura máxima */
     overflow-y: auto; /* Scroll si el contenido excede la altura */
 }
-#cart-items
-{
+
+#cart-items {
     max-height: 300px;
-    overflow-x: hidden; 
+    overflow-x: hidden;
     overflow-y: scroll;
 }
 
@@ -66,7 +59,7 @@
 
 /* Estilo del botón eliminar */
 .remove-from-cart {
-    background-color: #e74c3c;
+    background-color: #dc3545;
     border: none;
     color: white;
     border-radius: 5px;
@@ -80,25 +73,134 @@
     background-color: #c0392b;
 }
 
-/* Personalización del scrollbar */
-#navbarDropdownCart + .dropdown-menu::-webkit-scrollbar {
+/* Personalización del scrollbar del dropdown y de los elementos del carrito */
+#btnCart .dropdown-menu::-webkit-scrollbar,
+#cart-items::-webkit-scrollbar {
     width: 8px; /* Ancho del scrollbar */
 }
 
-#navbarDropdownCart + .dropdown-menu::-webkit-scrollbar-track {
-    background: #f1f1f1; /* Fondo del track */
+#btnCart .dropdown-menu::-webkit-scrollbar-track,
+#cart-items::-webkit-scrollbar-track {
+    background: #26d2b6; /* Fondo del track */
 }
 
-#navbarDropdownCart + .dropdown-menu::-webkit-scrollbar-thumb {
-    background-color: #888; /* Color del pulgar */
+#btnCart .dropdown-menu::-webkit-scrollbar-thumb,
+#cart-items::-webkit-scrollbar-thumb {
+    background-color: #ffffff; /* Color del pulgar */
     border-radius: 8px; /* Bordes redondeados */
 }
 
 /* Estilo para los botones dentro del dropdown */
-#navbarDropdownCart + .dropdown-menu .btn {
+#btnCart .dropdown-menu .btn {
     width: 100%; /* Botones ocupan todo el ancho */
     margin-top: 10px; /* Margen superior */
     border-radius: 4px; /* Bordes redondeados */
     padding: 10px; /* Padding interno */
     font-weight: bold; /* Texto en negrita */
+}
+
+
+.product-image {
+    transition: transform 0.3s ease-in-out;
+}
+
+.product-image:hover {
+    transform: scale(1.05);
+}
+
+.unique-product-price1 {
+    background-color: #fcf8e3;
+    color: #666666;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 8px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+    text-align: center;
+    font-size: 16px;
+    margin-right: 15px;
+}
+
+.unique-product-total-price1 {
+    background-color: #dff0d8;
+    color: #007bff;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 8px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+    text-align: center;
+    font-size: 16px;
+    margin-right: 15px;
+}
+
+.item-image-wrapper img {
+    transition: transform 0.3s ease;
+}
+
+.item-image-wrapper img:hover {
+    transform: scale(1.1);
+}
+
+.image-container1 {
+    position: relative;
+    width: 100%;
+    padding-top: 100%; /* Mantiene el contenedor cuadrado */
+    overflow: hidden;
+    border: 1px solid #ddd; /* Opcional: bordes alrededor de la imagen */
+    border-radius: 5px; /* Opcional: bordes redondeados */
+}
+
+.product-image1 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* Escala la imagen para que quepa dentro del contenedor sin recortarla */
+    background-color: #fff; /* Añade un fondo blanco para evitar que se vea el fondo del contenedor */
+}
+
+
+.custom-btn-minus {
+    background-color: #007bff; /* Cambia el color del botón "-" */
+ 
+    border: none; /* Sin borde */
+}
+
+.custom-btn-plus {
+    background-color: #007bff; /* Cambia el color del botón "+" */
+   
+    border: none; /* Sin borde */
+}
+
+.custom-btn-minus:hover, .custom-btn-plus:hover {
+    background-color: #333333; /* Cambia el color cuando se hace hover */
+    color: #ffffff; /* Asegura que el texto sigue siendo legible */
+}
+
+/* Estilo para el botón de disminución y aumento */
+.quantity-controls .btn {
+    width: 25px; /* Fija el ancho de los botones */
+    height: 30px; /* Fija la altura de los botones */
+    display: inline-flex; /* Para que ocupe el mismo espacio que el input */
+    align-items: center; /* Centrar el contenido verticalmente */
+    justify-content: center; /* Centrar el contenido horizontalmente */
+    padding: 0; /* Eliminar padding interno para ajustar el tamaño */
+    font-size: 1rem; /* Ajusta el tamaño del texto para igualar el input */
+}
+
+/* Asegurar que el input tenga el mismo tamaño */
+.quantity-controls .quantity-input {
+    width: 30px; /* Fija un ancho para el input */
+    height: 30px; /* Fija la altura del input */
+    text-align: center;
+    padding: 0; /* Eliminar padding interno */
+    font-size: 1rem; /* Ajusta el tamaño del texto para igualar los botones */
+    margin: 0; /* Eliminar márgenes adicionales */
+}
+
+/* Ocultar visualmente el botón cuando está deshabilitado */
+.quantity-controls .btn:disabled {
+    background-color: #ffffff;
+    color: #ffffff; /* Hace que el texto + o - sea invisible */
+    cursor: default; /* Cambia el cursor para indicar que no es interactivo */
 }

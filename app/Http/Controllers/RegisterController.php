@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\Validation\ValidationException;
 
 class RegisterController extends Controller
 {
@@ -46,5 +48,28 @@ class RegisterController extends Controller
 
         // Redirigir a la página de inicio o a la que prefieras
         return redirect('/');
+    }
+
+    public function change(Request $request)
+    {
+        $this->validate($request, [
+            'current_password' => ['required', 'string'],
+            'new_password' => ['required', 'string', 'min:4', 'confirmed'],
+        ]);
+
+        $user = Auth::user();
+          
+        // Verificar la contraseña actual
+        if (!Hash::check($request->input('current_password'), $user->password)) {
+            throw ValidationException::withMessages([
+                'current_password' => ['La contraseña actual no es correcta.'],
+            ]);
+        }
+
+        // Actualizar la contraseña
+        $user->password = Hash::make($request->input('new_password'));
+        $user->save();
+
+        return redirect()->route('cuenta')->with('status', 'Contraseña cambiada exitosamente.');
     }
 }

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ListProdMin extends Model
 {
-    protected $table = 'list_prod_min'; // Nombre de la tabla en la base de datos
+    protected $table = 'itemsdb'; // Nombre de la tabla en la base de datos
     
     protected $fillable = [
         'no_s', 'no_proveedor', 'descripcion', 'costo_unitario', 'precio_unitario', 

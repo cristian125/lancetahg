@@ -1,4 +1,4 @@
-@extends('../template')
+@extends('template')
 @section('header')
     <title>Error 404 - No encontrado</title>
     <style>

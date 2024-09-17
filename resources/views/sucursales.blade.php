@@ -16,16 +16,9 @@
                     <p><strong>Estacionamiento:</strong> Sí<br><strong>Horario de estacionamiento:</strong> 9:00 hrs - 19:00 hrs<br>1 hora de cortesía en la compra mínima de $150.</p>
                 </div>
                 <div class="col-md-6">
-                    <iframe
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3762.472578999683!2d-99.14225278465426!3d19.420038346378235!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1fefc100f3af7%3A0x6f6d5bc57be5ab0c!2sLanceta%20HG%20Hiper!5e0!3m2!1ses-419!2smx!4v1638564039881!5m2!1ses-419!2smx"
-                        width="100%"
-                        height="300"
-                        style="border:0;"
-                        allowfullscreen=""
-                        loading="lazy">
-                    </iframe>
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d559.3674884036108!2d-99.15358558456846!3d19.414094153424177!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1ff3d6f4c6d8f%3A0x5266627119a27422!2sLanceta%20HG%20Hiper!5e0!3m2!1ses-419!2smx!4v1726071197225!5m2!1ses-419!2smx" width="500" height="350" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                 </div>
-            </div>
+                </div>
         </div>
     </div>
 
@@ -41,14 +34,7 @@
                     <p><strong>Estacionamiento:</strong> Sí<br><strong>Horario de estacionamiento:</strong> 9:00 hrs - 19:00 hrs<br>1 hora de cortesía en la compra mínima de $150.</p>
                 </div>
                 <div class="col-md-6">
-                    <iframe
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3762.472578999683!2d-99.14225278465426!3d19.420038346378235!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1fefc100f3af7%3A0x8d51f9b3ff68df67!2sLanceta%20HG%20Hospital%20General!5e0!3m2!1ses-419!2smx!4v1638564039881!5m2!1ses-419!2smx"
-                        width="100%"
-                        height="300"
-                        style="border:0;"
-                        allowfullscreen=""
-                        loading="lazy">
-                    </iframe>
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d646.2679039613057!2d-99.15396860732132!3d19.413801530479084!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1ff2382b83451%3A0xa5442c30f390c4bc!2sLanceta%20HG%20Hospital%20General!5e0!3m2!1ses-419!2smx!4v1726070995017!5m2!1ses-419!2smx" width="500" height="350" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                 </div>
             </div>
         </div>
@@ -66,14 +52,7 @@
                     <p><strong>Estacionamiento:</strong> Sí<br><strong>Costo:</strong> Establecido por la plaza.</p>
                 </div>
                 <div class="col-md-6">
-                    <iframe
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3763.527689513877!2d-99.14193508489257!3d19.457265146253567!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1f9184077d1d7%3A0x7b45c0f17f45a875!2sLanceta%20HG%20La%20Raza!5e0!3m2!1ses-419!2smx!4v1638564585683!5m2!1ses-419!2smx"
-                        width="100%"
-                        height="300"
-                        style="border:0;"
-                        allowfullscreen=""
-                        loading="lazy">
-                    </iframe>
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d395.40131233583355!2d-99.14435840115968!3d19.467961489833307!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1f91de9bde299%3A0x8dcbb1d2516a2bee!2sLanceta%20HG%20La%20Raza!5e0!3m2!1ses-419!2smx!4v1726071263169!5m2!1ses-419!2smx" width="500" height="350" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                 </div>
             </div>
         </div>
@@ -92,14 +71,7 @@
                     <p><strong>Estacionamiento:</strong> Sí<br><strong>Sin costo.</strong></p>
                 </div>
                 <div class="col-md-6">
-                    <iframe
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3763.475044265502!2d-99.14973658489237!3d19.4540194462441!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1fd95d6b4b633%3A0x8a8b11954509f2e2!2sLanceta%20HG%20Tlalpan!5e0!3m2!1ses-419!2smx!4v1638564678476!5m2!1ses-419!2smx"
-                        width="100%"
-                        height="300"
-                        style="border:0;"
-                        allowfullscreen=""
-                        loading="lazy">
-                    </iframe>
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d559.8144567673412!2d-99.16470327964855!3d19.283768218547817!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85ce00f39b7191b7%3A0x74e29d079ab8ad15!2sLanceta%20HG%20Tlalpan!5e0!3m2!1ses-419!2smx!4v1726071308479!5m2!1ses-419!2smx" width="500" height="350" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                 </div>
             </div>
         </div>
@@ -118,14 +90,7 @@
                     <p><strong>Estacionamiento:</strong> No.</p>
                 </div>
                 <div class="col-md-6">
-                    <iframe
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3762.472578999683!2d-99.14225278465426!3d19.420038346378235!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1fefc100f3af7%3A0x8d51f9b3ff68df67!2sLanceta%20HG%20Satelite!5e0!3m2!1ses-419!2smx!4v1638564039881!5m2!1ses-419!2smx"
-                        width="100%"
-                        height="300"
-                        style="border:0;"
-                        allowfullscreen=""
-                        loading="lazy">
-                    </iframe>
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d790.655378377731!2d-99.23683182687621!3d19.498119265990642!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d2031f865424e3%3A0xeaae4836cb915b5c!2sLanceta%20HG%20Sat%C3%A9lite!5e0!3m2!1ses-419!2smx!4v1726071354736!5m2!1ses-419!2smx" width="500" height="350" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                 </div>
             </div>
         </div>
@@ -144,14 +109,7 @@
                     <p><strong>Estacionamiento:</strong> Sí<br><strong>Horario de estacionamiento:</strong> 9:00 hrs - 19:00 hrs<br>1 hora de cortesía en la compra mínima de $150.</p>
                 </div>
                 <div class="col-md-6">
-                    <iframe
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3762.472578999683!2d-99.14225278465426!3d19.420038346378235!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1fefc100f3af7%3A0x8d51f9b3ff68df67!2sLanceta%20HG%20Polanco!5e0!3m2!1ses-419!2smx!4v1638564039881!5m2!1ses-419!2smx"
-                        width="100%"
-                        height="300"
-                        style="border:0;"
-                        allowfullscreen=""
-                        loading="lazy">
-                    </iframe>
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d940.6027480340508!2d-99.194462!3d19.4378392!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d202069595e475%3A0x734aebea747265a!2sLanceta%20HG%20Polanco!5e0!3m2!1ses-419!2smx!4v1726072396917!5m2!1ses-419!2smx" width="500" height="350" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                 </div>
             </div>
         </div>
@@ -170,14 +128,7 @@
                     <p><strong>Estacionamiento:</strong> Sí<br>Sin costo.</p>
                 </div>
                 <div class="col-md-6">
-                    <iframe
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3748.867524191934!2d-102.3196251!3d21.877295!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8429e58ff2f96375%3A0x6b2e1427c892e09c!2sLanceta%20HG%20Universidad!5e0!3m2!1ses-419!2smx!4v1638564039881!5m2!1ses-419!2smx"
-                        width="100%"
-                        height="300"
-                        style="border:0;"
-                        allowfullscreen=""
-                        loading="lazy">
-                    </iframe>
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3701.679402537877!2d-102.31161610621386!3d21.908417976104825!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8429eefb6bfd644b%3A0x2ebd513acfa4fff1!2sLanceta%20HG%20Universidad!5e0!3m2!1ses-419!2smx!4v1726072445721!5m2!1ses-419!2smx" width="500" height="350" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                 </div>
             </div>
         </div>
@@ -196,14 +147,7 @@
                     <p><strong>Estacionamiento:</strong> Sí<br>Sin costo.</p>
                 </div>
                 <div class="col-md-6">
-                    <iframe
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3748.867524191934!2d-102.2972894!3d21.877295!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8429e58ff2f96375%3A0x8c9c8b9c8b9c9c8c!2sLanceta%20HG%20Hospital%20Hidalgo!5e0!3m2!1ses-419!2smx!4v1638564039881!5m2!1ses-419!2smx"
-                        width="100%"
-                        height="300"
-                        style="border:0;"
-                        allowfullscreen=""
-                        loading="lazy">
-                    </iframe>
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1850.9946623684605!2d-102.28129274960473!3d21.896486852285566!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8429efaa43b23fdf%3A0xd3a91219d0c2d8fc!2sLanceta%20HG%20Hospital%20Hidalgo!5e0!3m2!1ses-419!2smx!4v1726072608539!5m2!1ses-419!2smx" width="500" height="350" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                 </div>
             </div>
         </div>
