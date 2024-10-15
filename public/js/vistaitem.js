@@ -86,6 +86,7 @@ $(document).ready(function () {
             success: function (response) {
                 updateCartCount();
                 loadCartItems();
+                
                 if (response.stock_restante !== undefined) {
                     $(".stock-info")
                         .text(`${response.stock_restante} en stock`)
@@ -98,6 +99,7 @@ $(document).ready(function () {
                             .addClass("text-danger");
                     }
                 }
+                
             },
             error: function (data) {
                 if (data.status === 401) {
@@ -166,6 +168,7 @@ $(document).ready(function () {
                 } else {
                     $("#cart-item-count").hide();
                 }
+                
             },
             error: function () {
                 console.log("Error al cargar los items del carrito.");

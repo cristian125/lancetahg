@@ -25,9 +25,6 @@
         </ul>
         
         
-        
-
-        
         <!-- Contenido de las pestañas -->
         <div class="tab-content mt-3" id="envioTabsContent">
             <!-- Recoger en Tienda -->
@@ -109,7 +106,7 @@
 
         <div id="legend" class="mt-4 text-center">
             <p><strong>La información aquí expresada es exclusiva para las compras realizadas en línea dentro de nuestra Tienda Web.</strong></p>
-            <p>Para mayor información, puede consultar nuestros Términos y Condiciones, en el apartado <a href="{{ route('terminosyc') }}"  class="text-primary" target="_parent">“Políticas Generales de Envío“</a></p>
+            <p>Para mayor información, puede consultar nuestros Términos y Condiciones, en el apartado <a href="/page/terminos-y-condiciones"  class="text-primary" target="_parent">“Políticas Generales de Envío“</a></p>
         </div>
     </div>
 </div>

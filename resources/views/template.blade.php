@@ -1,123 +1,167 @@
+@php
+    use App\Http\Controllers\FooterController;
+
+  
+    $modalActivo = $modalActivo ?? 0;
+    $modalImagen = $modalImagen ?? '';
+@endphp
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <title>{{ env('SITE_NAME', 'Lanceta HG') }}</title>
 
-    
+    <link rel="shortcut icon" href="{{ asset('storage/img/favicon.ico') }}" type="image/x-icon">
 
-    <link rel="shortcut icon" href="{{  asset('storage/img/favicon.ico') }}" type="image/x-icon">
-    <title>{{ env('SITE_NAME','Lanceta HG') }}</title>
-    
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    
-    {{-- JAVASCRIPT 3.7.1 --}}
+
+    <!-- JAVASCRIPT 3.7.1 -->
     <script src="{{ asset('js/jquery/jquery-3.7.1.min.js') }}"></script>
 
-    {{-- BOOTSTRAP 5.3 --}}
+    <!-- BOOTSTRAP 5.3 -->
     <link rel="stylesheet" href="{{ asset('css/bootstrap/bootstrap.min.css') }}" />
-    <link rel="stylesheet" href="{{ asset('css/bootstrap/bootstrap-grid.min.css') }}" />    
+    <link rel="stylesheet" href="{{ asset('css/bootstrap/bootstrap-grid.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('css/bootstrap/bootstrap-reboot.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('css/bootstrap/bootstrap-utilities.min.css') }}" />
-    <link rel="stylesheet" href="{{ asset('css/bootstrap/bootstrap-icons.min.css') }}" >
+    <link rel="stylesheet" href="{{ asset('css/bootstrap/bootstrap-icons.min.css') }}">
 
-    <script src="{{ asset('js/bootstrap/bootstrap.min.js') }}"></script>
+
     <script src="{{ asset('js/bootstrap/bootstrap.bundle.min.js') }}"></script>
-    <script src="{{ asset('js/bootstrap/popper.min.js') }}"></script>
 
-    {{-- FONT AWESOME 6.6.0 --}}
-    @if (env('APP_DEBUG')==true)    
-    {{-- <script src="{{ asset('js/fontawesome/conflict-detection.min.js') }}" ></script>     --}}
-    @endif
-    <script src="{{ asset('js/fontawesome/all.min.js') }}" ></script>
-    <script src="{{ asset('js/fontawesome/brands.min.js') }}" ></script>    
-    <script src="{{ asset('js/fontawesome/fontawesome.min.js') }}" ></script>
-    <script src="{{ asset('js/fontawesome/regular.min.js') }}" ></script>
-    <script src="{{ asset('js/fontawesome/solid.min.js') }}" ></script>
-    <script src="{{ asset('js/fontawesome/v4-shims.min.js') }}" ></script>
-    {{-- time picker --}}
+    <!-- FONT AWESOME 6.6.0 -->
+    <script src="{{ asset('js/fontawesome/all.min.js') }}"></script>
+    <script src="{{ asset('js/fontawesome/brands.min.js') }}"></script>
+    <script src="{{ asset('js/fontawesome/fontawesome.min.js') }}"></script>
+    <script src="{{ asset('js/fontawesome/regular.min.js') }}"></script>
+    <script src="{{ asset('js/fontawesome/solid.min.js') }}"></script>
+    <script src="{{ asset('js/fontawesome/v4-shims.min.js') }}"></script>
+
     <!-- CoreUI Time Picker CSS -->
     <link href="https://cdn.jsdelivr.net/npm/@coreui/coreui/dist/css/coreui.min.css" rel="stylesheet">
 
     <!-- CoreUI Time Picker JS -->
     <script src="https://cdn.jsdelivr.net/npm/@coreui/coreui/dist/js/coreui.bundle.min.js"></script>
 
-    {{-- owlcarousel --}}
-    <link rel="stylesheet" href="{{ asset('css/owl.carousel.min.css') }}" >
-    <link rel="stylesheet" href="{{ asset('css/owl.theme.default.css') }}" >
-    {{-- owl carousel --}}
+    <!-- Owl Carousel -->
+    <link rel="stylesheet" href="{{ asset('css/owl.carousel.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/owl.theme.default.css') }}">
     <script src="{{ asset('js/owl.carousel.min.js') }}"></script>
 
-    {{--     
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/brands.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/fontawesome.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/regular.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/solid.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/svg-with-js.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/v4-font-face.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/v4-shims.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/v5-font-face.min.css">
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/js/all.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/js/brands.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/js/conflict-detection.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/js/fontawesome.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/js/regular.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/js/solid.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/js/v4-shims.min.js"></script>
-     --}}
-     
-     {{-- owl carousel --}}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
-    {{-- PERSONALIZADOS --}}
-
+    <!-- Personalizados -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     <link href="{{ asset('css/megamenu.css') }}" rel="stylesheet">
     <link href="{{ asset('css/carrito.css') }}" rel="stylesheet">
     <link href="{{ asset('css/cartdetailview.css') }}" rel="stylesheet">
-    {{-- <script src="{{ asset('js/bootstrap.esm.min.js') }}"></script> --}}
-    
+
     <script src="{{ asset('js/vistaitem.js') }}"></script>
     <script src="{{ asset('js/search-items.js') }}"></script>
     <script src="{{ asset('js/megamenu.js') }}"></script>
     <script src="{{ asset('js/carrito.js') }}"></script>
     <script src="{{ asset('js/wheelzoom.js') }}"></script>
 
-
-    {{-- <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script> --}}   
     <link href="{{ asset('css/navbar.css') }}" rel="stylesheet">
     <link href="{{ asset('css/principal.css') }}" rel="stylesheet">
     <link href="{{ asset('css/footer.css') }}" rel="stylesheet">
-    
     <link href="{{ asset('css/vistaitem.css') }}" rel="stylesheet">
+<!-- Include the jQuery Cookie plugin -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
     @yield('header')
+
+    <!-- Tu script personalizado -->
+    <!-- Tu script personalizado -->
     <script>
-        $(document).ready(function () {
-            $('[data-bs-dismiss="modal"]').on('click',function(){
+        $(document).ready(function() {
+            var modalClosed = $.cookie('modalClosed');
+            console.log('Estado de la cookie al cargar la página: ' + modalClosed);
+
+            if (!modalClosed) {
+                @if ($modalActivo && $modalImagen)
+                    $('#modalAviso').modal({
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+                    $('#modalAviso').modal('show');
+                @endif
+            }
+
+            // Al cerrar el modal, crear la cookie de sesión
+            $('#modalAviso').on('hidden.bs.modal', function() {
+                $.cookie('modalClosed', 'true', { path: '/' }); // Cookie de sesión
+                console.log('Cookie de sesión creada: ' + $.cookie('modalClosed'));
+            });
+
+            // Crear la cookie al hacer clic en el botón de cerrar
+            $('[data-bs-dismiss="modal"]').on('click', function() {
                 $(this).closest('.modal').modal('hide');
+                $.cookie('modalClosed', 'true', { path: '/' }); // Cookie de sesión
+                console.log('Cookie de sesión creada al hacer clic en cerrar: ' + $.cookie('modalClosed'));
             });
         });
     </script>
+
+    <!-- Estilos personalizados -->
+    <style>
+        .modal .close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+            background-color: rgba(255, 0, 0, 0.8);
+            border-radius: 40%;
+            border: 2px solid #333;
+            padding: 10px;
+            font-size: 20px;
+            color: #ffffff;
+            transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
+        }
+
+        .modal .close:hover {
+            background-color: #ff0000;
+            color: #fff;
+            transform: scale(1.2);
+        }
+
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+    </style>
 </head>
+
 <body>
-@isset($_GET['m'])
-    @if($_GET['m']<>0)
+
+    @isset($_GET['m'])
+        @if ($_GET['m'] != 0)
+            @include('partials.navbar')
+        @endif
+    @else
         @include('partials.navbar')
+    @endisset
+
+    @if ($modalActivo && $modalImagen)
+        <!-- Modal de aviso si está activo -->
+        <div id="modalAviso" class="modal fade" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg" style="margin-top: 10vh;">
+                <div class="modal-content p-0" style="border: none; background: transparent;">
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <img src="{{ asset('storage/' . $modalImagen) }}" alt="Aviso Modal"
+                        style="width: 100%; display: block; border-radius: 10px;">
+                </div>
+            </div>
+        </div>
     @endif
-@else
-    @include('partials.navbar')
-@endisset    
-@yield('body')
-@isset($_GET['m'])
-    @if($_GET['m']<>0)
-        @include('partials.footer')
-    @endif
-@else
-@include('partials.footer')
-@endisset    
+
+    @yield('body')
+
+    @isset($_GET['m'])
+        @if ($_GET['m'] != 0)
+            @include('partials.footer')
+        @endif
+    @else
+        {!! FooterController::render() !!}
+    @endisset
+
 </body>
 </html>
-

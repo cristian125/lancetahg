@@ -15,32 +15,54 @@
         </script>
     @endif
 </div>
+
 <div id="contenedorsup" class="container d-flex justify-content-center">
-    
     <div class="row">
-        <!-- CARROUSEL -->
+        <div class="container mt-4">
+            <div class="row">
+                @foreach ($gridImages as $gridImage)
+                    <div class="col-md-6 mb-4 d-flex justify-content-center">
+                        <div class="offer-container">
+                            <a href="{{ url('/producto/' . $gridImage->product_id) }}">
+                                <img src="{{ asset('storage/' . $gridImage->image_path) }}"
+                                    alt="Imagen {{ $loop->iteration }}" class="img-fluid">
+                            </a>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- CARROUSEL -->
+    @if (isset($carouselImages) && count($carouselImages) > 0)
         <div class="col-md-7 order-1 order-md-2 align-items-center d-flex justify-content-center">
             <div id="carouselExample" class="carousel slide carousel-custom-size" data-bs-ride="carousel"
                 data-bs-interval="3000">
                 <!-- Indicadores -->
                 <div class="carousel-indicators">
-                    <button type="button" data-bs-target="#carouselExample" data-bs-slide-to="0" class="active"
-                        aria-current="true" aria-label="Slide 1"></button>
-                    <button type="button" data-bs-target="#carouselExample" data-bs-slide-to="1"
-                        aria-label="Slide 2"></button>
-                    <button type="button" data-bs-target="#carouselExample" data-bs-slide-to="2"
-                        aria-label="Slide 3"></button>
+                    @foreach ($carouselImages as $index => $image)
+                        <button type="button" data-bs-target="#carouselExample" data-bs-slide-to="{{ $index }}"
+                            class="{{ $index == 0 ? 'active' : '' }}" aria-current="true"
+                            aria-label="Slide {{ $index + 1 }}"></button>
+                    @endforeach
                 </div>
                 <div class="carousel-inner">
-                    <div class="carousel-item active">
-                        <img src="{{ asset('storage/carousel/loreip.jpg') }}" class="d-block w-100" alt="...">
-                    </div>
-                    <div class="carousel-item">
-                        <img src="{{ asset('storage/carousel/lanz.png') }}" class="d-block w-100" alt="...">
-                    </div>
-                    <div class="carousel-item">
-                        <img src="{{ asset('storage/carousel/test1.jpg') }}" class="d-block w-100" alt="...">
-                    </div>
+                    @foreach ($carouselImages as $index => $image)
+                        <div class="carousel-item {{ $index == 0 ? 'active' : '' }}">
+                            @if (!empty($image->product_link))
+                                <a href="{{ $image->product_link }}" target="_blank">
+                                    <img src="{{ asset('storage/' . $image->image_path) }}"
+                                        class="d-block w-100 carousel-image" alt="...">
+                                </a>
+                            @else
+                                <img src="{{ asset('storage/' . $image->image_path) }}"
+                                    class="d-block w-100 carousel-image" alt="...">
+                            @endif
+                        </div>
+                    @endforeach
                 </div>
                 <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample"
                     data-bs-slide="prev">
@@ -54,51 +76,20 @@
                 </button>
             </div>
         </div>
+    @endif
 
-
-        <!-- LOS CUATRO CONTENEDORES DE 2X2 CON LAS OFERTAS -->
-        <div class="col-md-5 order-2 order-md-1">
-            <div class="row mt-4">
-                <div class="col-6">
-                    <div class="d-flex justify-content-center align-items-center p-2" style="height: 100%;">
-                        <a href="http://lanceta.com:82/producto/2048">
-                            <img src="{{ asset('storage/carousel/pruebacuadricula.jpg') }}" alt="Imagen 1"
-                                class="img-fluid">
-                        </a>
-                    </div>
-                </div>
-                <div class="col-6">
-                    <div class="d-flex justify-content-center align-items-center p-2" style="height: 100%;">
-                        <a href="http://lanceta.com:82/producto/2048">
-                            <img src="{{ asset('storage/carousel/pruebacuadricula.jpg') }}" alt="Imagen 2"
-                                class="img-fluid">
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <div class="row mt-4">
-                <div class="col-6">
-                    <div class="d-flex justify-content-center align-items-center p-2" style="height: 100%;">
-                        <a href="http://lanceta.com:82/producto/2048">
-                            <img src="{{ asset('storage/carousel/pruebacuadricula.jpg') }}" alt="Imagen 3"
-                                class="img-fluid">
-                        </a>
-                    </div>
-                </div>
-                <div class="col-6">
-                    <div class="d-flex justify-content-center align-items-center p-2" style="height: 100%;">
-                        <a href="http://lanceta.com:82/producto/2048">
-                            <img src="{{ asset('storage/carousel/pruebacuadricula.jpg') }}" alt="Imagen 4"
-                                class="img-fluid">
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </div>
+</div>
 </div>
 
+@if ($bannerImage)
+    <div class="container mt-4">
+        <div class="row justify-content-center align-items-center">
+            <div class="col-md-12 text-center">
+                <img src="{{ asset('storage/' . $bannerImage->image_path) }}" alt="Imagen Destacada" class="img-fluid">
+            </div>
+        </div>
+    </div>
+@endif
 
 
 
@@ -122,7 +113,7 @@
                                 <i class="fas fa-tags"></i> ¡Oferta!
                             </div>
                         @endif
-                        <!-- Aquí se cambia 'no_s' por 'id' -->
+
                         <a href="{{ url('/producto/' . $producto->id) }}" class="text-decoration-none">
                             <img src="{{ $producto->imagen_principal }}" alt="{{ $producto->nombre }}">
                             <div class="overlay">
@@ -155,3 +146,32 @@
 </div>
 
 
+<style>
+    /* Asegura que el carrusel tenga un tamaño consistente */
+    .carousel-custom-size {
+        width: 820px;
+        height: 380px;
+        /* Ajusta esta altura según tus necesidades */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f8f8f8;
+        /* Fondo para cualquier imagen que no llene el espacio */
+        overflow: hidden;
+        /* Para ocultar cualquier contenido desbordante */
+    }
+
+    /* Todas las imágenes dentro del carrusel deben ajustarse sin recortarse */
+    .carousel-image {
+        max-width: 100%;
+        important ! max-height: 100%;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        /* Las imágenes se ajustarán dentro del contenedor sin recortarse */
+        object-position: center;
+        /* Centra la imagen horizontal y verticalmente */
+        background-color: #f8f8f8;
+        /* Fondo de relleno si la imagen no ocupa todo el espacio */
+    }
+</style>

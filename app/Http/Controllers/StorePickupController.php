@@ -23,19 +23,22 @@ class StorePickupController extends ProductController
             'calendarioConfig' => $calendarioConfig,
         ];
     }
-
     public function saveStorePickup(Request $request)
     {
-
-        
-        $userId = auth()->id(); // Obtén el ID del usuario autenticado
-        $cartId = DB::table('carts')->where('user_id', $userId)->value('id'); // Obtén el ID del carrito basado en el usuario autenticado
+        $userId = auth()->id(); 
+        $cartId = DB::table('carts')->where('user_id', $userId)->value('id'); 
         
         if (!$cartId) {
             return redirect()->route('cart.show')->with('error', 'Carrito no encontrado para el usuario actual.');
         }
     
-        $storeId = $request->input('store_id');
+        // Verificar si se seleccionó una tienda, si no, asignar la primera tienda disponible
+        $storeId = $request->input('store_id') ?: DB::table('tiendas')->value('id');
+        
+        if (!$storeId) {
+            return redirect()->route('cart.show')->with('error', 'No hay tiendas disponibles.');
+        }
+    
         $pickupDate = $request->input('pickup_date');
         $pickupTime = $request->input('pickup_time');
     
@@ -47,31 +50,29 @@ class StorePickupController extends ProductController
             'description' => 'Recoger en Tienda',
             'unit_price' => 0,  // Asumimos que no hay costo para recoger en tienda
             'discount' => 0,
-            'final_price' => 0,  // No hay cargo adicional
-            'store_id' => $storeId,  // ID de la tienda seleccionada
-            'pickup_date' => $pickupDate,  // Fecha seleccionada para recoger
-            'pickup_time' => $pickupTime,  // Hora seleccionada para recoger
-            'quantity' => 1,  // Siempre 1 para envío
+            'final_price' => 0,  
+            'store_id' => $storeId,  // Se guarda el store_id correctamente
+            'pickup_date' => $pickupDate,  
+            'pickup_time' => $pickupTime,  
+            'quantity' => 1,  
             'nombre' => 'StorePickup',  
-            'calle' => 'StorePickup', // Valor predeterminado para evitar errores
-            'no_int' => 'StorePickup', // Valor predeterminado para evitar errores
-            'no_ext' => 'StorePickup', // Valor predeterminado para evitar errores
-            'entre_calles' => 'StorePickup', // Valor predeterminado para evitar errores
-            'colonia' => 'StorePickup', // Valor predeterminado para evitar errores
-            'municipio' => 'StorePickup', // Valor predeterminado para evitar errores
-            'codigo_postal' => '00000', // Valor predeterminado para evitar errores
-            'pais' => 'StorePickup', // Valor predeterminado para evitar errores
-            'referencias' => 'StorePickup', // Valor predeterminado para evitar errores
-            'status' => 1, // Establece un valor predeterminado para el campo `status`
+            'calle' => 'StorePickup', 
+            'no_int' => 'StorePickup', 
+            'no_ext' => 'StorePickup', 
+            'entre_calles' => 'StorePickup', 
+            'colonia' => 'StorePickup', 
+            'municipio' => 'StorePickup', 
+            'codigo_postal' => '00000', 
+            'pais' => 'StorePickup', 
+            'referencias' => 'StorePickup', 
+            'status' => 1, 
             'created_at' => now(),
             'updated_at' => now(),
         ]);
- 
+    
         return redirect()->route('cart.show')->with('success', 'Método de envío seleccionado correctamente.');
     }
     
-
     
-    
-    
+        
 }

@@ -33,11 +33,9 @@
             </aside>
             <main class="col-lg-6">
                 <div class="ps-lg-3">
-                    <h4 class="title text-dark">{{ $producto->no_s }} -{{ $producto->descripcion }}</h4>
-                    <div class="row">
-                        <p class="fw-bold">Descripción: </p>
-                        <p>{{ $producto->descripcion_alias }}</p>
-                    </div>
+                    <!-- Mostrar el nombre del producto correctamente -->
+                    <h4 class="title text-dark">{{ $producto->no_s }} - {{ $producto->nombre }}</h4>
+
                     <div class="d-flex flex-row my-3">
                         <span class="stock-info {{ $claseStock }} ms-2">{{ $mensajeStock }}</span>
                     </div>
@@ -57,20 +55,34 @@
                         @endif
                         <span class="text-muted" id="unidad_medida">/{{ $producto->unidad_medida_venta }}</span>
                     </div>
-
+                    
                     <div class="row">
+
                         <dt class="col-3">CATEGORÍA:</dt>
                         <dd class="col-9">
-                            {{ mb_strtoupper($division, 'UTF-8') }} / {{ mb_strtoupper($categoria, 'UTF-8') }} /
+                            {{ mb_strtoupper($division, 'UTF-8') }} / {{ mb_strtoupper($categoria, 'UTF-8') }} / 
                             {{ mb_strtoupper($codigoMinorista, 'UTF-8') }}
                         </dd>
                     </div>
-
-
-
-
-
                     <hr />
+
+                    @foreach($groupedProducts as $grupoDescripcion => $productos)
+                    <div class="mb-3">
+                        <label for="product-variants-{{ $loop->index }}">{{ $grupoDescripcion }}:</label> <!-- Mostrar la descripción del grupo -->
+                        <select id="product-variants-{{ $loop->index }}" class="form-select product-variant-select">
+                            <!-- Producto Actual -->
+                            @foreach($atributosProducto->where('grupo_descripcion', $grupoDescripcion) as $atributoActual)
+                                <option value="{{ $producto->id }}" selected>{{ $atributoActual->atributo_nombre }} (Actual)</option>
+                            @endforeach
+                            <!-- Otras opciones -->
+                            @foreach($productos as $prod)
+                                <option value="{{ $prod->id }}">{{ $prod->atributo_nombre }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endforeach
+                
+
                     <div class="row mb-4">
                         <div class="col-md-4 col-6 mb-3">
                             <label class="mb-2 d-block">Cantidad</label>
@@ -100,16 +112,21 @@
                                 <i class="me-1 fa fa-eye"></i> Ver carrito
                             </button>
                         @endif
-                        <!-- <a href="#" class="btn btn-warning shadow-0"><i class="fa fa-star"></i> Precio Especial por Caducidad Corta Sep-Oct 2024</a> -->
                     </form>
 
-
+                    <hr />
+                    <div class="row">
+                        <p class="fw-bold">Descripción: </p>
+                        <!-- Mostrar la descripción del producto -->
+                        <p>{!! $producto->descripcion !!}</p>
+                    </div>
                     <hr />
                     <div class="row mb-4">
                         <div class="row">
                             <div class="col-sm-2 align-middle pt-2">
                                 <i class="fa-solid fa-credit-card" style="font-size: 48px;"></i>
                             </div>
+                           
                             <div class="col-sm-10">
                                 <h5>Pague con tarjetas de débito o crédito</h5>
                                 <img src="{{ asset('storage/img/cards-product-page.jpg') }}"
@@ -141,7 +158,6 @@
                                     información sobre envío y entrega ></a>
                             </div>
                         </div>
-
                     </div>
             </main>
         </div>
@@ -166,15 +182,10 @@
             </div>
         </div>
     </div>
-
-
-
-
-
     <div class="container mt-5">
-        <h4 class="mb-4 text-center">Productos recomendados</h4>
-        <div id="recommended-products-slider" class="owl-carousel owl-theme">
-            @foreach ($productosRecomendados as $recomendado)
+        <h4 class="mb-4 text-center">Otros usuarios también se interesaron en estos productos similares:</h4>
+        <div id="related-products-slider" class="owl-carousel owl-theme">
+            @foreach ($productosRelacionados as $recomendado)
                 <div class="item">
                     <div class="product-card border rounded shadow-sm p-3 mb-5 bg-white rounded">
                         <a href="{{ url('/producto/' . $recomendado->id) }}" class="text-decoration-none text-dark">
@@ -182,7 +193,7 @@
                                 <img src="{{ $recomendado->imagen }}" alt="{{ $recomendado->descripcion }}"
                                     class="img-fluid rounded"
                                     style="width: 100%; height: 200px; object-fit: contain;">
-                                @if ($recomendado->descuento > 0)
+                                @if (isset($recomendado->descuento) && $recomendado->descuento > 0)
                                     <div class="badge-offer"
                                         style="position: absolute; top: 10px; left: 10px; background-color: #dc3545; color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px;">
                                         <i class="fas fa-tags"></i> ¡Oferta!
@@ -190,18 +201,14 @@
                                 @endif
                             </div>
                             <div class="product-info mt-3 text-center">
-                                <h6 class="fw-bold">{{ $recomendado->descripcion }}</h6>
+                                <!-- Mostrar nombre y descripción de productos relacionados -->
+                                <h6 class="fw-bold">{{ $recomendado->nombre }}</h6>
                                 <p class="text-muted mb-0">
-                                    @if ($recomendado->descuento > 0)
-                                        <span
-                                            class="text-decoration-line-through">${{ number_format($recomendado->precio_unitario_IVAinc, 2, '.', ',') }}
-                                            MXN</span>
-                                        <span
-                                            class="text-danger">${{ number_format($recomendado->precio_con_descuento, 2, '.', ',') }}
-                                            MXN</span>
+                                    @if (isset($recomendado->descuento) && $recomendado->descuento > 0)
+                                        <span class="text-decoration-line-through">${{ number_format($recomendado->precio_unitario_IVAinc, 2, '.', ',') }} MXN</span>
+                                        <span class="text-danger">${{ number_format($recomendado->precio_con_descuento, 2, '.', ',') }} MXN</span>
                                     @else
-                                        <span>${{ number_format($recomendado->precio_unitario_IVAinc, 2, '.', ',') }}
-                                            MXN</span>
+                                        <span>${{ number_format($recomendado->precio_unitario_IVAinc, 2, '.', ',') }} MXN</span>
                                     @endif
                                 </p>
                             </div>
@@ -211,17 +218,16 @@
             @endforeach
         </div>
     </div>
-
-
+    
 </section>
 
 <script>
     $(document).ready(function() {
-        $("#recommended-products-slider").owlCarousel({
+        $("#related-products-slider").owlCarousel({
             loop: true,
             margin: 10,
             nav: true,
-            autoplay: true, // Activar autoplay
+            autoplay: true, // Activa el autoplay
             autoplayTimeout: 2000, // Cambiar cada 2 segundos (2000 ms)
             items: 5, // Muestra 5 items por defecto
             responsive: {
@@ -240,5 +246,15 @@
 
     $('#qty').on('keypress', function(e) {
         e.preventDefault();
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.product-variant-select').forEach(function(select) {
+            select.addEventListener('change', function() {
+                var selectedProductId = this.value;
+                // Redirigir a la página del producto seleccionado
+                window.location.href = '/producto/' + selectedProductId;
+            });
+        });
     });
 </script>

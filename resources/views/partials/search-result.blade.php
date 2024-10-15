@@ -170,94 +170,78 @@
             <!-- Contenedor para las vistas -->
             <div class="col-md-10">
                 <div id="productViewContainer" class="animate__animated">
-                    <!-- Vista Cuadrícula (inicialmente oculta) -->
-                    <div class="grid-view d-none">
-                        <div class="row">
-                            @foreach ($productos as $producto)
-                                <div class="col-md-3 mb-4">
-                                    <div class="card h-100 shadow-sm">
-                                        <a href="{{ url('/producto/' . $producto->id) }}">
-                                            <img src="{{ $producto->imagen_principal }}" class="card-img-top"
-                                                alt="{{ $producto->descripcion_alias }}"
-                                                style="max-height: 180px; object-fit: cover;">
-                                        </a>
-                                        <div class="card-body d-flex flex-column">
-                                            <a href="{{ url('/producto/' . $producto->id) }}"
-                                                class="text-decoration-none text-dark">
-                                                <h5 class="card-title text-truncate">
-                                                    {{ $producto->descripcion_alias }}
-                                                </h5>
-                                            </a>
-                                            <p class="card-text text-truncate">{{ $producto->descripcion }}</p>
-                                            <div class="mt-auto">
-                                                @if (isset($producto->descuento) && $producto->descuento > 0)
-                                                    <p class="precio-original">
-                                                        <del>${{ number_format($producto->precio_unitario_IVAinc, 2, '.', ',') }}
-                                                            MXN</del>
-                                                    </p>
-                                                    <p class="precio-con-descuento">
-                                                        <strong>${{ number_format($producto->precio_con_descuento, 2, '.', ',') }}
-                                                            MXN</strong>
-                                                    </p>
-                                                    <span class="badge bg-danger">¡Oferta!</span>
-                                                @else
-                                                    <p class="precio-normal">
-                                                        <strong>${{ number_format($producto->precio_unitario_IVAinc, 2, '.', ',') }}
-                                                            MXN</strong>
-                                                    </p>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
+<!-- Vista Cuadrícula (inicialmente oculta) -->
+<div class="grid-view d-none">
+    <div class="row">
+        @foreach ($productos as $producto)
+            <div class="col-md-3 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <a href="{{ url('/producto/' . $producto->id) }}">
+                        <img src="{{ $producto->imagen_principal }}" class="card-img-top"
+                             alt="{{ $producto->nombre }}" style="max-height: 180px; object-fit: cover;">
+                    </a>
+                    <div class="card-body d-flex flex-column">
+                        <a href="{{ url('/producto/' . $producto->id) }}" class="text-decoration-none text-dark">
+                            <h5 class="card-title text-truncate">{{ $producto->nombre }}</h5>
+                        </a>
+                        <!-- Limitar la descripción a dos líneas -->
+                        <p class="card-text product-description">
+                            {!! \Illuminate\Support\Str::limit(strip_tags($producto->descripcion), 100) !!}
+                        </p>
+                        <div class="mt-auto">
+                            @if (isset($producto->descuento) && $producto->descuento > 0)
+                                <p class="precio-original">
+                                    <del>${{ number_format($producto->precio_unitario_IVAinc, 2, '.', ',') }} MXN</del>
+                                </p>
+                                <p class="precio-con-descuento">
+                                    <strong>${{ number_format($producto->precio_con_descuento, 2, '.', ',') }} MXN</strong>
+                                </p>
+                                <span class="badge bg-danger">¡Oferta!</span>
+                            @else
+                                <p class="precio-normal">
+                                    <strong>${{ number_format($producto->precio_unitario_IVAinc, 2, '.', ',') }} MXN</strong>
+                                </p>
+                            @endif
                         </div>
-
-
                     </div>
+                </div>
+            </div>
+        @endforeach
+    </div>
+</div>
 
-                    <!-- Vista Lista (visible inicialmente) -->
-                    <div class="list-view">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <tbody>
-                                    @foreach ($productos as $producto)
-                                        <tr class="product-item"
-                                            onclick="window.location='{{ url('/producto/' . $producto->id) }}';"
-                                            style="cursor: pointer;">
-                                            <td class="image">
-                                                <img src="{{ $producto->imagen_principal }}"
-                                                    alt="{{ $producto->descripcion_alias }}"
-                                                    style="max-width: 100px; max-height: 100px; object-fit: cover;">
-                                            </td>
-                                            <td class="product">
-                                                <strong>{{ $producto->descripcion_alias }}</strong><br>
-                                                {{ $producto->descripcion }}
-                                            </td>
-                                            <td class="price text-right">
-                                                @if (isset($producto->descuento) && $producto->descuento > 0)
-                                                    <span class="precio-original"><del>${{ number_format($producto->precio_unitario_IVAinc, 2, '.', ',') }}
-                                                            MXN</del></span>
-                                                    <br>
-                                                    <span
-                                                        class="precio-con-descuento">${{ number_format($producto->precio_con_descuento, 2, '.', ',') }}
-                                                        MXN</span>
-                                                    <br>
-                                                    <span class="badge bg-danger">¡Oferta!</span>
-                                                @else
-                                                    <span
-                                                        class="precio-normal">${{ number_format($producto->precio_unitario_IVAinc, 2, '.', ',') }}
-                                                        MXN</span>
-                                                @endif
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
+<!-- Vista Lista (visible inicialmente) -->
+<div class="list-view">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <tbody>
+                @foreach ($productos as $producto)
+                    <tr class="product-item" onclick="window.location='{{ url('/producto/' . $producto->id) }}';" style="cursor: pointer;">
+                        <td class="image">
+                            <img src="{{ $producto->imagen_principal }}" alt="{{ $producto->nombre }}" style="max-width: 100px; max-height: 100px; object-fit: cover;">
+                        </td>
+                        <td class="product">
+                            <strong>{{ $producto->nombre }}</strong><br>
+                            <p class="product-description">{{ \Illuminate\Support\Str::limit(strip_tags($producto->descripcion), 150) }}</p>
+                        </td>
+                        <td class="price text-right">
+                            @if (isset($producto->descuento) && $producto->descuento > 0)
+                                <span class="precio-original">
+                                    <del>${{ number_format($producto->precio_unitario_IVAinc, 2, '.', ',') }} MXN</del>
+                                </span><br>
+                                <span class="precio-con-descuento">${{ number_format($producto->precio_con_descuento, 2, '.', ',') }} MXN</span><br>
+                                <span class="badge bg-danger">¡Oferta!</span>
+                            @else
+                                <span class="precio-normal">${{ number_format($producto->precio_unitario_IVAinc, 2, '.', ',') }} MXN</span>
+                            @endif
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
 
-
-                    </div>
                 </div>
             </div>
         </div>

@@ -1,4 +1,4 @@
-@extends('template')
+{{-- @extends('template')
 
 @section('body')
 <div class="container my-5">
@@ -118,6 +118,19 @@
         <h4>Modificaciones al Aviso</h4>
         <p><strong>Lanceta HG</strong>, se reserva el derecho de revisar y modificar periódicamente el presente Aviso con el propósito de adaptarlo incluyendo, sin limitación alguna, sus actividades y/o aquellos cambios en las prácticas internas de <strong>Lanceta HG</strong>, o bien, las reformas legales que en el futuro entren en vigor. Las versiones modificadas del Aviso podrán ser consultadas en todo momento en nuestra página de internet www.lancetahg.com.mx</p>
         <p class="text-muted"><i>Última fecha de modificación del presente aviso: <strong><i>8 de Noviembre de 2020</i></strong></i></p>
+    </div>
+</div>
+@endsection
+ --}}
+
+
+@extends('template')
+
+@section('body')
+<div class="container my-5">
+
+    <div>
+        {!! $page->content !!}
     </div>
 </div>
 @endsection

@@ -11,7 +11,7 @@ class ListProdMin extends Model
     protected $fillable = [
         'no_s', 'no_proveedor', 'descripcion', 'costo_unitario', 'precio_unitario', 
         'cod_division', 'cod_categoria_producto', 'codigo_de_producto_minorista', 
-        'unidad_medida_venta', 'precio_unitario_IVAinc', 'descripcion_alias', 
+        'unidad_medida_venta', 'precio_unitario_IVAinc', 'nombre', 
         'creada_por', 'fecha_creacion', 'modificada_por', 'fecha_modificacion'
     ];
 

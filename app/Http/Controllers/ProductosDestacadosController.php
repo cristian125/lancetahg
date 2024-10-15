@@ -1,63 +1,67 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
+
+
 class ProductosDestacadosController extends Controller
 {
+
+    
     public function index(Request $request)
     {
-        //$pass = Hash::make('Lanz2015');
-        //DB::update('update users set password=? WHERE email=?', [$pass,'sistemas@lancetahg.com']);
-
-        $marcos = 1;
-        if ($request->m == 0) {
-            $marcos = 0;
+        if($this->checkMaintenance()==true)
+        {
+            return view('mantenimiento');
         }
 
-        // Obtener productos que tienen una imagen principal en `itemsview`
-        $productosConImagen = DB::table('itemsdb')
+        // Obtener los productos destacados seleccionados por el administrador y ordenarlos según la columna `orden`
+        $productosDestacados = DB::table('itemsdb')
+            ->join('destacados', 'itemsdb.no_s', '=', 'destacados.no_s')
+            ->where('itemsdb.activo', 1)  // Mostrar solo productos activos
+            ->orderBy('destacados.orden', 'asc')  // Ordenar por el campo `orden`
             ->select(
-                'id',
-                'no_s',
-                'descripcion as nombre',
-                'cod_categoria_producto as marca',
-                'precio_unitario_IVAinc',
-                'precio_con_descuento',
-                'descuento',
-                'codigo_de_producto_minorista as codigo'
+                'itemsdb.id',
+                'itemsdb.no_s',
+                'itemsdb.nombre',
+                'itemsdb.descripcion',
+                'itemsdb.cod_categoria_producto as marca',
+                'itemsdb.precio_unitario_IVAinc',
+                'itemsdb.precio_con_descuento',
+                'itemsdb.descuento',
+                'itemsdb.codigo_de_producto_minorista as codigo'
             )
-            ->get()
-            ->filter(function ($producto) {
-                $codigoProducto = str_pad($producto->no_s, 6, "0", STR_PAD_LEFT);
-                $imagenPrincipal = "itemsview/{$codigoProducto}/{$codigoProducto}.jpg";
-                return Storage::disk('public')->exists($imagenPrincipal);
-            });
-
-        // Si hay menos de 20 productos con imagen principal, completamos con productos aleatorios
-        if ($productosConImagen->count() < 20) {
-            $productosSinImagen = DB::table('itemsdb')
+            ->get();
+    
+        // Si hay menos de 20 productos seleccionados, completamos con productos aleatorios
+        if ($productosDestacados->count() < 20) {
+            $productosAleatorios = DB::table('itemsdb')
+                ->whereNotIn('no_s', $productosDestacados->pluck('no_s'))  // Excluir los productos ya destacados
+                ->where('activo', 1)
+                ->inRandomOrder()
+                ->limit(20 - $productosDestacados->count())
                 ->select(
                     'id',
                     'no_s',
-                    'descripcion as nombre',
+                    'nombre',
+                    'descripcion',
                     'cod_categoria_producto as marca',
                     'precio_unitario_IVAinc',
                     'precio_con_descuento',
                     'descuento',
                     'codigo_de_producto_minorista as codigo'
                 )
-                ->inRandomOrder()
-                ->limit(20 - $productosConImagen->count())
                 ->get();
-
-            $destacados = $productosConImagen->merge($productosSinImagen);
+    
+            $destacados = $productosDestacados->merge($productosAleatorios);
         } else {
-            $destacados = $productosConImagen->take(20);
+            $destacados = $productosDestacados->take(20);
         }
-
+    
         // Agregar la imagen principal y secundarias para cada producto
         foreach ($destacados as $producto) {
             // Seleccionar el precio a mostrar
@@ -66,45 +70,84 @@ class ProductosDestacadosController extends Controller
             } else {
                 $producto->precio_final = $producto->precio_unitario_IVAinc;
             }
-
+    
             // Usar 'no_s' como identificador del producto
             $codigoProducto = str_pad($producto->no_s, 6, "0", STR_PAD_LEFT);
             $imagenPrincipal = asset("storage/itemsview/default.jpg"); // Imagen por defecto
             $imagenesSecundarias = [];
-
+    
             // Verificar si existe una carpeta con imágenes para el producto
             $carpetaImagenes = "itemsview/{$codigoProducto}";
-
+    
             if (Storage::disk('public')->exists($carpetaImagenes)) {
                 // Obtener todas las imágenes dentro de la carpeta
                 $imagenesEnCarpeta = Storage::disk('public')->files($carpetaImagenes);
-
+    
                 // Procesar las imágenes encontradas
                 foreach ($imagenesEnCarpeta as $imagen) {
-                    // Obtener solo el nombre del archivo sin la ruta
                     $nombreImagen = basename($imagen);
-
-                    // Verificar si es la imagen principal (sin guiones ni caracteres adicionales)
-                    if ($nombreImagen === "{$codigoProducto}.jpg" || $nombreImagen === "{$codigoProducto}.jpeg" || $nombreImagen === "{$codigoProducto}.png" || $nombreImagen === "{$codigoProducto}.gif") {
+    
+                    // Verificar si es la imagen principal
+                    if ($nombreImagen === "{$codigoProducto}.jpg") {
                         $imagenPrincipal = asset("storage/{$imagen}");
                     } else {
-                        // Si no es la imagen principal, añadirla a las imágenes secundarias
+                        // Añadir las imágenes secundarias
                         if (preg_match('/\.(jpg|jpeg|png|gif)$/i', $nombreImagen)) {
                             $imagenesSecundarias[] = asset("storage/{$imagen}");
                         }
                     }
                 }
             }
-
+    
             // Añadir la imagen principal y secundarias al objeto producto
             $producto->imagen_principal = $imagenPrincipal;
             $producto->imagenes_secundarias = $imagenesSecundarias;
         }
+        $carouselImages = DB::table('carousel_images')
+        ->where('active', 1)
+        ->orderBy('order')
+        ->get();
+    
+        $gridImages = DB::table('grid_images')->where('active', 1)->get();
+        $bannerImage = DB::table('banner_images')->where('active', 1)->first();
 
-        // Retornar la vista con los productos seleccionados
-        return view('index', compact('destacados'));
+
+
+
+ 
+        
+            // Obtener la configuración del modal desde la tabla `modal_config`
+            $modalConfig = DB::table('modal_config')->first();
+        
+            // Verificar que el modalConfig no sea nulo y que tenga el campo 'is_active' correctamente definido
+            $modalActivo = isset($modalConfig->is_active) ? $modalConfig->is_active : false;
+        
+            // Obtener la imagen del modal
+            $modalImagen = isset($modalConfig->image_url) ? $modalConfig->image_url : null;
+        
+
+        
+        // Retornar la vista con los productos destacados
+        return view('index', compact('destacados', 'carouselImages', 'gridImages', 'bannerImage','modalActivo', 'modalImagen'));
+    }
+    /***
+     * Se consulta si esta en mantenimiento 
+     * */
+    public static function checkMaintenance()
+    {
+        $configuraciones = DB::table('configuraciones')->where('name','mantenimiento')->first();
+        if($configuraciones->value=='true')
+        {
+            return true;
+        }
+        return false;
     }
 
+
+    public function maintenance()
+    {
+        return view('mantenimiento');
+    }
     public function addToCart(Request $request)
     {
         try {
@@ -133,7 +176,11 @@ class ProductosDestacadosController extends Controller
                 ->first();
 
             // Obtener detalles del producto desde la tabla itemsdb
-            $producto = DB::table('itemsdb')->where('no_s', $no_s)->first();
+            $producto = DB::table('itemsdb')
+                ->where('no_s', $no_s)
+                ->where('activo', 1)  // Solo productos activos
+                ->first();
+
             if (!$producto) {
                 return response()->json(['error' => 'Producto no encontrado'], 404);
             }
@@ -152,6 +199,9 @@ class ProductosDestacadosController extends Controller
             if (($cantidadEnCarrito + $quantity) > $cantidadDisponible) {
                 return response()->json(['error' => 'No puedes añadir más de este producto. Stock insuficiente.'], 400);
             }
+
+
+
 
             if ($cartItem) {
                 // Incrementar la cantidad del producto si ya está en el carrito
@@ -187,7 +237,13 @@ class ProductosDestacadosController extends Controller
         $quantityToAdd = 1; // Asumiendo que se añade 1 producto a la vez
 
         // Obtener detalles del producto desde la tabla `inventario`
-        $inventario = DB::table('inventario')->where('no_s', $no_s)->first();
+        $inventario = DB::table('inventario')
+            ->join('itemsdb', 'inventario.no_s', '=', 'itemsdb.no_s')
+            ->where('itemsdb.no_s', $no_s)
+            ->where('itemsdb.activo', 1)  // Solo productos activos
+            ->select('inventario.cantidad_disponible')
+            ->first();
+
 
         if (!$inventario) {
             return response()->json(['error' => 'Producto no encontrado'], 404);
@@ -220,9 +276,13 @@ class ProductosDestacadosController extends Controller
         $search = $request->search;
         // Implementa la búsqueda en la tabla `itemsdb`
         $resultados = DB::table('itemsdb')
-            ->where('descripcion', 'like', '%' . $search . '%')
-            ->orWhere('codigo_de_producto_minorista', 'like', '%' . $search . '%')
+            ->where('activo', 1)  // Solo productos activos
+            ->where(function ($query) use ($search) {
+                $query->where('descripcion', 'like', '%' . $search . '%')
+                    ->orWhere('codigo_de_producto_minorista', 'like', '%' . $search . '%');
+            })
             ->get();
+
 
         // Agregar la imagen principal y secundarias para cada resultado
         foreach ($resultados as $producto) {
@@ -268,5 +328,4 @@ class ProductosDestacadosController extends Controller
 
         return view('search_results', compact('resultados'));
     }
-
 }

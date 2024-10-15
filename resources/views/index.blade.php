@@ -114,6 +114,69 @@
     
 @endsection
 @section('body')
+<!-- Banner de Cookies -->
+<div id="cookieConsent" class="cookie-banner fixed-bottom p-3 d-none" style="z-index: 9999;">
+    <div class="container d-flex justify-content-between align-items-center">
+        <div class="cookie-message">
+            <span>Este sitio utiliza cookies para garantizar que obtenga la mejor experiencia en nuestro sitio web. 
+
+            </span>
+        </div>
+        <button id="acceptCookies" class="btn btn-info">Aceptar</button>
+    </div>
+</div>
+
+<style>
+    .cookie-banner {
+        display: none;
+        background-color: #26d2b6 !important; /* Cambié el fondo a un color naranja */
+        color: #005f7f;
+        padding: 15px;
+        font-size: 14px;
+    }
+
+    .cookie-banner .btn {
+        font-weight: bold;
+        background-color: #005f7f; /* Botón color azul */
+        border: none;
+        color: white;
+    }
+
+    .cookie-banner .btn:hover {
+        background-color: #005f7f; 
+    }
+
+    .cookie-message a {
+        color: #005f7f!important; 
+        text-decoration: underline;
+    }
+
+
+</style>
+
+
+<script>
+
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const cookieBanner = document.getElementById('cookieConsent');
+        const acceptCookiesBtn = document.getElementById('acceptCookies');
+    
+        // Comprobar si el usuario ya ha aceptado las cookies
+        if (!localStorage.getItem('cookiesAccepted')) {
+            cookieBanner.classList.remove('d-none');
+            cookieBanner.classList.add('d-block');
+        }
+    
+        // Al hacer clic en "Aceptar"
+        acceptCookiesBtn.addEventListener('click', function () {
+            localStorage.setItem('cookiesAccepted', 'true');
+            cookieBanner.classList.remove('d-block');
+            cookieBanner.classList.add('d-none');
+        });
+    });
+    
+    </script>
 
 @include('partials.itemspp')
 @endsection

@@ -58,6 +58,7 @@ function loadCartItems() {
                     success: function (response) {
                         console.log(response);
                         loadCartItems(); // Recargar el carrito
+                        
                     },
                     error: function () {
                         alert("Error al eliminar el ítem del carrito.");

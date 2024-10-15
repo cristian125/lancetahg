@@ -20,7 +20,7 @@ class PaqueteExpressController extends ProductController
     private $peso_pedido = 0;
     private $volumen_pedido = 0;
     private $pesovolumetrico_pedido = 0;
-
+    PRIVATE $peso_volumetrico = 0;
     private $largo_pedido = 0;
     private $ancho_pedido = 0;
     private $alto_pedido = 0;
@@ -209,75 +209,6 @@ class PaqueteExpressController extends ProductController
             ],
         ];
 
-        /*
-        $request ='{
-        "header": {
-        "security": {
-        "user": "'.env('PAQUETEEXPRESS_DEMO_USER').'",
-        "password":"'.env('PAQUETEEXPRESS_DEMO_PASSWORD').'",
-        "type": 1,
-        "token": "'.env('PAQUETEEXPRESS_DEMO_TOKEN').'"
-        },
-        "device": {
-        "appName": "Customer",
-        "type": "Web",
-        "ip": "",
-        "idDevice": ""
-        },
-        "target": {
-        "module": "QUOTER",
-        "version": "1.0",
-        "service": "quoter",
-        "uri": "quotes",
-        "event": "R"
-        },
-        "output": "JSON",
-        "language": null
-        },
-        "body": {
-        "request": {
-        "data": {
-        "clientAddrOrig": {
-        "zipCode": "'.$this->CodigoPostalOrigen.'",
-        "colonyName": "'.$this->ColoniaOrigen.'"
-        },
-        "clientAddrDest": {
-        "zipCode": "'.$direccion_envio->codigo_postal.'",
-        "colonyName": "'.strtoupper($direccion_envio->colonia).'"
-        },
-        "services": {
-        "dlvyType": "1",
-        "ackType": "N",
-        "totlDeclVlue": '.$this->TotalCart.',
-        "invType": "A",
-        "radType": "1"
-        },
-        "otherServices": {
-        "otherServices": []
-        },
-        "shipmentDetail": {
-        "shipments": [
-        {
-        "sequence": 1,
-        "quantity": 1,
-        "shpCode": "2",
-        "weight": '.$this->peso_pedido.',
-        "longShip": '.$this->largo_pedido.',
-        "widthShip": '.$this->ancho_pedido.',
-        "highShip": '.$this->alto_pedido.'
-        }
-        ]
-        },
-        "quoteServices": [
-        "ALL"
-        ]
-        },
-        "objectDTO": null
-        },
-        "response": null
-        }
-        }';
-         */
         return response($request);
     }
 
@@ -371,6 +302,7 @@ class PaqueteExpressController extends ProductController
 
     public function showRequestCotizador(Request $request)
     {
+        
         $id = $request->id;
         $address_id = $request->id;
 
@@ -385,6 +317,7 @@ class PaqueteExpressController extends ProductController
 
         // Si es otra cosa (por ejemplo, un array o stdClass), devolverlo como JSON
         return response($response->getContent(), 200, ['Content-Type' => 'json']);
+        
     }
 
     public function sendRequestCotizadorPaqueteExpress(Request $request)
@@ -398,7 +331,6 @@ class PaqueteExpressController extends ProductController
         $contenido = $response->getContent();
         // Decodificar el contenido JSON a un array asociativo
         $data = json_decode($contenido, true);
-
         try {
             // Realizar la solicitud POST con el contenido JSON
             $respPE = Http::post(env('PAQUETEEXPRESS_DEMO_URL'), $data);
@@ -428,7 +360,6 @@ class PaqueteExpressController extends ProductController
                         'subtotal' => $subtotal,
                         'impuestos' => $impuestos,
                         'total' => $total,
-                        // 'dimesions' => $data,
                     ],
                     'error' => null,
                 ];
@@ -448,12 +379,6 @@ class PaqueteExpressController extends ProductController
 
             // Hacer algo con la respuesta (por ejemplo, devolverla a la vista)
             return response()->json($responseBody);
-            /*
-        return view('example', [
-        'responseBody' => $responseBody,
-        'statusCode' => $statusCode,
-        ]);
-         */
         } catch (RequestException $e) {
             // Manejar excepciones relacionadas con la solicitud HTTP
             // Puedes acceder al cuerpo de la respuesta de error con $e->response

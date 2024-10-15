@@ -4,6 +4,65 @@
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </head> -->
+<!-- Banner de Cookies -->
+<!-- Banner de Cookies -->
+<div id="cookieConsent" class="cookie-banner fixed-bottom p-3 d-none" style="z-index: 9999;">
+    <div class="container d-flex justify-content-between align-items-center">
+        <div class="cookie-message">
+            <span>Este sitio utiliza cookies para garantizar que obtenga la mejor experiencia en nuestro sitio web.</span>
+        </div>
+        <button id="acceptCookies" class="btn btn-info">Aceptar</button>
+    </div>
+</div>
+
+<style>
+    .cookie-banner {
+        background-color: #26d2b6 !important; /* Color del fondo */
+        color: #005f7f;
+        padding: 15px;
+        font-size: 14px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra ligera para destacar */
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+    }
+
+    .cookie-banner .btn {
+        font-weight: bold;
+        background-color: #005f7f;
+        border: none;
+        color: white;
+    }
+
+    .cookie-banner .btn:hover {
+        background-color: #004f6f; 
+    }
+
+    .cookie-message a {
+        color: #005f7f!important; 
+        text-decoration: underline;
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const cookieBanner = document.getElementById('cookieConsent');
+        const acceptCookiesBtn = document.getElementById('acceptCookies');
+    
+        // Comprobar si el usuario ya ha aceptado las cookies
+        if (!localStorage.getItem('cookiesAccepted')) {
+            // Mostrar el banner si no ha sido aceptado antes
+            cookieBanner.classList.remove('d-none');
+            cookieBanner.classList.add('d-flex');
+        }
+    
+        // Al hacer clic en "Aceptar"
+        acceptCookiesBtn.addEventListener('click', function () {
+            localStorage.setItem('cookiesAccepted', 'true');
+            cookieBanner.classList.remove('d-flex');
+            cookieBanner.classList.add('d-none');
+        });
+    });
+</script>
 
 <nav id="mainNavbar" class="navbar navbar-expand-lg navbar-custom navbar-dark">
     <div class="container justify-content-center">
@@ -57,38 +116,51 @@
                         <button id="btnsearch" class="btn btn-outline-success" type="submit"><i class="bi bi-search"></i></button>
                     </form>
                 </li>
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
                 @if (Auth::check() == true)
-                    <!-- Mostrar el nombre del usuario si está autenticado -->
-                    <li class="nav-item dropdown me-3">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                            data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-person-fill"></i> {{ Auth::user()->name }} </a>
-                        <div class="dropdown-menu dropdown-menu-end p-4" aria-labelledby="userDropdown"
-                            style="min-width: 300px;">
-                            <form id="logout-form" action="{{ route('logout') }}" method="POST">
-                                @csrf
-                                <div class="row">
-                                    <a href="/cuenta" class="btn btn-primary form-control"><i
-                                            class="bi bi-person-circle"></i> Cuenta</a>
-                                </div>
-                                <div class="row">
-                                    <button type="submit" class="btn btn-primary w-100">Cerrar Sesión</button>
-                                </div>
-                            </form>
-                        </div>
-                    </li>
-                @else
+                @php
+                    // Obtener los datos del usuario desde la tabla users_data
+                    $userData = DB::table('users_data')->where('user_id', Auth::id())->first();
+                @endphp
+                <!-- Mostrar el nombre del usuario con tratamiento si está autenticado -->
+                <li class="nav-item dropdown me-3">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-fill me-2"></i>
+                        <!-- Mostrar el tratamiento si existe, seguido del nombre -->
+                        @if ($userData && !empty($userData->tratamiento))
+                            {{ $userData->tratamiento }} {{ $userData->nombre }} {{ $userData->apellido_paterno }}
+                        @else
+                            {{ Auth::user()->name }}
+                        @endif
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end p-4 shadow-lg border-0 rounded" aria-labelledby="userDropdown"
+                        style="min-width: 300px;">
+                        <form id="logout-form" action="{{ route('logout') }}" method="POST">
+                            @csrf
+                            <!-- Botón para la cuenta -->
+                            <div class="row mb-3">
+                                <a href="/cuenta" class="btn btn-primary btn-block d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-person-circle me-2"></i> Cuenta
+                                </a>
+                            </div>
+            
+                            <!-- Botón para "Mis Pedidos" -->
+                            <div class="row mb-3">
+                                <a href="{{ route('myorders') }}" class="btn btn-secondary btn-block d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-box-seam me-2"></i> Mis Pedidos
+                                </a>
+                            </div>
+            
+                            <!-- Botón para cerrar sesión -->
+                            <div class="row">
+                                <button type="submit" class="btn btn-danger w-100 d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </li>
+            @else
                     <!-- Mostrar el formulario de inicio de sesión si no está autenticado -->
                     <li class="nav-item dropdown" id="login-dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="loginDropdown" role="button">
@@ -110,11 +182,15 @@
                                 <button type="submit" class="btn btn-primary w-100">Iniciar Sesión</button>
                                 <div class="mt-3">
                                     <ul class="list-group">
-                                        <li class="list-group-item"><a href="#">¿Olvidó su contraseña?</a></li>
-                                        <li class="list-group-item"><a href="{{ route('register') }}">Crear Cuenta</a>
+                                        <li class="list-group-item">
+                                            <a href="{{ route('password.email') }}">¿Olvidó su contraseña?</a>
+                                        </li>
+                                        <li class="list-group-item">
+                                            <a href="{{ route('register') }}">Crear Cuenta</a>
                                         </li>
                                     </ul>
                                 </div>
+                                
                             </form>
                         </div>
                     </li>
@@ -145,6 +221,8 @@
         </div>
     </div>
 </nav>
+
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         loadCategorias();

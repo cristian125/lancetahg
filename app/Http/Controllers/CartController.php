@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\ProductosDestacadosController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class CartController extends ProductController
 {
+
     public function proceedToPayment(Request $request)
     {
         $userId = auth()->id();
@@ -29,46 +31,90 @@ class CartController extends ProductController
             return redirect()->back()->with('error', 'No se han encontrado detalles del envío.');
         }
 
-        // Verificar el stock de los productos en el carrito
+        // Obtener los items del carrito con sus restricciones de envío
         $cartItems = DB::table('cart_items')
+            ->join('itemsdb', 'cart_items.no_s', '=', 'itemsdb.no_s')
             ->join('inventario', 'cart_items.no_s', '=', 'inventario.no_s')
             ->where('cart_items.cart_id', $cartId)
             ->select(
                 'cart_items.*',
-                'inventario.cantidad_disponible'
+                'inventario.cantidad_disponible',
+                'itemsdb.allow_local_shipping',
+                'itemsdb.allow_paqueteria_shipping',
+                'itemsdb.allow_store_pickup',
+                'itemsdb.nombre as product_name'
             )
             ->get();
 
+        // Verificar el stock de los productos en el carrito
         foreach ($cartItems as $item) {
             if ($item->quantity > $item->cantidad_disponible) {
-                return redirect()->back()->with('error', "No hay suficiente stock para el producto {$item->description}.");
+                return redirect()->back()->with('error', "No hay suficiente stock para el producto {$item->product_name}.");
             }
         }
 
-        // Validación para "Recoger en Tienda"
-        $storeId = null; // Variable para almacenar el store_id
-        if ($shippmentDetails->ShipmentMethod === 'RecogerEnTienda') {
+        // Obtener el método de envío seleccionado
+        $metodoEnvio = $shippmentDetails->ShipmentMethod;
+
+        // Filtrar los items elegibles según el método de envío
+        $eligibleCartItems = $cartItems->filter(function ($item) use ($metodoEnvio) {
+            if ($metodoEnvio === 'EnvioLocal') {
+                return $item->allow_local_shipping;
+            } elseif ($metodoEnvio === 'EnvioPorPaqueteria') {
+                return $item->allow_paqueteria_shipping;
+            } elseif ($metodoEnvio === 'RecogerEnTienda') {
+                return $item->allow_store_pickup;
+            }
+            return false;
+        });
+
+        // Obtener los productos no elegibles
+        $eligibleProductNos = $eligibleCartItems->pluck('no_s')->all();
+        $nonEligibleItems = $cartItems->reject(function ($item) use ($eligibleProductNos) {
+            return in_array($item->no_s, $eligibleProductNos);
+        });
+
+        // Si no hay productos elegibles, regresar con error
+        if ($eligibleCartItems->isEmpty()) {
+            return redirect()->back()->with('error', 'No hay productos elegibles para el método de envío seleccionado.');
+        }
+
+        // Recalcular el total basado en los productos elegibles
+        $totalPrice = $eligibleCartItems->sum(function ($item) {
+            return $item->final_price * $item->quantity;
+        });
+
+        $shippingCost = floatval($shippmentDetails->shippingcost_IVA);
+
+        // Calcular el total con IVA
+        $totalPriceIVA = $totalPrice + $shippingCost;
+
+        // Validaciones específicas para "RecogerEnTienda"
+        $storeId = null;
+        $pickupDate = null;
+        $pickupTime = null;
+
+        if ($metodoEnvio === 'RecogerEnTienda') {
             $pickupDate = new \DateTime($shippmentDetails->pickup_date);
             $pickupTime = new \DateTime($shippmentDetails->pickup_time);
 
-            $dayOfWeek = $pickupDate->format('N'); // Día de la semana (1=Lunes, 7=Domingo)
-            $hour = (int) $pickupTime->format('H'); // Hora en formato 24 horas
+            $dayOfWeek = $pickupDate->format('N');
+            $hour = (int) $pickupTime->format('H');
 
-            // Lunes a viernes de 10:00 a 18:00
+            // Verificar si el día seleccionado es domingo
+            if ($dayOfWeek == 7) {
+                return redirect()->back()->with('error', 'No puedes seleccionar domingos para la recogida en tienda.');
+            }
+
+            // Verificar los horarios permitidos según el día de la semana
             if ($dayOfWeek >= 1 && $dayOfWeek <= 5) {
                 if ($hour < 10 || $hour > 18) {
                     return redirect()->back()->with('error', 'La hora seleccionada para recoger en tienda es inválida. Recuerda que los horarios son de 10:00 a 18:00 de lunes a viernes.');
                 }
-            }
-            // Sábado de 10:00 a 15:00
-            elseif ($dayOfWeek == 6) {
+            } elseif ($dayOfWeek == 6) { // Sábado
                 if ($hour < 10 || $hour > 15) {
                     return redirect()->back()->with('error', 'La hora seleccionada para recoger en tienda es inválida. Recuerda que los horarios son de 10:00 a 15:00 los sábados.');
                 }
-            }
-            // No se permiten recogidas en domingo
-            else {
-                return redirect()->back()->with('error', 'No es posible recoger en tienda los domingos.');
             }
 
             // Verificar que la hora es en punto (sin minutos intermedios)
@@ -76,26 +122,19 @@ class CartController extends ProductController
                 return redirect()->back()->with('error', 'La hora seleccionada para recoger en tienda debe ser una hora exacta (sin minutos intermedios).');
             }
 
-            // Bloquear la selección del mismo día o día siguiente (excepto domingos)
+            // Comparar fechas sin tener en cuenta la hora
             $currentDate = new \DateTime();
-            $minPickupDate = (clone $currentDate)->modify('+1 day');
+            $currentDate->setTime(0, 0);
+            $pickupDate->setTime(0, 0);
 
-            if ($pickupDate < $minPickupDate) {
-                return redirect()->back()->with('error', 'No puedes programar un pedido para el mismo día o para días anteriores. Elige al menos el día siguiente, excepto los domingos.');
+            // Verificar que no se seleccione el mismo día
+            if ($pickupDate <= $currentDate) {
+                return redirect()->back()->with('error', 'No puedes seleccionar el mismo día para la recogida en tienda.');
             }
 
             // Asignar el store_id del envío
             $storeId = $shippmentDetails->store_id;
         }
-
-        // El totalPrice ya incluye el IVA, por lo que no es necesario volver a calcularlo
-        $totalPrice = $cartItems->sum(function ($item) {
-            return $item->final_price * $item->quantity;
-        });
-        $shippingCost = floatval($shippmentDetails->shippingcost_IVA);
-
-        // Si el total ya incluye el IVA, simplemente lo tomamos tal cual
-        $totalPriceIVA = $totalPrice; // Asumimos que `final_price` ya incluye el IVA
 
         // Verificar si ya existe un envío previo para el usuario
         $existingShippment = DB::table('shippments')
@@ -114,16 +153,20 @@ class CartController extends ProductController
                 ->delete();
         }
 
+        // Obtener el nombre de contacto y teléfono desde el formulario o usar los valores predeterminados del usuario
+        $contactName = $request->input('contactName', auth()->user()->name);
+        $contactPhone = $request->input('contactPhone', auth()->user()->phone);
+
         // Crear el nuevo shippment utilizando los datos de `cart_shippment`
         $shippmentId = DB::table('shippments')->insertGetId([
             'user_id' => $userId,
             'cart_id' => $cartId,
-            'store_id' => $storeId, // Añadir el store_id aquí
+            'store_id' => $storeId,
             'shipping_method' => $shippmentDetails->ShipmentMethod,
             'shipping_cost' => $shippmentDetails->unit_price,
             'shipping_cost_IVA' => $shippingCost,
-            'subtotal_sin_envio' => $totalPrice - $shippingCost, // Subtotal sin el costo de envío
-            'total_con_IVA' => $totalPrice, // Total con IVA
+            'subtotal_sin_envio' => $totalPrice,
+            'total_con_IVA' => $totalPriceIVA,
             'shipping_address' => $shippmentDetails->calle . ' ' . $shippmentDetails->no_ext,
             'no_int' => $shippmentDetails->no_int,
             'no_ext' => $shippmentDetails->no_ext,
@@ -135,20 +178,28 @@ class CartController extends ProductController
             'referencias' => $shippmentDetails->referencias,
             'cord_x' => $shippmentDetails->cord_x,
             'cord_y' => $shippmentDetails->cord_y,
-            'nombre_contacto' => $shippmentDetails->nombre,
-            'telefono_contacto' => $shippmentDetails->telefono_contacto ?? '',
+            'nombre_contacto' => $contactName,
+            'telefono_contacto' => $contactPhone,
             'email_contacto' => $request->user()->email,
+            'pickup_date' => $shippmentDetails->pickup_date ?? null,
+            'pickup_time' => $shippmentDetails->pickup_time ?? null,
             'status' => 'pending',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
 
-        // Insertar los productos en la tabla `shippment_items`
-        foreach ($cartItems as $item) {
+        // Insertar los productos elegibles en la tabla `shippment_items`
+        foreach ($eligibleCartItems as $item) {
+            $description = $item->product_name;
+
+            if (is_null($description)) {
+                $description = 'Descripción no disponible';
+            }
+
             DB::table('shippment_items')->insert([
                 'shippment_id' => $shippmentId,
                 'no_s' => $item->no_s,
-                'description' => $item->description,
+                'description' => $description,
                 'unit_price' => $item->unit_price,
                 'discount' => $item->discount,
                 'final_price' => $item->final_price,
@@ -158,8 +209,145 @@ class CartController extends ProductController
             ]);
         }
 
-        // Redirigir al checkout
+        // Opcional: Informar al usuario si hubo productos no elegibles
+        if ($nonEligibleItems->isNotEmpty()) {
+            $nombresProductosNoElegibles = $nonEligibleItems->pluck('product_name')->implode(', ');
+            return redirect('/checkout')->with('success', 'El pedido ha sido validado. Algunos productos no fueron incluidos porque no son elegibles para el método de envío seleccionado: ' . $nombresProductosNoElegibles);
+        }
+
         return redirect('/checkout')->with('success', 'El pedido ha sido validado. Procede al pago.');
     }
 
+
+    public function showCheckout(Request $request)
+    {
+
+
+        $mantenimiento = ProductosDestacadosController::checkMaintenance();
+        if ($mantenimiento == 'true') {
+            return redirect(route('mantenimento'));
+        }
+
+
+
+
+
+        $userId = auth()->id();
+
+        if (!$userId) {
+            return redirect()->route('login');
+        }
+
+        // Obtener el envío pendiente del usuario desde la tabla 'shippments'
+        $shippment = DB::table('shippments')
+            ->where('user_id', $userId)
+            ->where('status', 'pending')
+            ->select(
+                'id',
+                'cart_id',
+                'no_ext',  // Asegúrate de seleccionar 'no_ext'
+                'entre_calles',
+                'colonia',
+                'municipio',
+                'pais',
+                'telefono_contacto',
+                'shipping_address',
+                'codigo_postal',
+                'nombre_contacto',
+                'shipping_cost_IVA',
+                'shipping_method', // Agregar shipping_method
+                'store_id', // Agregar store_id para la recogida en tienda
+                'shipping_cost',
+                'pickup_date', // Fecha de recogida en tienda
+                'pickup_time'  // Hora de recogida en tienda
+            )
+            ->first();
+
+        if (!$shippment) {
+            return view('checkout', ['error' => 'No se han encontrado detalles del envío.']);
+        }
+
+        // Obtener detalles de la tienda si el envío es para recoger en tienda
+        $storeDetails = null;
+        if ($shippment->shipping_method === 'RecogerEnTienda') {
+            $storeDetails = DB::table('tiendas')
+                ->where('id', $shippment->store_id)
+                ->first();
+        }
+
+        // Obtener los items del envío desde 'shippment_items'
+        $cartItems = DB::table('shippment_items')
+            ->where('shippment_id', $shippment->id)
+            ->select('description', 'quantity', 'unit_price', 'final_price', 'discount')
+            ->get();
+
+        // Calcular los totales
+        $shippingCost = $shippment->shipping_cost_IVA;
+
+        $totalPriceItems = $cartItems->sum(function ($item) {
+            return $item->final_price * $item->quantity;
+        });
+
+        $totalFinal = $totalPriceItems + $shippingCost;
+
+        // Generar un 'oid' único
+        $oid = uniqid('C-', true);  // Prefijo "C-" seguido de un identificador único
+
+        // Guardar la transacción de pago
+        DB::table('payment_transactions')->insert([
+            'user_id' => $userId,
+            'cart_id' => $shippment->cart_id,
+            'oid' => $oid,
+            'chargetotal' => number_format($totalFinal, 2, '.', ''),
+            'checkoutoption' => 'combinedpage',
+            'currency' => '484',
+            'hash_algorithm' => 'HMACSHA256',
+            'parentUri' => url('/checkout'),
+            'responseFailURL' => url('/payment/callback/fail'),
+            'responseSuccessURL' => url('/payment/callback/success'),
+            'storename' => env('PAYMENT_STORENAME'),
+            'timezone' => 'America/Mexico_City',
+            'txndatetime' => now()->format('Y:m:d-H:i:s'),
+            'txntype' => 'sale',
+            'created_at' => now(),
+            'updated_at' => now()
+        ]);
+
+        // Generar hash y preparar datos del formulario de pago
+        $paymentData = [
+            'oid' => $oid,  // Incluir el 'oid' generado
+            'chargetotal' => number_format($totalFinal, 2, '.', ''),
+            'checkoutoption' => 'combinedpage',
+            'currency' => '484',
+            'hash_algorithm' => 'HMACSHA256',
+            'parentUri' => url('/checkout'),
+            'responseFailURL' => url('/payment/callback/fail'),
+            'responseSuccessURL' => url('/payment/callback/success'),
+            'storename' => env('PAYMENT_STORENAME'),
+            'timezone' => 'America/Mexico_City',
+            'txndatetime' => now()->format('Y:m:d-H:i:s'),
+            'txntype' => 'sale',
+        ];
+
+        // Ordenar los parámetros alfabéticamente por nombre
+        ksort($paymentData);
+
+        // Generar el hash
+        $secretKey = env('PAYMENT_SECRET_KEY');
+        $hashString = implode('|', $paymentData);
+        $hash = base64_encode(hash_hmac('sha256', $hashString, $secretKey, true));
+
+        $paymentData['hashExtended'] = $hash;
+
+        return view('checkout', [
+            'shippment' => $shippment,
+            'cartItems' => $cartItems,
+            'totalPriceItems' => $totalPriceItems,
+            'shippingCost' => $shippingCost,
+            'totalFinal' => $totalFinal,
+            'error' => null,
+            'paymentData' => $paymentData,
+            'storeDetails' => $storeDetails  // Pasar los detalles de la tienda si es "RecogerEnTienda"
+        ]);
+    }
 }

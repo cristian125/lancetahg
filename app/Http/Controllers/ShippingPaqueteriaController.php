@@ -128,31 +128,35 @@ class ShippingPaqueteriaController extends Controller
     {
         try {
             $cartId = $request->input('cart_id');
-            $methodName = 'EnvioPorPaqueteria';
             $direccionId = $request->input('direccion');
-            $shippingCostWithIVA = $request->input('shipping_cost_with_iva'); // Asegúrate de recibir este dato
-    
+            $shippingCostWithIVA = $request->input('shipping_cost_with_iva'); // Recibir el costo con IVA
+        
             // Verificar que los datos necesarios están presentes
             if (!$cartId || !$direccionId || !$shippingCostWithIVA) {
                 return response()->json(['success' => false, 'error' => 'Faltan datos requeridos o costo de envío no proporcionado.']);
             }
-    
+        
             // Obtener los detalles de la dirección
             $direccion = DB::table('users_address')->where('id', $direccionId)->first();
             if (!$direccion) {
                 return response()->json(['success' => false, 'error' => 'Dirección no encontrada.']);
             }
+        
+            // Calcular el total de productos con IVA (sin incluir el envío)
+            $totalProductosConIVA = DB::table('cart_items')
+                ->where('cart_id', $cartId)
+                ->sum(DB::raw('final_price * quantity'));
     
             // Inserción en la tabla `cart_shippment`
             DB::table('cart_shippment')->insert([
                 'cart_id' => $cartId,
-                'ShipmentMethod' => $methodName,
+                'ShipmentMethod' => 'EnvioPorPaqueteria',
                 'no_s' => '999999', // Código de producto especial para el envío por paquetería
                 'description' => "Envio por Paquetería",
-                'unit_price' => 0,
-                'discount' => 0,
-                'final_price' => 0,
-                'shippingcost_IVA' => $shippingCostWithIVA, // Guardar el costo con IVA
+                'unit_price' => $totalProductosConIVA, // Precio total de los productos con IVA, pero sin envío
+                'discount' => 0, // Puedes cambiar este valor si aplicas algún descuento
+                'final_price' => $totalProductosConIVA, // Precio final sin incluir envío
+                'shippingcost_IVA' => $shippingCostWithIVA, // Guardar el costo con IVA del envío
                 'quantity' => 1,
                 'nombre' => $direccion->nombre,
                 'calle' => $direccion->calle,
@@ -164,20 +168,20 @@ class ShippingPaqueteriaController extends Controller
                 'codigo_postal' => $direccion->codigo_postal,
                 'pais' => $direccion->pais,
                 'referencias' => $direccion->referencias,
-                'predeterminada' => $direccion->predeterminada,
-                'status' => $direccion->status,
                 'cord_x' => $direccion->cord_x,
                 'cord_y' => $direccion->cord_y,
+                'status' => 1, // Agregar este campo para solucionar el error
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
-    
+        
             return response()->json(['success' => true]);
-    
+        
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()]);
         }
     }
+    
     
     
     

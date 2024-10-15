@@ -13,31 +13,53 @@ class AccountController extends Controller
 {
     public function index(Request $request)
     {
+        // Obtener el usuario autenticado
         $user = Auth::user();
         $userID = $user->id;
-
+    
+        // Obtener las direcciones del usuario
         $direcciones = $this->obtenerDirecciones($userID);
-
-        $files_modal = File::allFiles(resource_path('views\partials\modal\cuenta'));
-        $files_accordion = File::allFiles(resource_path('views\partials\accordion\cuenta'));
-
+    
+        // Obtener la dirección de facturación
+        $direccion_facturacion = DB::table('users_address')
+            ->where('user_id', $userID)
+            ->where('facturacion', 1)
+            ->first();
+    
+        // Obtener los datos adicionales del usuario desde users_data
+        $userData = DB::table('users_data')->where('user_id', $userID)->first();
+    
+        // Obtener los archivos para el modal y el accordion
+        $files_modal = File::allFiles(resource_path('views/partials/modal/cuenta'));
+        $files_accordion = File::allFiles(resource_path('views/partials/accordion/cuenta'));
+    
         $modal_files = new \stdClass();
         $accordion_files = new \stdClass();
         
         $i = 0;
         foreach($files_modal as $file)
         {
-            $modal_files->$i=str_replace('.blade.php','',$file->getRelativePathname());
+            $modal_files->$i = str_replace('.blade.php', '', $file->getRelativePathname());
             $i++;
         }
         $i = 0;
         foreach($files_accordion as $file)
         {
-            $accordion_files->$i=str_replace('.blade.php','',$file->getRelativePathname());
+            $accordion_files->$i = str_replace('.blade.php', '', $file->getRelativePathname());
             $i++;
         }
-        return response()->view('cuenta', ['direcciones' => $direcciones,'modal_files'=>$modal_files,'accordion_files'=>$accordion_files]);
+    
+        // Pasar los datos del usuario, las direcciones y la dirección de facturación a la vista
+        return response()->view('cuenta', [
+            'direcciones' => $direcciones,
+            'direccion_facturacion' => $direccion_facturacion,
+            'modal_files' => $modal_files,
+            'accordion_files' => $accordion_files,
+            'user' => $user,              // Datos del usuario desde users
+            'userData' => $userData        // Datos adicionales desde users_data
+        ]);
     }
+    
 
     public function agregarDireccion(Request $request)
     {
@@ -187,6 +209,98 @@ class AccountController extends Controller
         $direcciones = DB::table('codigos_postales')->where('codigo', $codigoPostal)->get();
         return response()->json($direcciones, 200);
     }
-
+    public function setDireccionPredeterminada(Request $request)
+    {
+        $user = Auth::user();
+        $direccionID = $request->direccion_predeterminada;
     
+        // Marcar todas las direcciones como no predeterminadas
+        DB::table('users_address')
+            ->where('user_id', $user->id)
+            ->update(['predeterminada' => 0]);
+    
+        // Marcar la dirección seleccionada como predeterminada
+        DB::table('users_address')  
+            ->where('id', $direccionID)
+            ->where('user_id', $user->id)
+            ->update(['predeterminada' => 1]);
+    
+        return response()->json(['message' => 'Dirección predeterminada actualizada correctamente'], 200);
+    }
+    public function setDireccionFacturacion(Request $request)
+{
+    $user = Auth::user();
+    $direccionID = $request->direccion_facturacion;
+
+    // Marcar todas las direcciones como no de facturación
+    DB::table('users_address')
+        ->where('user_id', $user->id)
+        ->update(['facturacion' => 0]);
+
+    // Marcar la dirección seleccionada como de facturación
+    DB::table('users_address')  
+        ->where('id', $direccionID)
+        ->where('user_id', $user->id)
+        ->update(['facturacion' => 1]);
+
+    return response()->json(['message' => 'Dirección de facturación actualizada correctamente'], 200);
+}
+
+public function actualizarDatosFacturacion(Request $request)
+{
+    $user = Auth::user();
+    $userID = $user->id;
+
+    // Validar los datos de facturación
+    $request->validate([
+        'razon_social' => 'required|string|max:255',
+        'rfc' => 'required|string|max:13',
+        'regimen_fiscal' => 'required|string|max:255',
+        'uso_cfdi' => 'required|string|max:255',
+    ]);
+
+    // Actualizar los datos de facturación en la tabla users_data
+    DB::table('users_data')->updateOrInsert(
+        ['user_id' => $userID],
+        [
+            'razon_social' => $request->razon_social,
+            'rfc' => $request->rfc,
+            'regimen_fiscal' => $request->regimen_fiscal,
+            'uso_cfdi' => $request->uso_cfdi,
+            'updated_at' => Carbon::now()
+        ]
+    );
+
+    return redirect()->route('cuenta')->with('status', 'Datos de facturación actualizados correctamente.');
+}
+
+public function actualizarPromociones(Request $request)
+{
+    $user = Auth::user();
+    $email = $user->email; // Usamos el email del usuario autenticado
+    $ipAddress = $request->ip();
+    $suscripcion = $request->input('recibir_promociones');
+
+    if ($suscripcion == 1) {
+        // Si selecciona "Sí", insertar o activar el registro en 'newsletter_subs'
+        DB::table('newsletter_subs')->updateOrInsert(
+            ['email' => $email],
+            [
+                'ip_address' => $ipAddress,
+                'subscribed_at' => now(),
+                'is_active' => 1
+            ]
+        );
+    } else {
+        // Si selecciona "No", desactivar la suscripción si ya existe
+        $registro = DB::table('newsletter_subs')->where('email', $email)->first();
+
+        if ($registro) {
+            DB::table('newsletter_subs')->where('email', $email)->update(['is_active' => 0]);
+        }
+    }
+
+    return redirect()->route('cuenta')->with('status', 'Preferencias de promociones actualizadas correctamente.');
+}
+
 }

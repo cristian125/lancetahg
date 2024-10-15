@@ -36,7 +36,6 @@ $(document).ready(function () {
 
             // Ejecutar la búsqueda cuando el usuario presione Enter
             if (e.key === 'Enter' || e.key === 'NumpadEnter') {
-                  // Evitar cualquier acción predeterminada de "Enter"
                 handleSearch();  // Gestionar la lógica de búsqueda
             } 
             else {
@@ -114,7 +113,7 @@ $(document).ready(function () {
                         <div class="col-md-6 d-flex flex-column justify-content-center">
                             <p style="margin: 0; font-size: 14px;"><strong>Código:</strong> ${item.no_s}</p>
                             <p style="margin: 0; font-size: 14px;"><strong>Unidad:</strong> ${item.unidad_medida_venta}</p>
-                            <p style="margin: 0; font-size: 14px;">${item.descripcion}</p>
+                            <p style="margin: 0; font-size: 14px;">${item.nombre}</p>
                         </div>
                         <div class="col-md-2 d-flex flex-column justify-content-center align-items-center text-end">
                             <p class="product-price mb-0" style="font-size: 16px; font-weight: bold; color: #005f7f;">$${number_format(item.precio_unitario_IVAinc, 2)}</p>`;
@@ -153,7 +152,16 @@ $(document).ready(function () {
                                     dataType: "json",
                                     success: function (response) {
                                         if (response.message === 'Producto añadido al carrito') {
+                                            updateCartCount();
                                             loadCartItems();
+                                            localStorage.setItem('showShippingAlert', 'true');
+                                            window.top.location.reload();
+                                            // Opciones de recarga
+                                            if (window.top !== window.self) {
+                                                window.top.location.reload();  // Si está en un iframe
+                                            } else {
+                                                window.location.href = window.location.href;  // Si está en la ventana principal
+                                            }
                                         }
                                     },
                                     error: function (data) {
@@ -161,8 +169,7 @@ $(document).ready(function () {
                                     }
                                 });
                             });
-    
-                            
+
                             $("#search").on("keydown", function(e) {
                                 if (e.key === 'Enter' || e.key === 'NumpadEnter') {
                                     e.preventDefault();  // Prevenir la acción de añadir al carrito
@@ -173,84 +180,9 @@ $(document).ready(function () {
         
         $itemsList.append(scriptit);
     }
-    
-    
-    // function attachAddToCartEvent() {
-    //     // $('.btn-add-to-cart').off('click').on('click', function (e) {
-        
-    
-    //     // Añadir un evento "keydown" para prevenir añadir al carrito con la tecla Enter
-    //     /*
-    //     $('.btn-add-to-cart').on('keydown', function (e) {
-    //         if (e.key === 'Enter' || e.key === 'NumpadEnter') {
-    //             e.preventDefault(); // Evita que se realice la acción de añadir al carrito
-    //             return false; // Asegura que no se propague el evento
-    //         }
-    //     });
-    //     */
 
-    //     $('.btn-add-to-cart').on('click', function (e) {
-    //         // Asegurarse de que el evento sea un verdadero click y no un evento simulado o indebido
-    //         /*
-    //         if (e.isTrigger || !e.originalEvent || (e.type === 'keydown' && (e.key === 'Enter' || e.key === 'NumpadEnter'))) {
-    //             e.preventDefault(); // Evita que se realice la acción de añadir al carrito
-    //             return; // Sale de la función
-    //         }
-    //         */
-    //         e.preventDefault();
-    //         e.stopPropagation();
-    
-    //         let btnclicked = $(this);
-    //         let id = btnclicked.data('id');
-    
-    //         if (id === 'invalid') {
-    //             return;
-    //         }
-    
-    //         let token = $('meta[name="csrf-token"]').attr('content');
-    
-    //         $.ajax({
-    //             type: "POST",
-    //             url: "/cart/add",
-    //             data: {
-    //                 id: id,
-    //                 _token: token
-    //             },
-    //             dataType: "json",
-    //             success: function (response) {
-    //                 if (response.message === 'Producto añadido al carrito') {
-    //                     loadCartItems();
-    //                 }
-    //             },
-    //             error: function (data) {
-    //                 handleAddToCartError(data, btnclicked);
-    //             }
-    //         });
-    //     });
-    
-    //     // Añadir un evento "click" preventivo en todo el documento para evitar que la búsqueda desencadene la acción de añadir
-    //     /*
-    //     $(document).on('click', function (e) {
-    //         if (!$(e.target).closest('.btn-add-to-cart').length) {
-    //             // Si el click no es sobre un botón de añadir al carrito, asegurar que no se añada nada
-    //             $('.btn-add-to-cart').attr('data-id', 'invalid');
-    //         }
-    //     });
-    //     */
-    // }
-    
-    
+    function number_format(number, decimals) {
+        return parseFloat(number).toFixed(decimals).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+    }
+
 });
-
-
-
-
-function number_format(number, decimals) {
-    return parseFloat(number).toFixed(decimals).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-}
-
-
-
-/*******************/
-
-

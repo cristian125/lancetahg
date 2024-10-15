@@ -38,7 +38,7 @@
                     <p class="text-center text-muted">
                         La información aquí expresada es exclusiva para las compras realizadas en línea dentro de nuestra Tienda Web.
                         <br>
-                        Para mayor información, puede consultar nuestros Términos y Condiciones, en el apartado <a href="{{ route('terminosyc') }}" class="text-primary">Políticas Generales de Pago</a>.
+                        Para mayor información, puede consultar nuestros Términos y Condiciones, en el apartado <a href="/page/terminos-y-condiciones" class="text-primary">Políticas Generales de Pago</a>.
                     </p>
                 </div>
             </div>

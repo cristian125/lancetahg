@@ -1,0 +1,10 @@
+.accordion-button
+{
+    background-color: #00B398 !important;
+    font-weight: bold;
+    color:#ffffff !important;
+}
+.accordion-body
+{
+    text-align: justify !important;
+}
