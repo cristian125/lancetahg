@@ -160,130 +160,127 @@ class OrdersHeaderController extends Controller
     //     return response($xmldoc, 200, ['Content-Type' => 'text/xml']);
     // }
 
+    public function showOrdersWithState(Request $request)
+    {
+        // Filtrar por el estado de la orden (current_state = 2 por defecto)
+        $currentState = $request->query('filter')['current_state'] ?? 2;
 
+        // Obtener las órdenes desde la base de datos con el estado actual
+        $orders = DB::table('orders')
+            ->where('current_state', $currentState)
+            ->get();
 
-
-        public function showOrdersWithState(Request $request)
-        {
-            // Filtrar por el estado de la orden (current_state = 2 por defecto)
-            $currentState = $request->query('filter')['current_state'] ?? 2;
-    
-            // Obtener las órdenes desde la base de datos con el estado actual
-            $orders = DB::table('orders')
-                ->where('current_state', $currentState)
-                ->get();
-    
-            if ($orders->isEmpty()) {
-                return response()->json(['error' => 'No orders found with current state'], 404);
-            }
-    
-            // Crear la estructura básica del XML con DOMDocument
-            $dom = new \DOMDocument('1.0', 'UTF-8');
-            $dom->formatOutput = true;
-    
-            $prestashop = $dom->createElement('prestashop');
-            $prestashop->setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
-            $dom->appendChild($prestashop);
-    
-            $ordersXml = $dom->createElement('orders');
-            $prestashop->appendChild($ordersXml);
-    
-            foreach ($orders as $order) {
-                $orderXml = $dom->createElement('order');
-                $ordersXml->appendChild($orderXml);
-    
-                // Añadir campos de la tabla 'orders'
-                $this->addCData($dom, $orderXml, 'id', trim($order->id)); // trim en cada campo para eliminar espacios
-    
-                // Campos simulados o valores por defecto
-                $this->addCData($dom, $orderXml, 'id_address_delivery', '0');
-                $this->addCData($dom, $orderXml, 'id_address_invoice', '0', 'http://lancetapruebas.com/api/addresses/' . trim($order->id));
-                $this->addCData($dom, $orderXml, 'id_cart', '1', 'http://lancetapruebas.com/api/carts/1');
-                $this->addCData($dom, $orderXml, 'id_currency', '1', 'http://lancetapruebas.com/api/currencies/1');
-                $this->addCData($dom, $orderXml, 'id_lang', '2', 'http://lancetapruebas.com/api/languages/2');
-                $this->addCData($dom, $orderXml, 'id_customer', trim($order->user_id), 'http://lancetapruebas.com/api/customers/' . trim($order->user_id));
-                $this->addCData($dom, $orderXml, 'id_carrier', '223', 'http://lancetapruebas.com/api/carriers/223');
-                $this->addCData($dom, $orderXml, 'current_state', trim($order->current_state), 'http://lancetapruebas.com/api/order_states/' . trim($order->current_state));
-                $this->addCData($dom, $orderXml, 'module', 'firstdata');
-    
-                // Campos adicionales simulados
-                $this->addCData($dom, $orderXml, 'invoice_number', '0');
-                $this->addCData($dom, $orderXml, 'invoice_date', '0000-00-00 00:00:00');
-                $this->addCData($dom, $orderXml, 'delivery_number', '0');
-                $this->addCData($dom, $orderXml, 'delivery_date', '0000-00-00 00:00:00');
-                $this->addCData($dom, $orderXml, 'valid', '1');
-                $this->addCData($dom, $orderXml, 'date_add', trim($order->created_at));
-                $this->addCData($dom, $orderXml, 'date_upd', trim($order->updated_at));
-                $orderXml->appendChild($dom->createElement('shipping_number')); // Campo vacío
-                $this->addCData($dom, $orderXml, 'id_shop_group', '1');
-                $this->addCData($dom, $orderXml, 'id_shop', '1');
-                $this->addCData($dom, $orderXml, 'secure_key', '21f003ace3ecdfda54bed9062d58c26e');
-                $this->addCData($dom, $orderXml, 'payment', 'Tarjeta Bancaria');
-    
-                // Campos simulados adicionales
-                $this->addCData($dom, $orderXml, 'recyclable', '0');
-                $this->addCData($dom, $orderXml, 'gift', '0');
-                $orderXml->appendChild($dom->createElement('gift_message')); // Campo vacío
-                $this->addCData($dom, $orderXml, 'mobile_theme', '1');
-                $this->addCData($dom, $orderXml, 'total_discounts', '0.000000');
-                $this->addCData($dom, $orderXml, 'total_discounts_tax_incl', '0.000000');
-                $this->addCData($dom, $orderXml, 'total_discounts_tax_excl', '0.000000');
-                $this->addCData($dom, $orderXml, 'total_paid', trim($order->total));
-                $this->addCData($dom, $orderXml, 'total_paid_tax_incl', trim($order->total_con_iva));
-                $this->addCData($dom, $orderXml, 'total_paid_tax_excl', trim($order->total));
-                $this->addCData($dom, $orderXml, 'total_paid_real', trim($order->total));
-                $this->addCData($dom, $orderXml, 'total_products', trim($order->subtotal_sin_envio));
-                $this->addCData($dom, $orderXml, 'total_products_wt', trim($order->total_con_iva));
-                $this->addCData($dom, $orderXml, 'total_shipping', trim($order->shipping_cost));
-                $this->addCData($dom, $orderXml, 'total_shipping_tax_incl', trim($order->shipping_cost));
-                $this->addCData($dom, $orderXml, 'total_shipping_tax_excl', trim($order->shipping_cost));
-                $this->addCData($dom, $orderXml, 'carrier_tax_rate', '0.000');
-                $this->addCData($dom, $orderXml, 'total_wrapping', '0.000000');
-                $this->addCData($dom, $orderXml, 'total_wrapping_tax_incl', '0.000000');
-                $this->addCData($dom, $orderXml, 'total_wrapping_tax_excl', '0.000000');
-                $this->addCData($dom, $orderXml, 'round_mode', '2');
-                $this->addCData($dom, $orderXml, 'round_type', '2');
-                $this->addCData($dom, $orderXml, 'conversion_rate', '1.000000');
-                $this->addCData($dom, $orderXml, 'reference', trim($order->oid));
-                $this->addCData($dom, $orderXml, 'lscode_forma_pago', 'TARJ DEB');
-                $this->addCData($dom, $orderXml, 'transaction_id', '0');
-                $this->addCData($dom, $orderXml, 'card_number', '0');
-                $this->addCData($dom, $orderXml, 'card_brand', '0');
-                $this->addCData($dom, $orderXml, 'card_holder', '0');
-                $this->addCData($dom, $orderXml, 'amount', '0');
-                $this->addCData($dom, $orderXml, 'lscode_cliente', '0');
-                $this->addCData($dom, $orderXml, 'tipo_entrega', 'DOMICILIO');
-                $this->addCData($dom, $orderXml, 'opcion_envio', 'ESTD');
-    
-                // Asociaciones de líneas de pedido simuladas
-                $associations = $dom->createElement('associations');
-                $orderXml->appendChild($associations);
-    
-                $orderRows = $dom->createElement('order_rows');
-                $orderRows->setAttribute('nodeType', 'order_row');
-                $orderRows->setAttribute('virtualEntity', 'true');
-                $associations->appendChild($orderRows);
-    
-                $orderRow = $dom->createElement('order_row');
-                $orderRows->appendChild($orderRow);
-            }
-    
-            // Devolver el XML como respuesta
-            // return response($dom->saveXML(), 200, ['Content-Type' => 'application/soap+xml;charset=UTF-8']);
-            return response($dom->saveXML(), 200, ['Content-Type' => 'text/xml']);
+        if ($orders->isEmpty()) {
+            return response()->json(['error' => 'No orders found with current state'], 404);
         }
-    
-        private function addCData($dom, $parent, $name, $value, $xlink = null)
-        {
-            $element = $dom->createElement($name);
-            $cdata = $dom->createCDATASection($value);     
-            $element->appendChild($cdata);
-    
-            if ($xlink) {
-                $element->setAttribute('xlink:href', $xlink);
-            }
-    
-            $parent->appendChild($element);
+
+        // Crear la estructura básica del XML con DOMDocument
+        $dom = new \DOMDocument('1.0', 'UTF-8');
+        $dom->formatOutput = true;
+
+        $prestashop = $dom->createElement('prestashop');
+        $prestashop->setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+        $dom->appendChild($prestashop);
+
+        $ordersXml = $dom->createElement('orders');
+        $prestashop->appendChild($ordersXml);
+
+        foreach ($orders as $order) {
+            $orderXml = $dom->createElement('order');
+            $ordersXml->appendChild($orderXml);
+
+            // Añadir campos de la tabla 'orders'
+            $this->addCData($dom, $orderXml, 'id', trim($order->id)); // trim en cada campo para eliminar espacios
+
+            // Campos simulados o valores por defecto
+            $this->addCData($dom, $orderXml, 'id_address_delivery', '0');
+            $this->addCData($dom, $orderXml, 'id_address_invoice', '0', 'http://lancetapruebas.com/api/addresses/' . trim($order->id));
+            $this->addCData($dom, $orderXml, 'id_cart', '1', 'http://lancetapruebas.com/api/carts/1');
+            $this->addCData($dom, $orderXml, 'id_currency', '1', 'http://lancetapruebas.com/api/currencies/1');
+            $this->addCData($dom, $orderXml, 'id_lang', '2', 'http://lancetapruebas.com/api/languages/2');
+            $this->addCData($dom, $orderXml, 'id_customer', trim($order->user_id), 'http://lancetapruebas.com/api/customers/' . trim($order->user_id));
+            $this->addCData($dom, $orderXml, 'id_carrier', '223', 'http://lancetapruebas.com/api/carriers/223');
+            $this->addCData($dom, $orderXml, 'current_state', trim($order->current_state), 'http://lancetapruebas.com/api/order_states/' . trim($order->current_state));
+            $this->addCData($dom, $orderXml, 'module', 'firstdata');
+
+            // Campos adicionales simulados
+            $this->addCData($dom, $orderXml, 'invoice_number', '0');
+            $this->addCData($dom, $orderXml, 'invoice_date', '0000-00-00 00:00:00');
+            $this->addCData($dom, $orderXml, 'delivery_number', '0');
+            $this->addCData($dom, $orderXml, 'delivery_date', '0000-00-00 00:00:00');
+            $this->addCData($dom, $orderXml, 'valid', '1');
+            $this->addCData($dom, $orderXml, 'date_add', trim($order->created_at));
+            $this->addCData($dom, $orderXml, 'date_upd', trim($order->updated_at));
+            $orderXml->appendChild($dom->createElement('shipping_number')); // Campo vacío
+            $this->addCData($dom, $orderXml, 'id_shop_group', '1');
+            $this->addCData($dom, $orderXml, 'id_shop', '1');
+            $this->addCData($dom, $orderXml, 'secure_key', '21f003ace3ecdfda54bed9062d58c26e');
+            $this->addCData($dom, $orderXml, 'payment', 'Tarjeta Bancaria');
+
+            // Campos simulados adicionales
+            $this->addCData($dom, $orderXml, 'recyclable', '0');
+            $this->addCData($dom, $orderXml, 'gift', '0');
+            $orderXml->appendChild($dom->createElement('gift_message')); // Campo vacío
+            $this->addCData($dom, $orderXml, 'mobile_theme', '1');
+            $this->addCData($dom, $orderXml, 'total_discounts', '0.000000');
+            $this->addCData($dom, $orderXml, 'total_discounts_tax_incl', '0.000000');
+            $this->addCData($dom, $orderXml, 'total_discounts_tax_excl', '0.000000');
+            $this->addCData($dom, $orderXml, 'total_paid', trim($order->total));
+            $this->addCData($dom, $orderXml, 'total_paid_tax_incl', trim($order->total_con_iva));
+            $this->addCData($dom, $orderXml, 'total_paid_tax_excl', trim($order->total));
+            $this->addCData($dom, $orderXml, 'total_paid_real', trim($order->total));
+            $this->addCData($dom, $orderXml, 'total_products', trim($order->subtotal_sin_envio));
+            $this->addCData($dom, $orderXml, 'total_products_wt', trim($order->total_con_iva));
+            $this->addCData($dom, $orderXml, 'total_shipping', trim($order->shipping_cost));
+            $this->addCData($dom, $orderXml, 'total_shipping_tax_incl', trim($order->shipping_cost));
+            $this->addCData($dom, $orderXml, 'total_shipping_tax_excl', trim($order->shipping_cost));
+            $this->addCData($dom, $orderXml, 'carrier_tax_rate', '0.000');
+            $this->addCData($dom, $orderXml, 'total_wrapping', '0.000000');
+            $this->addCData($dom, $orderXml, 'total_wrapping_tax_incl', '0.000000');
+            $this->addCData($dom, $orderXml, 'total_wrapping_tax_excl', '0.000000');
+            $this->addCData($dom, $orderXml, 'round_mode', '2');
+            $this->addCData($dom, $orderXml, 'round_type', '2');
+            $this->addCData($dom, $orderXml, 'conversion_rate', '1.000000');
+            $this->addCData($dom, $orderXml, 'reference', trim($order->oid));
+            $this->addCData($dom, $orderXml, 'lscode_forma_pago', 'TARJ DEB');
+            $this->addCData($dom, $orderXml, 'transaction_id', '0');
+            $this->addCData($dom, $orderXml, 'card_number', '0');
+            $this->addCData($dom, $orderXml, 'card_brand', '0');
+            $this->addCData($dom, $orderXml, 'card_holder', '0');
+            $this->addCData($dom, $orderXml, 'amount', '0');
+            $this->addCData($dom, $orderXml, 'lscode_cliente', '0');
+            $this->addCData($dom, $orderXml, 'tipo_entrega', 'DOMICILIO');
+            $this->addCData($dom, $orderXml, 'opcion_envio', 'ESTD');
+
+            // Asociaciones de líneas de pedido simuladas
+            $associations = $dom->createElement('associations');
+            $orderXml->appendChild($associations);
+
+            $orderRows = $dom->createElement('order_rows');
+            $orderRows->setAttribute('nodeType', 'order_row');
+            $orderRows->setAttribute('virtualEntity', 'true');
+            $associations->appendChild($orderRows);
+
+            $orderRow = $dom->createElement('order_row');
+            $orderRows->appendChild($orderRow);
         }
+
+        // Devolver el XML como respuesta
+        // return response($dom->saveXML(), 200, ['Content-Type' => 'application/soap+xml;charset=UTF-8']);
+        return response($dom->saveXML(), 200, ['Content-Type' => 'text/xml']);
+    }
+
+    private function addCData($dom, $parent, $name, $value, $xlink = null)
+    {
+        $element = $dom->createElement($name);
+        $cdata = $dom->createCDATASection($value);
+        $element->appendChild($cdata);
+
+        if ($xlink) {
+            $element->setAttribute('xlink:href', $xlink);
+        }
+
+        $parent->appendChild($element);
+    }
 
 }
