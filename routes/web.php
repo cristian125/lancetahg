@@ -33,7 +33,7 @@ use App\Http\Controllers\BannerController;
 use App\Http\Controllers\AdminDestacadosController;
 use App\Http\Controllers\AdminConfigController;
 use App\Http\Controllers\ModalConfigController;
-
+use App\Http\Controllers\ShippingCobrarController;
 use App\Http\Controllers\PaymentLogController;
 use App\Http\Controllers\ProductosRelacionadosController;
 
@@ -230,6 +230,11 @@ Route::get('/verificar-existencias', [StorePickupController::class, 'ajaxVerific
     Route::post('/cart/proceed-to-payment', [CartController::class, 'proceedToPayment'])->name('cart.proceedToPayment');
     Route::post('/cart/actualizarEnvioPaqueteria', [ShippingPaqueteriaController::class, 'actualizarEnvioPaqueteria'])->name('cart.actualizarEnvioPaqueteria');
     Route::post('/cart/addPaqueteriaMethod', [ShippingPaqueteriaController::class, 'addPaqueteriaMethod'])->name('cart.addPaqueteriaMethod');
+
+// Rutas para Envío por Cobrar
+Route::post('/cart/actualizar-envio-por-cobrar', [ShippingCobrarController::class, 'actualizarEnvio'])->name('cart.actualizarEnvioPorCobrar');
+Route::post('/cart/update-method', [ShippingCobrarController::class, 'addShippingMethod'])->name('cart.updateMethod');
+
 
     Route::get('/checkout', [CartController::class, 'showCheckout'])->name('checkout');
     // Ruta para procesar el método de pago (POST)

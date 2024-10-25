@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\ProductosDestacadosController;
 use App\Http\Controllers\ShippingLocalController;
 use App\Http\Controllers\ShippingPaqueteriaController;
+use App\Http\Controllers\ShippingCobrarController;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
@@ -627,43 +628,43 @@ class ProductController extends Controller
         return response()->json($productos);
     }
 
- 
+
     public function showCart(Request $request)
     {
         $mantenimiento = ProductosDestacadosController::checkMaintenance();
         if ($mantenimiento == 'true') {
             return redirect(route('mantenimento'));
         }
-
+    
         $userId = auth()->id();
-
+    
         if (!$userId) {
             return redirect()->route('login');
         }
-
+    
         $user = auth()->user();
         $userData = DB::table('users_data')->where('user_id', $userId)->first();
-
+    
         // Verificar si el usuario tiene direcciones
         $direcciones = DB::table('users_address')->where('user_id', $userId)->get();
         $tieneDirecciones = $direcciones->isNotEmpty(); // Verifica si tiene al menos una dirección
-
+    
         // Combinar el nombre y apellidos para el contacto
         $contactName = $user->name;
         if ($userData) {
             $contactName = $userData->nombre . ' ' . $userData->apellido_paterno . ' ' . $userData->apellido_materno;
         }
-
+    
         // Obtener el ID del carrito del usuario
         $cartId = DB::table('carts')
             ->where('user_id', $userId)
             ->value('id');
-
+    
         // Si no existe un carrito, redirigir al inicio
         if (!$cartId) {
             return redirect()->route('home');
         }
-
+    
         // Consultar los elementos del carrito junto con las restricciones de envío y la cantidad disponible
         $cartItems = DB::table('cart_items')
             ->join('itemsdb', 'cart_items.no_s', '=', 'itemsdb.no_s')
@@ -684,35 +685,37 @@ class ProductController extends Controller
                 'itemsdb.allow_local_shipping',
                 'itemsdb.allow_paqueteria_shipping',
                 'itemsdb.allow_store_pickup',
-                'itemsdb.grupo_iva' // Se incluye el campo grupo_iva
+                'itemsdb.allow_cobrar_shipping', // Nueva columna
+                'itemsdb.grupo_iva'
             )
             ->get();
-
+    
         // Asignar las rutas de las imágenes de los productos
         foreach ($cartItems as $item) {
             $codigoProducto = str_pad($item->product_code, 6, "0", STR_PAD_LEFT);
             $imagePath = "storage/itemsview/{$codigoProducto}/{$codigoProducto}.jpg";
-
+    
             if (file_exists(public_path($imagePath))) {
                 $item->image = $imagePath;
             } else {
                 $item->image = 'storage/itemsview/default.jpg';
             }
         }
-
+    
         // Obtener detalles del envío si existen
         $shippment = DB::table('cart_shippment')
             ->leftJoin('tiendas', 'cart_shippment.store_id', '=', 'tiendas.id')
             ->where('cart_id', $cartId)
             ->select('cart_shippment.*', 'tiendas.nombre as store_name', 'tiendas.direccion as store_address')
             ->first();
-
+    
+        // Verificar si existe un método de envío
+        $shippmentExists = $shippment !== null;
+    
         // Obtener el tipo de envío seleccionado desde la tabla cart_shippment
         $tipoEnvioSeleccionado = $shippment ? $shippment->ShipmentMethod : null;
-
-        // Filtrar productos elegibles según el método de envío seleccionado
+    
         if ($tipoEnvioSeleccionado) {
-            // Filtrar productos elegibles
             $eligibleCartItems = $cartItems->filter(function ($item) use ($tipoEnvioSeleccionado) {
                 if ($tipoEnvioSeleccionado === 'EnvioLocal') {
                     return $item->allow_local_shipping;
@@ -720,13 +723,19 @@ class ProductController extends Controller
                     return $item->allow_paqueteria_shipping;
                 } elseif ($tipoEnvioSeleccionado === 'RecogerEnTienda') {
                     return $item->allow_store_pickup;
+                } elseif ($tipoEnvioSeleccionado === 'EnvioPorCobrar') {
+                    return $item->allow_cobrar_shipping == 1;
                 }
+                
                 return true;
             });
-
+            // ...
+        
+        
+    
             // Obtener los códigos de producto de los artículos elegibles
             $eligibleProductCodes = $eligibleCartItems->pluck('product_code')->all();
-
+    
             // Filtrar los productos no elegibles
             $nonEligibleItems = $cartItems->reject(function ($item) use ($eligibleProductCodes) {
                 return in_array($item->product_code, $eligibleProductCodes);
@@ -736,83 +745,96 @@ class ProductController extends Controller
             $eligibleCartItems = $cartItems;
             $nonEligibleItems = collect(); // Colección vacía
         }
-
+    
         // Calcular el precio total del carrito incluyendo IVA (descuento ya aplicado en final_price)
         $totalPrice = $eligibleCartItems->sum(function ($item) {
             return $item->final_price * $item->quantity;
         });
-
+    
         // Calcular el subtotal sin IVA
         $subtotalSinIVA = $totalPrice / 1.16;
-
+    
         // Calcular el total del descuento aplicado
         $totalDescuento = $eligibleCartItems->sum(function ($item) {
             return $item->unit_price * $item->quantity * ($item->discount / 100);
         });
-
+    
         // Calcular el IVA sobre el subtotal sin IVA
         $iva = $subtotalSinIVA * 0.16;
-
+    
         // Obtener el costo de envío con IVA
         $shippingCostIVA = $shippment->shippingcost_IVA ?? 0.00;
-
+    
+        // Ajustar el costo de envío si el método es 'EnvioPorCobrar'
+        if ($shippmentExists && $shippment->ShipmentMethod === 'EnvioPorCobrar') {
+            $shippingCostIVA = 0.00;
+        }
+    
         // Calcular el total final incluyendo IVA y el envío
         $totalFinal = $subtotalSinIVA + $iva + $shippingCostIVA;
-
+    
         // Obtener los métodos de envío activos desde la base de datos
         $activeShippingMethods = DB::table('shipping_methods')
             ->where('is_active', 1)
             ->get();
-
+    
         // Definir los tipos de envío disponibles según las restricciones y los métodos activos
         $envios = [];
-
+    
         foreach ($activeShippingMethods as $method) {
-            // Asignar el precio directamente según el método de envío
-            $price = 0.00; // Valor por defecto
+            $price = 0.00; // Precio por defecto
+    
+            // Asignar el precio y otros detalles según el método de envío
             if ($method->name === 'EnvioLocal') {
-                $price = 250.00; // Precio para Envío Local
+                $price = 250.00;
             } elseif ($method->name === 'EnvioPorPaqueteria') {
-                $price = 500.00; // Precio para Envío por Paquetería
+                $price = 500.00;
             } elseif ($method->name === 'RecogerEnTienda') {
-                $price = 0.00; // Precio para Recoger en Tienda
+                $price = 0.00;
+            } elseif ($method->name === 'EnvioPorCobrar') {
+                $price = 0.00; // El cliente paga al recibir
             }
-
+    
             $envios[] = [
                 'name' => $method->display_name,
                 'value' => $method->name,
                 'price' => $price,
             ];
         }
-
+    
         // Si no hay métodos de envío disponibles, mostrar un mensaje de error
         $noShippingMethodsAvailable = empty($envios);
-
+    
         // Obtener datos para cada método de envío
         $shippingLocalController = new ShippingLocalController();
         $localShippingData = $shippingLocalController->handleLocalShipping($request, $userId, $totalPrice);
-
+    
         $shippingPaqueteriaController = new ShippingPaqueteriaController();
         $paqueteriaShippingData = $shippingPaqueteriaController->handlePaqueteriaShipping($request, $userId, $totalPrice);
-
+    
         $storePickupController = new StorePickupController();
         $storePickupData = $storePickupController->handleStorePickup($request, $userId);
+    
+        // Instanciar el controlador de Envío por Cobrar
+        $shippingCobrarController = new ShippingCobrarController();
+        $cobrarShippingData = $shippingCobrarController->handleCobrarShipping($request, $userId, $totalPrice);
+    
+    // Filtrar productos no elegibles para ciertos tipos de envío (para mostrar alertas al usuario)
+    $nonEligibleLocalShipping = $cartItems->filter(function ($item) {
+        return empty($item->allow_local_shipping);
+    });
+    $nonEligiblePaqueteriaShipping = $cartItems->filter(function ($item) {
+        return empty($item->allow_paqueteria_shipping);
+    });
+    $nonEligibleStorePickup = $cartItems->filter(function ($item) {
+        return empty($item->allow_store_pickup);
+    });
+    $nonEligibleCobrarShipping = $cartItems->filter(function ($item) {
+        return empty($item->allow_cobrar_shipping);
+    });
 
-        // Filtrar los productos no elegibles para ciertos tipos de envío (para mostrar alertas al usuario)
-        $nonEligibleLocalShipping = $cartItems->filter(function ($item) {
-            return !$item->allow_local_shipping;
-        });
-        $nonEligiblePaqueteriaShipping = $cartItems->filter(function ($item) {
-            return !$item->allow_paqueteria_shipping;
-        });
-        $nonEligibleStorePickup = $cartItems->filter(function ($item) {
-            return !$item->allow_store_pickup;
-        });
-        $subtotalSinIVA = $totalPrice;
-        $iva = $subtotalSinIVA * 0.16;
-        $shippingCostIVA = $shippment->shippingcost_IVA ?? 0.00;
-        $totalFinal = $totalPrice + $shippingCostIVA; // Total final, el precio total incluye IVA y el costo de envío
-
+        
+    
         // Pasar todos los datos necesarios a la vista
         return view('carrito', [
             'cartItems' => $cartItems, // Todos los productos en el carrito
@@ -829,18 +851,20 @@ class ProductController extends Controller
             'localShippingData' => $localShippingData,
             'paqueteriaShippingData' => $paqueteriaShippingData,
             'storePickupData' => $storePickupData,
+            'cobrarShippingData' => $cobrarShippingData,
             'cartId' => $cartId,
-            'Shippment' => $shippment ? collect([$shippment]) : collect(),
-            'shippmentExists' => $shippment !== null,
+            'shippment' => $shippment, // Pasamos el objeto $shippment
+            'shippmentExists' => $shippmentExists,
             'nonEligibleLocalShipping' => $nonEligibleLocalShipping,
             'nonEligiblePaqueteriaShipping' => $nonEligiblePaqueteriaShipping,
             'nonEligibleStorePickup' => $nonEligibleStorePickup,
+            'nonEligibleCobrarShipping' => $nonEligibleCobrarShipping,
             'noShippingMethodsAvailable' => $noShippingMethodsAvailable,
             'contactName' => $contactName, // Pasar el nombre de contacto
             'tieneDirecciones' => $tieneDirecciones,
-
         ]);
     }
+    
 
 
 

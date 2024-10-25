@@ -4,7 +4,8 @@
     @if (
         $nonEligibleLocalShipping->isNotEmpty() ||
             $nonEligiblePaqueteriaShipping->isNotEmpty() ||
-            $nonEligibleStorePickup->isNotEmpty())
+            $nonEligibleStorePickup->isNotEmpty() ||
+            $nonEligibleCobrarShipping->isNotEmpty())
         <div class="alert alert-warning" role="alert">
             <strong>Atención:</strong>
             Uno o más productos en su carrito no son elegibles para los siguientes métodos de envío:
@@ -18,10 +19,14 @@
                 @if ($nonEligibleStorePickup->isNotEmpty())
                     <li><strong>Recoger en Tienda</strong></li>
                 @endif
+                @if ($nonEligibleCobrarShipping->isNotEmpty())
+                    <li><strong>Envío por Cobrar</strong></li>
+                @endif
             </ul>
             Revisa los productos para elegir un método de envío adecuado.
         </div>
     @endif
+
     @if (!$tieneDirecciones)
         <div class="alert alert-warning">
             <strong>No tiene direcciones registradas, porfavor agregue una dirección.</strong>
@@ -50,7 +55,7 @@
         <div id="mensaje-sin-tiendas" class="alert alert-danger" style="display: none;">
             <!-- Este mensaje será llenado dinámicamente por el script -->
         </div>
-        @if (count($Shippment) == 0)
+        @if (!$shippmentExists)
             <div id="general-shipping-block" class="mb-4 p-4 bg-light rounded shadow-lg border border-warning">
                 <!-- Selector de tipo de envío -->
                 <div class="mb-4 p-3 bg-light rounded shadow-sm">
@@ -65,6 +70,7 @@
                         </select>
                     </div>
                 </div>
+
                 <!-- Loader para mostrar mientras se hace la solicitud -->
                 <div id="store-pickup-block" class="mb-4 p-3 bg-light rounded shadow-sm" style="display: none;">
                     @include('partials.envios.storepickup')
@@ -77,6 +83,12 @@
                 <div id="paqueteria-shipping-block" class="mb-4 p-3 bg-light rounded shadow-sm" style="display: none;">
                     @include('partials.envios.paqueteexpress')
                 </div>
+                <!-- Bloque que se despliega para Envío por Cobrar -->
+                <div id="cobrar-shipping-block" class="mb-4 p-3 bg-light rounded shadow-sm" style="display: none;">
+                    @include('partials.envios.cobrar')
+                </div>
+
+
             </div>
         @endif
         <!-- El resto de la vista sigue igual -->
@@ -114,11 +126,14 @@
                                 </div>
 
                                 <!-- Mensaje indicando que el producto no es elegible -->
-                                <p class="text-danger mb-1">
-                                    <i class="bi bi-exclamation-triangle-fill"></i>
-                                    Este producto no es elegible para el método de envío seleccionado. No será enviado,
-                                    no se sumará al total, ni se incluirá en la orden de pedido.
-                                </p>
+                                <div class="non-eligible-message">
+                                    <p class="text-danger mb-1">
+                                        <i class="bi bi-exclamation-triangle-fill"></i>
+                                        Este producto no es elegible para el método de envío seleccionado, <br>
+                                        No será enviado, no se sumará al total, ni se incluirá en la orden de pedido.
+                                    </p>
+                                </div>
+
 
                                 <!-- Mostrar métodos de envío disponibles para este producto -->
                                 @php
@@ -132,6 +147,9 @@
                                     if ($item->allow_store_pickup) {
                                         $allowedMethods[] = '<strong>Recoger en Tienda</strong>';
                                     }
+                                    if ($item->allow_cobrar_shipping) {
+                                        $allowedMethods[] = '<strong>Envío por Cobrar</strong>';
+                                    }
                                 @endphp
                                 @if (!empty($allowedMethods))
                                     <p class="text-success mb-1">
@@ -144,135 +162,164 @@
                                         Este producto no está disponible para ningún método de envío.
                                     </p>
                                 @endif
-                                <!-- Mensaje adicional para productos elegibles que sí seguirán en el carrito -->
-                                <p class="text-muted">
-                                    De igual forma puede proceder con los productos restantes en su carrito con este medoto de envío.
-                                </p>
+                                @if ($eligibleCartItems->isNotEmpty())
+                                    <!-- Mensaje adicional para productos elegibles que sí seguirán en el carrito -->
+                                    <p class="text-muted">
+                                        De igual forma puede proceder con los productos restantes en su carrito
+                                        elegibles con el método de envío que ya seleccionó.
+                                    </p>
+                                @else
+                                    <!-- Mensaje cuando no hay productos disponibles para el método de envío -->
+                                    <div class="alert text-center">
+                                        <strong>No hay ningún producto disponible en su carrito para el método de envío
+                                            seleccionado.</strong>
+                                        <p>Por favor, elija un método de envío diferente o modifique los productos en su
+                                            carrito.</p>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     @endforeach
                 </div>
             @endif
-            <h3>Los productos de su carrito:</h3>
-            @foreach ($eligibleCartItems as $item)
-                <div class="unique-cart-item row mb-4 p-3 border-bottom shadow-sm">
-                    <!-- Imagen del producto -->
-                    <div class="col-12 col-md-2 text-center mb-3 mb-md-0">
-                        <div class="image-container1 border border-info">
-                            @if (isset($item->id))
-                                <a href="{{ url('/producto/' . $item->id) }}">
+            @if ($eligibleCartItems->isEmpty())
+                <div class="alert alert-danger text-center">
+                    <h4><i class="bi bi-exclamation-triangle-fill"></i> No hay productos disponibles para el método de
+                        envío seleccionado.</h4>
+                    <p>Por favor, elija un método de envío diferente o modifique los productos en su carrito.</p>
+                </div>
+            @else
+                <h3>Los productos de su carrito:</h3>
+                @foreach ($eligibleCartItems as $item)
+                    <div class="unique-cart-item row mb-4 p-3 border-bottom shadow-sm">
+                        <!-- Imagen del producto -->
+                        <div class="col-12 col-md-2 text-center mb-3 mb-md-0">
+                            <div class="image-container1 border border-info">
+                                @if (isset($item->id))
+                                    <a href="{{ url('/producto/' . $item->id) }}">
+                                        <img src="{{ asset($item->image) }}" class="product-image1"
+                                            alt="{{ $item->description }}">
+                                    </a>
+                                @else
                                     <img src="{{ asset($item->image) }}" class="product-image1"
                                         alt="{{ $item->description }}">
-                                </a>
-                            @else
-                                <img src="{{ asset($item->image) }}" class="product-image1"
-                                    alt="{{ $item->description }}">
-                            @endif
-                        </div>
-                    </div>
-
-                    <!-- Detalles del producto -->
-                    <div class="col-12 col-md-10 d-flex flex-column justify-content-between">
-                        <!-- Nombre del producto y botón de eliminar -->
-                        <div class="d-flex align-items-center justify-content-between flex-wrap mb-2">
-                            <h5 class="mb-2">
-                                {{ str_pad($item->product_code, 6, '0', STR_PAD_LEFT) }} -
-                                <a href="{{ url('/producto/' . $item->id) }}" class="text-decoration-none text-dark">
-                                    {{ $item->product_name }}
-                                </a>
-                            </h5>
-                            <!-- Botón de eliminar -->
-                            <a href="#" class="btn btn-danger btn-sm remove-from-cart1"
-                                data-nos="{{ $item->product_code ?? $item->no_s }}">
-                                <i class="bi bi-trash"></i>
-                            </a>
+                                @endif
+                            </div>
                         </div>
 
-                        <!-- Cantidad, precio unitario, y total -->
-                        <div class="row">
-                            <div class="col-12 col-md-3 d-flex align-items-center mb-2 mb-md-0">
-                                <strong>Cantidad:</strong>
-                                <div class="quantity-controls d-flex ms-2">
-                                    <button type="button" class="btn btn-sm quantity-decrease custom-btn-minus"
-                                        data-product-code="{{ $item->product_code ?? $item->no_s }}"
-                                        data-max-quantity="{{ $item->available_quantity }}">-</button>
-                                    <input type="text" name="quantity"
-                                        class="form-control text-center quantity-input" value="{{ $item->quantity }}"
-                                        min="1" max="{{ $item->available_quantity }}" readonly>
-                                    <button type="button" class="btn btn-sm quantity-increase custom-btn-plus"
-                                        data-product-code="{{ $item->product_code ?? $item->no_s }}"
-                                        data-max-quantity="{{ $item->available_quantity }}">+</button>
+                        <!-- Detalles del producto -->
+                        <div class="col-12 col-md-10 d-flex flex-column justify-content-between">
+                            <!-- Nombre del producto y botón de eliminar -->
+                            <div class="d-flex align-items-center justify-content-between flex-wrap mb-2">
+                                <h5 class="mb-2">
+                                    {{ str_pad($item->product_code, 6, '0', STR_PAD_LEFT) }} -
+                                    <a href="{{ url('/producto/' . $item->id) }}"
+                                        class="text-decoration-none text-dark">
+                                        {{ $item->product_name }}
+                                    </a>
+                                </h5>
+                                <!-- Botón de eliminar -->
+                                <a href="#" class="btn btn-danger btn-sm remove-from-cart1"
+                                    data-nos="{{ $item->product_code ?? $item->no_s }}">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+
+                            <!-- Cantidad, precio unitario, y total -->
+                            <div class="row">
+                                <div class="col-12 col-md-3 d-flex align-items-center mb-2 mb-md-0">
+                                    <strong>Cantidad:</strong>
+                                    <div class="quantity-controls d-flex ms-2">
+                                        <button type="button" class="btn btn-sm quantity-decrease custom-btn-minus"
+                                            data-product-code="{{ $item->product_code ?? $item->no_s }}"
+                                            data-max-quantity="{{ $item->available_quantity }}">-</button>
+                                        <input type="text" name="quantity"
+                                            class="form-control text-center quantity-input"
+                                            value="{{ $item->quantity }}" min="1"
+                                            max="{{ $item->available_quantity }}" readonly>
+                                        <button type="button" class="btn btn-sm quantity-increase custom-btn-plus"
+                                            data-product-code="{{ $item->product_code ?? $item->no_s }}"
+                                            data-max-quantity="{{ $item->available_quantity }}">+</button>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 col-md-4 mb-2 mb-md-0">
+                                    @php
+                                        $precioDescontado =
+                                            $item->unit_price - $item->unit_price * ($item->discount / 100);
+                                    @endphp
+                                    <p class="mb-0 unique-product-price1 bg-light p-2 rounded">
+                                        @if ($item->discount > 0)
+                                            <span style="text-decoration: line-through; color: #888;">
+                                                ${{ number_format($item->unit_price, 2, '.', ',') }} MXN
+                                            </span>
+                                            <span style="font-size: 1.2em; color: #28a745; font-weight: bold;">
+                                                ${{ number_format($precioDescontado, 2, '.', ',') }} MXN
+                                            </span>
+                                        @else
+                                            <span style="font-size: 1.2em; color: #333; font-weight: bold;">
+                                                ${{ number_format($item->unit_price, 2, '.', ',') }} MXN
+                                            </span>
+                                        @endif
+                                        <small class="text-muted d-block">Precio unitario con IVA incluido</small>
+                                    </p>
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <p class="mb-0 unique-product-total-price1 bg-light p-2 rounded">
+                                        <strong>Total:</strong>
+                                        ${{ number_format($item->final_price * $item->quantity, 2, '.', ',') }} MXN
+                                    </p>
                                 </div>
                             </div>
 
-                            <div class="col-12 col-md-4 mb-2 mb-md-0">
-                                @php
-                                    $precioDescontado = $item->unit_price - $item->unit_price * ($item->discount / 100);
-                                @endphp
-                                <p class="mb-0 unique-product-price1 bg-light p-2 rounded">
-                                    @if ($item->discount > 0)
-                                        <span style="text-decoration: line-through; color: #888;">
-                                            ${{ number_format($item->unit_price, 2, '.', ',') }} MXN
-                                        </span>
-                                        <span style="font-size: 1.2em; color: #28a745; font-weight: bold;">
-                                            ${{ number_format($precioDescontado, 2, '.', ',') }} MXN
-                                        </span>
-                                    @else
-                                        <span style="font-size: 1.2em; color: #333; font-weight: bold;">
-                                            ${{ number_format($item->unit_price, 2, '.', ',') }} MXN
-                                        </span>
-                                    @endif
-                                    <small class="text-muted d-block">Precio unitario con IVA incluido</small>
-                                </p>
-                            </div>
-                            <div class="col-12 col-md-4">
-                                <p class="mb-0 unique-product-total-price1 bg-light p-2 rounded">
-                                    <strong>Total:</strong>
-                                    ${{ number_format($item->final_price * $item->quantity, 2, '.', ',') }} MXN
-                                </p>
-                            </div>
-                        </div>
-
-                        <!-- Etiqueta de descuento -->
-                        @if ($item->discount > 0)
-                            <div class="mt-2">
-                                <span class="badge bg-danger">Descuento aplicado del: {{ $item->discount }}%</span>
-                            </div>
-                        @endif
-
-                        <!-- Mostrar el valor del IVA -->
-                        <div class="mt-2">
-                            @if ($item->grupo_iva === 'IVA16')
-                                <span class="badge bg-success">Este producto tiene IVA 16%</span>
-                            @elseif ($item->grupo_iva === 'IVA0')
-                                <span class="badge bg-warning text-dark">Este producto tiene IVA 0</span>
+                            <!-- Etiqueta de descuento -->
+                            @if ($item->discount > 0)
+                                <div class="mt-2">
+                                    <span class="badge bg-danger">Descuento aplicado del:
+                                        {{ $item->discount }}%</span>
+                                </div>
                             @endif
-                        </div>
-                        <!-- Indicaciones sobre métodos de envío no disponibles y disponibles -->
-                        @if (!($item->allow_local_shipping && $item->allow_paqueteria_shipping && $item->allow_store_pickup))
-                            <div class="mt-2">
-                                <!-- Métodos no disponibles -->
-                                @if (!$item->allow_local_shipping)
-                                    <p class="text-danger  mb-1">
-                                        <i class="bi bi-exclamation-triangle-fill"></i>
-                                        Este producto no está disponible para <strong>Envío Local</strong>.
-                                    </p>
-                                @endif
-                                @if (!$item->allow_paqueteria_shipping)
-                                    <p class="text-danger mb-1">
-                                        <i class="bi bi-exclamation-triangle-fill"></i>
-                                        Este producto no está disponible para <strong>Envío por Paquetería</strong>.
-                                    </p>
-                                @endif
-                                @if (!$item->allow_store_pickup)
-                                    <p class="text-danger mb-1">
-                                        <i class="bi bi-exclamation-triangle-fill"></i>
-                                        Este producto no está disponible para <strong>Recoger en Tienda</strong>.
-                                    </p>
-                                @endif
 
-                                <!-- Métodos disponibles -->
-                                @php
+                            <!-- Mostrar el valor del IVA -->
+                            <div class="mt-2">
+                                @if ($item->grupo_iva === 'IVA16')
+                                    <span class="badge bg-success">Este producto tiene IVA 16%</span>
+                                @elseif ($item->grupo_iva === 'IVA0')
+                                    <span class="badge bg-warning text-dark">Este producto tiene IVA 0</span>
+                                @endif
+                            </div>
+                            <!-- Indicaciones sobre métodos de envío no disponibles y disponibles -->
+                            @if (!$item->allow_local_shipping || !$item->allow_paqueteria_shipping || !$item->allow_store_pickup || !$item->allow_cobrar_shipping)
+
+                                <div class="mt-2">
+                                    <!-- Métodos no disponibles -->
+                                    @if (!$item->allow_local_shipping)
+                                        <p class="text-danger mb-1">
+                                            <i class="bi bi-exclamation-triangle-fill"></i>
+                                            Este producto no está disponible para <strong>Envío Local</strong>.
+                                        </p>
+                                    @endif
+                                    @if (!$item->allow_paqueteria_shipping)
+                                        <p class="text-danger mb-1">
+                                            <i class="bi bi-exclamation-triangle-fill"></i>
+                                            Este producto no está disponible para <strong>Envío por Paquetería</strong>.
+                                        </p>
+                                    @endif
+                                    @if (!$item->allow_store_pickup)
+                                        <p class="text-danger mb-1">
+                                            <i class="bi bi-exclamation-triangle-fill"></i>
+                                            Este producto no está disponible para <strong>Recoger en Tienda</strong>.
+                                        </p>
+                                    @endif
+                                    @if (!$item->allow_cobrar_shipping)
+                                    <p class="text-danger mb-1">
+                                        <i class="bi bi-exclamation-triangle-fill"></i>
+                                        Este producto no está disponible para <strong>Envío por Cobrar</strong>.
+                                    </p>
+                                @endif
+                                
+                                    <!-- Métodos disponibles -->
+                                    @php
                                     $allowedMethods = [];
                                     if ($item->allow_local_shipping) {
                                         $allowedMethods[] = '<strong>Envío Local</strong>';
@@ -283,27 +330,57 @@
                                     if ($item->allow_store_pickup) {
                                         $allowedMethods[] = '<strong>Recoger en Tienda</strong>';
                                     }
+                                    if ($item->allow_cobrar_shipping) {
+                                        $allowedMethods[] = '<strong>Envío por Cobrar</strong>';
+                                    }
                                 @endphp
-                                @if (!empty($allowedMethods))
-                                <p class="text-success bg-warning mb-1">
-                                    <i class="bi bi-check-circle-fill"></i>
-                                    Este producto está disponible para: {!! implode(', ', $allowedMethods) !!}
-                                </p>
                                 
-                                @endif
-                            </div>
-                        @endif
-
+                                    @if (!empty($allowedMethods))
+                                        <p class="text-success bg-warning mb-1">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                            Este producto está disponible para: {!! implode(', ', $allowedMethods) !!}
+                                        </p>
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
+            @endif
+            @if ($shippmentExists && $shippment->ShipmentMethod === 'EnvioPorCobrar')
+            <div class="unique-cart-item row mb-4 p-4 border-bottom shadow-sm rounded bg-cobrar-envio">
+                <!-- Imagen del envío -->
+                <div class="col-12 col-md-2 text-center mb-3 mb-md-0">
+                    <img src="{{ asset('storage/img/envio_entrega/cobrar.png') }}" class="img-thumbnail cobrar-envio-img" alt="Envío por Cobrar">
+                </div>
+                <!-- Detalles del envío -->
+                <div class="col-12 col-md-10">
+                    <h5 class="text-uppercase text-dark fw-bold">Envío por Cobrar</h5>
+                    <div class="d-flex align-items-center justify-content-between flex-wrap mb-2">
+                        <p class="text-muted"><strong>Cantidad:</strong> 1 Envío</p>
+                        <p class="text-primary fw-bold p-2 bg-light rounded text-center cobrar-envio-costo">
+                            <strong>Costo de Envío:</strong> A pagar al recibir
+                        </p>
+                        <button class="btn btn-danger btn-sm remove-shipping ms-auto">
+                            <i class="bi bi-trash">Eliminar Envío</i> 
+                        </button>
+                    </div>
+                    <!-- Información sobre el estado de envío -->
+                    <div class="shipping-info mt-3 p-3 bg-white border-start border-info rounded">
+                        <p class="text-muted mb-1"><i class="bi bi-info-circle me-2"></i><strong>Estado del Envío:</strong> Por Confirmar</p>
+                        <p class="text-dark mb-1"><i class="bi bi-clock me-2"></i><strong>Tiempo de entrega:</strong> 2 a 7 días hábiles</p>
+                        <p class="text-danger mb-1"><i class="bi bi-exclamation-circle me-2"></i><strong>Nota:</strong> El costo de envío aún no a sido determinado y será cobrado al momento de la entrega por la empresa de paquetería.</p>
+                        <p class="text-secondary mt-2"><i class="bi bi-person-check me-2"></i><strong>Aviso:</strong> Asegúrese de que alguien esté disponible para recibir y pagar el envío.</p>
                     </div>
                 </div>
-            @endforeach
-
-            @if ($shippmentExists && $Shippment->first()->ShipmentMethod === 'EnvioLocal')
+            </div>
+        @endif
+        
+            @if ($shippmentExists && $shippment->ShipmentMethod === 'EnvioLocal')
                 @php
                     $shippingCostSinIVA = $shippingCostIVA / 1.16;
                 @endphp
-                <div class="unique-cart-item row mb-4 p-3 border-bottom shadow-sm rounded"
-                    style="background-color: #26d2b6;">
+                <div class="unique-cart-item row mb-4 p-3 border-bottom shadow-sm rounded bg-cobrar-envio">
                     <!-- Imagen del envío -->
                     <div class="item-image-wrapper col-12 col-md-2 text-center mb-3 mb-md-0">
                         <img src="{{ asset('storage/img/envio_entrega/265.jpg') }}" class="img-thumbnail"
@@ -328,7 +405,7 @@
                                 </p>
                                 <div class="unique-item-actions2 ms-auto">
                                     <button class="btn btn-danger btn-sm remove-shipping">
-                                        <i class="bi bi-trash"></i>
+                                        <i class="bi bi-trash"> Eliminar Envío</i>
                                     </button>
                                 </div>
                             </div>
@@ -356,10 +433,8 @@
                     </div>
                 </div>
             @endif
-
-            @if ($shippmentExists && $Shippment->first()->ShipmentMethod === 'RecogerEnTienda')
-                <div class="unique-cart-item row mb-4 p-3 border-bottom shadow-sm rounded"
-                    style="background-color: #26d2b6;">
+            @if ($shippmentExists && $shippment->ShipmentMethod === 'RecogerEnTienda')
+                <div class="unique-cart-item row mb-4 p-3 border-bottom shadow-sm rounded bg-cobrar-envio">
                     <!-- Imagen del envío -->
                     <div class="item-image-wrapper col-12 col-md-2 text-center mb-3 mb-md-0">
                         <img src="{{ asset('storage/img/envio_entrega/229.jpg') }}" class="img-thumbnail"
@@ -377,7 +452,7 @@
                             </p>
                             <div class="unique-item-actions2 ms-auto">
                                 <button class="btn btn-danger btn-sm remove-shipping">
-                                    <i class="bi bi-trash"></i>
+                                    <i class="bi bi-trash">Eliminar Envío</i>
                                 </button>
                             </div>
                         </div>
@@ -387,20 +462,21 @@
                             <p class="mb-1 text-dark" style="font-weight: 500;">
                                 <i class="bi bi-shop me-2"></i>
                                 <strong>Tienda de Recogida:</strong>
-                                {{ $Shippment->first()->store_name ?? 'No especificado' }}
+                                {{ $shippment->store_name ?? 'No especificado' }}
+
                             </p>
                             <p class="mb-1 text-dark" style="font-weight: 500;">
                                 <i class="bi bi-geo-alt me-2"></i>
                                 <strong>Dirección:</strong>
-                                {{ $Shippment->first()->store_address ?? 'No especificada' }}
+                                {{ $shippment->store_address ?? 'No especificada' }}
                             </p>
                             <p class="mb-1 text-dark" style="font-weight: 500;">
                                 <i class="bi bi-calendar-check me-2"></i>
-                                <strong>Fecha de Recogida:</strong> {{ $Shippment->first()->pickup_date }}
+                                <strong>Fecha de Recogida:</strong> {{ $shippment->pickup_date ?? 'No especificada' }}
                             </p>
                             <p class="mb-1 text-dark" style="font-weight: 500;">
                                 <i class="bi bi-clock me-2"></i>
-                                <strong>Hora de Recogida:</strong> {{ $Shippment->first()->pickup_time }}
+                                <strong>Hora de Recogida:</strong> {{ $shippment->pickup_time ?? 'No especificada' }}
                             </p>
                             <p class="mt-2 text-secondary" style="font-weight: 500;">
                                 <i class="bi bi-exclamation-triangle me-2"></i>
@@ -411,10 +487,8 @@
                     </div>
                 </div>
             @endif
-
-            @if ($shippmentExists && $Shippment->first()->ShipmentMethod === 'EnvioPorPaqueteria')
-                <div class="unique-cart-item row mb-4 p-3 border-bottom shadow-sm rounded"
-                    style="background-color: #26d2b6;">
+            @if ($shippmentExists && $shippment->ShipmentMethod === 'EnvioPorPaqueteria')
+                <div class="unique-cart-item row mb-4 p-3 border-bottom shadow-sm rounded bg-cobrar-envio">
                     <!-- Imagen del envío -->
                     <div class="item-image-wrapper col-12 col-md-2 text-center mb-3 mb-md-0">
                         <img src="{{ asset('storage/img/envio_entrega/paqueteexpress.jpg') }}" class="img-thumbnail"
@@ -431,11 +505,11 @@
                                 <p class="mb-2 mb-md-0 unique-product-total-price bg-light p-2 rounded text-primary flex-grow-1"
                                     style="font-weight: 600;">
                                     <strong>Total con IVA:</strong>
-                                    ${{ number_format($Shippment->first()->shippingcost_IVA, 2, '.', ',') }} MXN
+                                    ${{ number_format($shippment->shippingcost_IVA, 2, '.', ',') }} MXN
                                 </p>
                                 <div class="unique-item-actions2 ms-auto">
                                     <button class="btn btn-danger btn-sm remove-shipping">
-                                        <i class="bi bi-trash"></i>
+                                        <i class="bi bi-trash"> Eliminar Envío</i>
                                     </button>
                                 </div>
                             </div>
@@ -459,6 +533,7 @@
                     </div>
                 </div>
             @endif
+
         </div>
         <div class="unique-cart-summary p-4 bg-white rounded shadow-sm mt-4 border">
             <h4 class="mb-4 text-primary fw-bold">Resumen de su compra</h4>
@@ -478,7 +553,13 @@
                     </div>
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <span class="text-muted">Costo de Envío:</span>
-                        <span class="fw-bold text-dark">${{ number_format($shippingCostIVA, 2, '.', ',') }} MXN</span>
+                        @if ($shippmentExists && $shippment->ShipmentMethod === 'EnvioPorCobrar')
+                        <p class="text-danger fw-bold">* El costo de envío aún no a sido calculado y será cobrado al momento de la entrega.</p>
+                    @endif
+                    
+                            <span class="fw-bold text-dark">${{ number_format($shippingCostIVA, 2, '.', ',') }}
+                                MXN</span>
+                        @endif
                     </div>
                 </div>
                 <div class="col-md-6">
@@ -529,7 +610,9 @@
                 <h4 class="mb-0 text-dark fw-bold">Total a pagar:</h4>
                 <h4 class="mb-0 text-primary fw-bold">${{ number_format($totalFinal, 2, '.', ',') }} MXN</h4>
             </div>
-
+            @if ($shippmentExists && $shippment->ShipmentMethod === 'EnvioPorCobrar')
+                <p class="text-danger fw-bold">* El costo de envío será cobrado al momento de la entrega.</p>
+            @endif
 
             @if ($shippmentExists)
                 <div class="d-grid gap-2 mt-4">
@@ -544,7 +627,7 @@
                 </div>
             @endif
         </div>
-    @endif
+    
 </div>
 
 <!-- Modal de Términos y Condiciones -->
@@ -782,6 +865,7 @@
         const storePickupBlock = document.getElementById('store-pickup-block');
         const localShippingBlock = document.getElementById('local-shipping-block');
         const paqueteriaShippingBlock = document.getElementById('paqueteria-shipping-block');
+        const cobrarShippingBlock = document.getElementById('cobrar-shipping-block'); // Nuevo bloque
         const shippingTypeSelector = document.getElementById('shipping-type-selector');
         const loader = document.getElementById('loader');
 
@@ -794,20 +878,27 @@
             storePickupBlock.style.display = 'none';
             localShippingBlock.style.display = 'none';
             paqueteriaShippingBlock.style.display = 'none';
+            cobrarShippingBlock.style.display = 'none'; // Asegurarse de ocultar este bloque también
             loader.style.display = 'block'; // Mostrar el loader
 
             // Mostrar el bloque correspondiente al tipo de envío seleccionado
             if (shippingName === 'Recoger en Tienda') {
-                verificarExistenciasEnTiendas(); // Llamar a la función para verificar existencias
+                verificarExistenciasEnTiendas();
             } else if (shippingName === 'Envío Local') {
                 localShippingBlock.style.display = 'block';
-                loader.style.display = 'none'; // Ocultar el loader
+                loader.style.display = 'none';
             } else if (shippingName === 'Envío por Paquetería') {
                 paqueteriaShippingBlock.style.display = 'block';
-                loader.style.display = 'none'; // Ocultar el loader
+                loader.style.display = 'none';
+            } else if (shippingName === 'Envío por Cobrar') {
+                cobrarShippingBlock.style.display = 'block';
+                loader.style.display = 'none';
             }
         });
     });
+
+
+
 
     // Función para verificar existencias en tiendas
     function verificarExistenciasEnTiendas() {
@@ -1077,6 +1168,32 @@
         });
     });
 </script>
+<script>
+    $(document).ready(function() {
+        function gentleShake(selector, times = 2, distance = 5, speed = 200) {
+            for (let i = 0; i < times; i++) {
+                $(selector)
+                    .animate({
+                        marginLeft: `-${distance}px`
+                    }, speed)
+                    .animate({
+                        marginLeft: `${distance}px`
+                    }, speed);
+            }
+            $(selector).animate({
+                marginLeft: '0px'
+            }, speed);
+        }
+
+        // Ejecutar la animación suave al cargar la página
+        gentleShake('.non-eligible-message', 2, 5, 200);
+
+        // Repetir el efecto de manera más suave cada 8 segundos
+        setInterval(function() {
+            gentleShake('.non-eligible-message', 2, 5, 200);
+        }, 2000); // Repetir cada 8 segundos
+    });
+</script>
 
 <style>
     .image-container1 {
@@ -1274,4 +1391,43 @@
 
 
     }
+
+    .non-eligible-message {
+        background-color: #f8d7da;
+        /* Fondo rojo claro */
+        padding: 15px;
+        border: 2px solid #f5c6cb;
+        /* Borde rojo */
+        border-radius: 5px;
+        position: relative;
+        margin-bottom: 15px;
+    }
+
+    .non-eligible-message .text-danger {
+        font-weight: bold;
+    }
+
+    .bg-cobrar-envio {
+    background-color: #e0f7fa;
+    border-left: 5px solid #26a69a;
+}
+
+/* .cobrar-envio-img {
+    object-fit: cover;
+    width: 100%;
+    height: auto;
+}
+
+.cobrar-envio-costo {
+    color: #00796b;
+    font-size: 1.1rem;
+    border: 1px solid #00796b;
+}
+
+.shipping-info {
+    background-color: #f5f5f5;
+    padding: 15px;
+    border-radius: 5px;
+} */
+
 </style>

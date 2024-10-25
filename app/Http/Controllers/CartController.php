@@ -33,18 +33,20 @@ class CartController extends ProductController
 
         // Obtener los items del carrito con sus restricciones de envío
         $cartItems = DB::table('cart_items')
-            ->join('itemsdb', 'cart_items.no_s', '=', 'itemsdb.no_s')
-            ->join('inventario', 'cart_items.no_s', '=', 'inventario.no_s')
-            ->where('cart_items.cart_id', $cartId)
-            ->select(
-                'cart_items.*',
-                'inventario.cantidad_disponible',
-                'itemsdb.allow_local_shipping',
-                'itemsdb.allow_paqueteria_shipping',
-                'itemsdb.allow_store_pickup',
-                'itemsdb.nombre as product_name'
-            )
-            ->get();
+        ->join('itemsdb', 'cart_items.no_s', '=', 'itemsdb.no_s')
+        ->join('inventario', 'cart_items.no_s', '=', 'inventario.no_s')
+        ->where('cart_items.cart_id', $cartId)
+        ->select(
+            'cart_items.*',
+            'inventario.cantidad_disponible',
+            'itemsdb.allow_local_shipping',
+            'itemsdb.allow_paqueteria_shipping',
+            'itemsdb.allow_store_pickup',
+            'itemsdb.allow_cobrar_shipping', // Añadir este campo
+            'itemsdb.nombre as product_name'
+        )
+        ->get();
+    
 
         // Verificar el stock de los productos en el carrito
         foreach ($cartItems as $item) {
@@ -59,14 +61,17 @@ class CartController extends ProductController
         // Filtrar los items elegibles según el método de envío
         $eligibleCartItems = $cartItems->filter(function ($item) use ($metodoEnvio) {
             if ($metodoEnvio === 'EnvioLocal') {
-                return $item->allow_local_shipping;
+                return $item->allow_local_shipping == 1;
             } elseif ($metodoEnvio === 'EnvioPorPaqueteria') {
-                return $item->allow_paqueteria_shipping;
+                return $item->allow_paqueteria_shipping == 1;
             } elseif ($metodoEnvio === 'RecogerEnTienda') {
-                return $item->allow_store_pickup;
+                return $item->allow_store_pickup == 1;
+            } elseif ($metodoEnvio === 'EnvioPorCobrar') {
+                return $item->allow_cobrar_shipping == 1; // Añadir esta condición
             }
             return false;
         });
+        
 
 
         
@@ -189,6 +194,7 @@ class CartController extends ProductController
             'status' => 'pending',
             'created_at' => now(),
             'updated_at' => now(),
+
         ]);
 
         // Insertar los productos elegibles en la tabla `shippment_items`
@@ -218,6 +224,12 @@ class CartController extends ProductController
             return redirect('/checkout')->with('success', 'El pedido ha sido validado. Algunos productos no fueron incluidos porque no son elegibles para el método de envío seleccionado: ' . $nombresProductosNoElegibles);
         }
 
+        if ($metodoEnvio === 'EnvioPorCobrar') {
+            $shippingCost = 0; // El costo de envío se cobrará al entregar
+        } else {
+            $shippingCost = floatval($shippmentDetails->shippingcost_IVA);
+        }
+        
         return redirect('/checkout')->with('success', 'El pedido ha sido validado. Procede al pago.');
     }
 

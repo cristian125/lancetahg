@@ -60,7 +60,6 @@
             </div>
 
             <div class="row">
-
                 <div class="col-md-6 mb-4">
                     <div class="card shadow-lg border-0 rounded">
                         <div class="card-header bg-success text-white text-uppercase font-weight-bold">
@@ -102,7 +101,6 @@
                                         @endif
                                     </div>
 
-
                                     <!-- Mostrar el valor del IVA -->
                                     <div class="d-flex justify-content-between">
                                         <strong>IVA:</strong>
@@ -114,7 +112,6 @@
                                             <span class="badge bg-secondary">Sin IVA</span>
                                         @endif
                                     </div>
-
                                 </div>
                             @endforeach
 
@@ -147,21 +144,33 @@
                                             <td><strong>${{ number_format($totalSinIVA, 2, '.', ',') }} MXN</strong></td>
                                         </tr>
 
-                                        <!-- Fila para costo de envío -->
-                                        <tr class="text-center">
-                                            <td><strong>Costo de Envío (con IVA)</strong></td>
-                                            <td></td>
-                                            <td></td>
-                                            <td><strong>${{ number_format($shippingCost, 2, '.', ',') }} MXN</strong></td>
-                                        </tr>
+<!-- Fila para costo de envío -->
+<tr class="text-center">
+    <td><strong>Costo de Envío</strong></td>
+    <td></td>
+    <td></td>
+    @if ($shippment->shipping_method === 'EnvioPorCobrar')
+    <td class="bg-warning text-dark text-center p-3 rounded shadow-sm">
+        <i class="bi bi-exclamation-circle-fill text-danger me-2"></i>
+        <strong>El costo de envío aún no a sido calculado y deberá ser pagado al recibirlo en su domicilio</strong>
+    </td>
+@else
+
+        <td><strong>${{ number_format($shippingCost, 2, '.', ',') }} MXN</strong></td>
+    @endif
+</tr>
+
 
                                         <!-- Fila para importe total final -->
                                         <tr class="text-center bg-warning font-weight-bold">
                                             <td><strong>Importe Total (con IVA)</strong></td>
                                             <td></td>
                                             <td></td>
-                                            <td class="text-danger"><strong>${{ number_format($totalFinal, 2, '.', ',') }}
-                                                    MXN</strong></td>
+                                            @if ($shippment->shipping_method === 'EnvioPorCobrar')
+                                                <td class="text-danger"><strong>${{ number_format($totalFinal - $shippingCost, 2, '.', ',') }} MXN</strong></td>
+                                            @else
+                                                <td class="text-danger"><strong>${{ number_format($totalFinal, 2, '.', ',') }} MXN</strong></td>
+                                            @endif
                                         </tr>
                                     </tbody>
                                 </table>
@@ -169,8 +178,6 @@
                         </div>
                     </div>
                 </div>
-
-
 
                 <!-- Detalles del Envío -->
                 <div class="col-md-6 mb-4">
@@ -229,14 +236,19 @@
                                         {{ $shippment->nombre_contacto }}</li>
                                     <li class="list-group-item"><strong>Teléfono de Contacto:</strong>
                                         {{ $shippment->telefono_contacto }}</li>
+                                        @if ($shippment->shipping_method === 'EnvioPorCobrar')
+                                        <li class="list-group-item bg-warning text-dark rounded shadow-sm">
+                                            <i class="bi bi-exclamation-circle-fill text-danger me-2"></i>
+                                            <strong>Nota Importante:</strong> El costo de envío será calculado y cobrado al momento de la entrega por la empresa de paquetería.
+                                        </li>
+                                        
+                                    @endif
                                 @endif
                             </ul>
                         </div>
                     </div>
                 </div>
-
             </div>
-
 
             <!-- Botón para Proceder al Pago -->
             <div class="row">
@@ -247,7 +259,6 @@
                     </button>
                 </div>
             </div>
-
         @endif
     </div>
     <!-- Modal para seleccionar el método de pago -->
@@ -259,22 +270,23 @@
                     <h5 class="modal-title">Seleccione Método de Pago</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body payment-modal">
                     <div class="list-group">
                         <a href="#" class="list-group-item list-group-item-action payment-option"
-                            data-payment-method="Tarjeta de Débito">
+                           data-payment-method="Tarjeta de Débito">
                             <i class="bi bi-credit-card"></i> Tarjeta de Débito
                         </a>
                         <a href="#" class="list-group-item list-group-item-action payment-option"
-                            data-payment-method="Tarjeta de Crédito">
+                           data-payment-method="Tarjeta de Crédito">
                             <i class="bi bi-credit-card-2-front"></i> Tarjeta de Crédito
                         </a>
                         <a href="#" class="list-group-item list-group-item-action payment-option"
-                            data-payment-method="Monedero">
+                           data-payment-method="Monedero">
                             <i class="bi bi-wallet2"></i> Monedero
                         </a>
                     </div>
                 </div>
+                
             </div>
         </div>
     </div>
@@ -360,7 +372,7 @@
             };
         });
     </script>
-    
+
     <style>
         .loader {
             position: relative;
@@ -437,6 +449,47 @@
             top: calc(50% - 1.25em);
             left: calc(50% - 1.25em);
         }
+        .payment-modal {
+    background-color: #f7f9fc;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.payment-modal .list-group-item {
+    display: flex;
+    align-items: center;
+    border: none;
+    background-color: #ffffff;
+    margin-bottom: 8px;
+    padding: 15px;
+    border-radius: 6px;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.payment-modal .list-group-item i {
+    font-size: 1.5rem;
+    margin-right: 10px;
+    color: #007bff;
+}
+
+.payment-modal .list-group-item:hover {
+    background-color: #e9f2ff;
+    transform: scale(1.02);
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.payment-modal .list-group-item:active {
+    background-color: #d0e4ff;
+    transform: scale(0.98);
+}
+
+.payment-modal .payment-option {
+    color: #333;
+    font-weight: 500;
+}
+
     </style>
 
 @endsection

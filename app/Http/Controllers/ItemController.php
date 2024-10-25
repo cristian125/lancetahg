@@ -179,7 +179,9 @@ class ItemController extends Controller
             'allow_local_shipping' => $request->has('allow_local_shipping') ? 1 : 0,
             'allow_paqueteria_shipping' => $request->has('allow_paqueteria_shipping') ? 1 : 0,
             'allow_store_pickup' => $request->has('allow_store_pickup') ? 1 : 0,
+            'allow_cobrar_shipping' => $request->has('allow_cobrar_shipping') ? 1 : 0,  // Añadir aquí
         ];
+        
 
         // Actualizar el item en la base de datos
         DB::table('itemsdb')->where('id', $id)->update($data);
