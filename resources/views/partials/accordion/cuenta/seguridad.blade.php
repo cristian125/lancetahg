@@ -1,4 +1,4 @@
-<div class="accordion-item">
+<div class="accordion-item" id="seguridad">
     <h2 class="accordion-header" id="accSeguridad">
         <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#colSeguridad"
             aria-expanded="true" aria-controls="colSeguridad">

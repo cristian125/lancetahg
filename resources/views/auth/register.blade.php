@@ -11,15 +11,17 @@
                     <h3 class="mb-0">Registro de Usuario</h3>
                 </div>
                 <div class="card-body p-4">
-                    <form action="{{ route('register') }}" method="POST">
+                    <form id="registerForm">
                         @csrf
+                        <div id="register-error-messages" class="alert alert-danger d-none"></div>
+
                         <div class="mb-3">
                             <label for="name" class="form-label">Nombre</label>
-                            <input type="text" id="name" name="name" class="form-control" placeholder="Ingresa tu nombre" required>
+                            <input type="text" id="name" name="name" class="form-control" placeholder="Ingrese su nombre" required>
                         </div>
                         <div class="mb-3">
                             <label for="email" class="form-label">Correo Electrónico</label>
-                            <input type="email" id="email" name="email" class="form-control" placeholder="Ingresa tu correo electrónico" required>
+                            <input type="email" id="email" name="email" class="form-control" placeholder="Ingrese su correo electrónico" required>
                         </div>
                         <div class="mb-3">
                             <label for="password" class="form-label">Contraseña</label>
@@ -27,7 +29,7 @@
                         </div>
                         <div class="mb-4">
                             <label for="password_confirmation" class="form-label">Confirmar Contraseña</label>
-                            <input type="password" id="password_confirmation" name="password_confirmation" class="form-control" placeholder="Confirma tu contraseña" required>
+                            <input type="password" id="password_confirmation" name="password_confirmation" class="form-control" placeholder="Confirme su contraseña" required>
                         </div>
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary btn-block">Registrarse</button>
@@ -37,22 +39,23 @@
             </div>
         </div>
 
-        <!-- Iniciar Sesión -->
         <div class="col-lg-5 col-md-6">
             <div class="card shadow-lg border-0">
                 <div class="card-header bg-warning text-white text-center py-3">
                     <h3 class="mb-0">Iniciar Sesión</h3>
                 </div>
                 <div class="card-body p-4">
-                    <form action="{{ route('login') }}" method="POST">
+                    <form id="loginForm">
                         @csrf
+                        <div id="login-error-messages" class="alert alert-danger d-none"></div>
+        
                         <div class="mb-3">
                             <label for="email-login" class="form-label">Correo Electrónico</label>
-                            <input type="email" id="email-login" name="email" class="form-control" placeholder="Ingresa tu correo electrónico" required>
+                            <input type="email" id="email-login" name="email" class="form-control" placeholder="Ingrese su correo electrónico" required>
                         </div>
                         <div class="mb-4">
                             <label for="password-login" class="form-label">Contraseña</label>
-                            <input type="password" id="password-login" name="password" class="form-control" placeholder="Ingresa tu contraseña" required>
+                            <input type="password" id="password-login" name="password" class="form-control" placeholder="Ingrese su contraseña" required>
                         </div>
                         <div class="d-grid">
                             <button type="submit" class="btn btn-warning btn-block">Iniciar Sesión</button>
@@ -63,4 +66,62 @@
         </div>
     </div>
 </div>
+
+<!-- Script AJAX -->
+<script>
+    $(document).ready(function() {
+        // Manejo del formulario de registro
+        $('#registerForm').on('submit', function(event) {
+            event.preventDefault();
+            var formData = $(this).serialize();
+
+            $.ajax({
+                url: "{{ route('register') }}",
+                method: "POST",
+                data: formData,
+                success: function(response) {
+                    alert(response.success);
+                    window.location.href = '/';
+                },
+                error: function(xhr) {
+                    var errors = xhr.responseJSON.errors;
+                    var errorMessages = '<ul>';
+                    $.each(errors, function(key, value) {
+                        errorMessages += '<li>' + value[0] + '</li>';
+                    });
+                    errorMessages += '</ul>';
+                    $('#register-error-messages').html(errorMessages).removeClass('d-none');
+                }
+            });
+        });
+
+        $(document).ready(function() {
+        $('#loginForm').on('submit', function(event) {
+            event.preventDefault();
+            var formData = $(this).serialize();
+
+            $.ajax({
+                url: "{{ route('login') }}",
+                method: "POST",
+                data: formData,
+                success: function(response) {
+                    window.location.href = '/';
+                },
+                error: function(xhr) {
+                    var errors = xhr.responseJSON.errors;
+                    var errorMessages = '<ul>';
+                    $.each(errors, function(key, value) {
+                        $.each(value, function(index, message) {
+                            errorMessages += '<li>' + message + '</li>';
+                        });
+                    });
+                    errorMessages += '</ul>';
+                    $('#login-error-messages').html(errorMessages).removeClass('d-none');
+                }
+            });
+        });
+    });
+    });
+</script>
+
 @endsection

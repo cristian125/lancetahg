@@ -111,11 +111,6 @@ class ProductosDestacadosController extends Controller
         $gridImages = DB::table('grid_images')->where('active', 1)->get();
         $bannerImage = DB::table('banner_images')->where('active', 1)->first();
 
-
-
-
- 
-        
             // Obtener la configuración del modal desde la tabla `modal_config`
             $modalConfig = DB::table('modal_config')->first();
         

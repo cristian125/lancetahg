@@ -22,7 +22,7 @@ class CheckAdminRole
 
 
 if (!$adminRole || !in_array($adminRole, $roles)) {
-    return redirect()->route('admin.dashboard')->withErrors('No tienes permisos para acceder a esta sección.');
+    return redirect()->route('admin.dashboard')->withErrors('No tiene permisos para acceder a esta sección.');
 }
 
 

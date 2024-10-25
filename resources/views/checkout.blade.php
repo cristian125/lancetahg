@@ -28,12 +28,12 @@
         @else
             <!-- Div que contiene el iframe y el formulario de pago, dentro de un contenedor con sombra -->
             <div class="container mt-5">
-                <div id="paymentSection" style="display: none;" class="shadow p-4">
+                <div id="paymentSection" style="display: none;">
                     <!-- Loader que se muestra mientras se carga el iframe -->
                     <div id="loader" class="loader"></div>
                     <div class="row">
                         <div class="col-12">
-                            <h3 class="text-center mt-5">FORMULARIO DE PAGO</h3>
+                            <h3 class="text-center mt-5 border border-success">FORMULARIO DE PAGO</h3>
                             <iframe name="paymentFrame" id="paymentFrame" width="100%" height="800px"
                                 style="border:none;"></iframe>
                             <form id="paymentForm" method="POST" action="{{ env('PAYMENT_URL') }}" target="paymentFrame">
@@ -61,60 +61,116 @@
 
             <div class="row">
 
-                <!-- Resumen de Compra con productos -->
                 <div class="col-md-6 mb-4">
                     <div class="card shadow-lg border-0 rounded">
                         <div class="card-header bg-success text-white text-uppercase font-weight-bold">
                             <i class="bi bi-receipt"></i> Resumen de Compra
                         </div>
                         <div class="card-body">
-                            <ul class="list-group list-group-flush">
-                                @foreach ($cartItems as $item)
-                                    <li class="list-group-item">
-                                        <div class="d-flex justify-content-between">
-                                            <span>
-                                                {{ $item->description }} ({{ $item->quantity }}x)
-                                                <br>
-                                                @if ($item->discount > 0)
-                                                    <span class="text-danger">
-                                                        Descuento: {{ $item->discount }}%
-                                                    </span>
-                                                @endif
+                            <!-- Desglose de productos estilo ticket -->
+                            @foreach ($cartItems as $item)
+                                <div class="mb-3 p-3 border-bottom">
+                                    <div class="d-flex justify-content-between">
+                                        <strong>Artículo (No_s):</strong>
+                                        <span>{{ $item->no_s }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <strong>Descripción:</strong>
+                                        <span>{{ $item->description }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <strong>Unidad:</strong>
+                                        <span>{{ $item->unidad }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <strong>Cantidad:</strong>
+                                        <span>{{ $item->quantity }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <strong>Importe:</strong>
+                                        @if ($item->discount > 0)
+                                            <span class="text-muted" style="text-decoration: line-through;">
+                                                ${{ number_format($item->unit_price * $item->quantity, 2, '.', ',') }} MXN
                                             </span>
-                                            <span class="text-end">
-                                                @if ($item->discount > 0)
-                                                    <span class="text-muted" style="text-decoration: line-through;">
-                                                        ${{ number_format($item->unit_price * $item->quantity, 2, '.', ',') }}
-                                                        MXN
-                                                    </span>
-                                                    <br>
-                                                    <strong
-                                                        class="text-dark">${{ number_format($item->final_price * $item->quantity, 2, '.', ',') }}
-                                                        MXN</strong>
-                                                @else
-                                                    <strong>${{ number_format($item->final_price * $item->quantity, 2, '.', ',') }}
-                                                        MXN</strong>
-                                                @endif
-                                            </span>
-                                        </div>
-                                    </li>
-                                @endforeach
-                                <li class="list-group-item d-flex justify-content-between">
-                                    <strong>Total de Productos:</strong>
-                                    <strong>${{ number_format($totalPriceItems, 2, '.', ',') }} MXN</strong>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between bg-light text-primary">
-                                    <strong>Costo de Envío:</strong>
-                                    <strong>${{ number_format($shippingCost, 2, '.', ',') }} MXN</strong>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between font-weight-bold bg-warning">
-                                    <strong>Total Final:</strong>
-                                    <strong class="text-danger">${{ number_format($totalFinal, 2, '.', ',') }} MXN</strong>
-                                </li>
-                            </ul>
+                                            <br>
+                                            <strong>${{ number_format($item->final_price * $item->quantity, 2, '.', ',') }}
+                                                MXN</strong>
+                                            <br><span class="text-danger">Descuento: {{ $item->discount }}%</span>
+                                        @else
+                                            <strong>${{ number_format($item->final_price * $item->quantity, 2, '.', ',') }}
+                                                MXN</strong>
+                                        @endif
+                                    </div>
+
+
+                                    <!-- Mostrar el valor del IVA -->
+                                    <div class="d-flex justify-content-between">
+                                        <strong>IVA:</strong>
+                                        @if (isset($item->grupo_iva) && $item->grupo_iva === 'IVA16')
+                                            <span class="badge bg-success">IVA 16%</span>
+                                        @elseif (isset($item->grupo_iva) && $item->grupo_iva === 'IVA0')
+                                            <span class="badge bg-warning text-dark">IVA 0%</span>
+                                        @else
+                                            <span class="badge bg-secondary">Sin IVA</span>
+                                        @endif
+                                    </div>
+
+                                </div>
+                            @endforeach
+
+                            <!-- Resumen de totales generales en formato de columnas con estilo mejorado -->
+                            <div class="table-responsive mt-4 shadow-sm">
+                                <table class="table table-hover table-striped table-borderless align-middle">
+                                    <thead class="thead-light">
+                                        <tr class="text-center bg-primary text-white">
+                                            <th scope="col">Tipo de IVA</th>
+                                            <th scope="col">Valor Neto</th>
+                                            <th scope="col">IVA</th>
+                                            <th scope="col">Importe Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Fila para productos con IVA 16% -->
+                                        <tr class="text-center">
+                                            <td><strong>IVA 16%</strong></td>
+                                            <td>${{ number_format($totalConIVA / 1.16, 2, '.', ',') }} MXN</td>
+                                            <td>${{ number_format($totalConIVA - $totalConIVA / 1.16, 2, '.', ',') }} MXN
+                                            </td>
+                                            <td><strong>${{ number_format($totalConIVA, 2, '.', ',') }} MXN</strong></td>
+                                        </tr>
+
+                                        <!-- Fila para productos con IVA 0% -->
+                                        <tr class="text-center">
+                                            <td><strong>IVA 0%</strong></td>
+                                            <td>${{ number_format($totalSinIVA, 2, '.', ',') }} MXN</td>
+                                            <td>$0.00 MXN</td>
+                                            <td><strong>${{ number_format($totalSinIVA, 2, '.', ',') }} MXN</strong></td>
+                                        </tr>
+
+                                        <!-- Fila para costo de envío -->
+                                        <tr class="text-center">
+                                            <td><strong>Costo de Envío (con IVA)</strong></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td><strong>${{ number_format($shippingCost, 2, '.', ',') }} MXN</strong></td>
+                                        </tr>
+
+                                        <!-- Fila para importe total final -->
+                                        <tr class="text-center bg-warning font-weight-bold">
+                                            <td><strong>Importe Total (con IVA)</strong></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td class="text-danger"><strong>${{ number_format($totalFinal, 2, '.', ',') }}
+                                                    MXN</strong></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
+
+
 
                 <!-- Detalles del Envío -->
                 <div class="col-md-6 mb-4">
@@ -179,85 +235,133 @@
                     </div>
                 </div>
 
-
-
             </div>
 
 
             <!-- Botón para Proceder al Pago -->
             <div class="row">
                 <div class="col-12 text-center">
-                    <button id="proceedToPaymentBtn" class="btn btn-success btn-lg mt-4">
+                    <button id="proceedToPaymentBtn" class="btn btn-success btn-lg mt-4" data-bs-toggle="modal"
+                        data-bs-target="#paymentMethodModal">
                         Proceder al Pago
                     </button>
                 </div>
             </div>
+
         @endif
     </div>
+    <!-- Modal para seleccionar el método de pago -->
+    <div class="modal fade" id="paymentMethodModal" tabindex="-1" aria-labelledby="paymentMethodModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Seleccione Método de Pago</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="list-group">
+                        <a href="#" class="list-group-item list-group-item-action payment-option"
+                            data-payment-method="Tarjeta de Débito">
+                            <i class="bi bi-credit-card"></i> Tarjeta de Débito
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action payment-option"
+                            data-payment-method="Tarjeta de Crédito">
+                            <i class="bi bi-credit-card-2-front"></i> Tarjeta de Crédito
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action payment-option"
+                            data-payment-method="Monedero">
+                            <i class="bi bi-wallet2"></i> Monedero
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <!-- Modal para seleccionar el método de pago -->
+    <div class="modal fade" id="paymentMethodModal" tabindex="-1" aria-labelledby="paymentMethodModalLabel"
+        aria-hidden="true">
+        <!-- ... (contenido del modal) ... -->
+    </div>
 
+    <!-- Sección del iframe y formulario de pago -->
+    <div class="container mt-5" id="paymentSection" style="display: none;">
+        <!-- Loader que se muestra mientras se carga el iframe -->
+        <div id="loader" class="loader"></div>
+        <div class="row">
+            <div class="col-12">
+                <h3 class="text-center mt-5 border border-success">FORMULARIO DE PAGO</h3>
+                <iframe name="paymentFrame" id="paymentFrame" width="100%" height="800px"
+                    style="border:none;"></iframe>
+                <form id="paymentForm" method="POST" action="{{ env('PAYMENT_URL') }}" target="paymentFrame">
+                    @csrf
+                    @foreach ($paymentData as $key => $value)
+                        <input type="hidden" name="{{ $key }}" value="{{ $value }}" />
+                    @endforeach
+                </form>
+            </div>
+        </div>
+    </div>
 
-
+    <!-- Scripts -->
     <script>
-        document.getElementById('proceedToPaymentBtn').addEventListener('click', function() {
-            // Ocultar todo el contenido excepto el iframe y el formulario de pago
-            document.querySelectorAll('.container > .row').forEach(function(row) {
-                row.style.display = 'none';
+        document.addEventListener('DOMContentLoaded', function() {
+            // Manejar la selección del método de pago en el modal
+            document.querySelectorAll('.payment-option').forEach(function(element) {
+                element.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    var selectedPaymentMethod = this.getAttribute('data-payment-method');
+
+                    // Cerrar el modal
+                    var paymentMethodModal = bootstrap.Modal.getInstance(document.getElementById(
+                        'paymentMethodModal'));
+                    paymentMethodModal.hide();
+
+                    // Enviar el método de pago al servidor
+                    fetch("{{ route('update.payment.method') }}", {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                payment_method: selectedPaymentMethod
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Mostrar la sección de pago con el iframe y el loader
+                                document.querySelectorAll('.container > .row').forEach(function(
+                                    row) {
+                                    row.style.display = 'none';
+                                });
+                                document.getElementById('paymentSection').style.display =
+                                    'block';
+                                document.getElementById('loader').style.display = 'block';
+
+                                // Enviar automáticamente el formulario de pago
+                                document.getElementById('paymentForm').submit();
+                            } else {
+                                alert('Error al actualizar el método de pago: ' + data.message);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('Ocurrió un error al procesar su solicitud.');
+                        });
+                });
             });
 
-            // Mostrar la sección de pago con el iframe y el loader
-            document.getElementById('paymentSection').style.display = 'block';
-            document.getElementById('loader').style.display = 'block'; // Mostrar el loader
-
-            // Opcionalmente, desplazar la página hacia abajo
-            window.scrollTo({
-                top: document.getElementById('paymentSection').offsetTop,
-                behavior: 'smooth'
-            });
-
-            // Enviar automáticamente el formulario de pago
-            document.getElementById('paymentForm').submit();
+            // Detectar cuándo el iframe ha terminado de cargar y ocultar el loader
+            document.getElementById('paymentFrame').onload = function() {
+                document.getElementById('loader').style.display = 'none';
+            };
         });
-
-        // Detectar cuándo el iframe ha terminado de cargar y ocultar el loader
-        document.getElementById('paymentFrame').onload = function() {
-            document.getElementById('loader').style.display = 'none'; // Ocultar el loader cuando el iframe haya cargado
-        };
-
-        window.addEventListener("message", receiveMessage, false);
-
-        function receiveMessage(event) {
-            if (event.origin !==
-                "{{ parse_url(env('PAYMENT_URL'), PHP_URL_SCHEME) }}://{{ parse_url(env('PAYMENT_URL'), PHP_URL_HOST) }}")
-                return;
-            var elementArr = event.data.elementArr;
-            forwardForm(event.data, elementArr);
-        }
-
-        function forwardForm(responseObj, elementArr) {
-            var newForm = document.createElement("form");
-            newForm.setAttribute('method', 'post');
-            newForm.setAttribute('action', responseObj.redirectURL);
-            newForm.setAttribute('id', 'newForm');
-            newForm.setAttribute('name', 'newForm');
-            document.body.appendChild(newForm);
-
-            for (var i = 0; i < elementArr.length; i++) {
-                var element = elementArr[i];
-                var input = document.createElement('input');
-                input.setAttribute('type', 'hidden');
-                input.setAttribute('name', element.name);
-                input.setAttribute('value', element.value);
-                newForm.appendChild(input);
-            }
-
-            newForm.submit();
-        }
     </script>
-
-
+    
     <style>
-        /* From Uiverse.io by SchawnnahJ */
         .loader {
             position: relative;
             width: 2.5em;

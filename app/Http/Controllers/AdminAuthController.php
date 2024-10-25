@@ -88,7 +88,7 @@ class AdminAuthController extends Controller
 
         // Verificar si es superusuario
         if ($currentAdminRole !== 'superusuario') {
-            return redirect()->route('admin.dashboard')->withErrors('No tienes permisos para acceder a esta sección.');
+            return redirect()->route('admin.dashboard')->withErrors('No tiene permisos para acceder a esta sección.');
         }
 
         // Obtener todos los administradores

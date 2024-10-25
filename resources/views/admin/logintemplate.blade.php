@@ -112,38 +112,7 @@
             padding-top: 56px; /* Altura del navbar */
         }
 
-        /* Ajustes para dispositivos móviles */
-        @media (max-width: 768px) {
-            #sidebar {
-                left: -250px;
-            }
 
-            #sidebar.active {
-                left: 0;
-            }
-
-            #sidebar.collapsed {
-                left: -80px;
-            }
-
-            #content {
-                margin-left: 0;
-            }
-
-            #content.collapsed {
-                margin-left: 0;
-            }
-
-            .navbar {
-                left: 0;
-                width: 100%;
-            }
-
-            .navbar.collapsed {
-                left: 0;
-                width: 100%;
-            }
-        }
     </style>
 
     @yield('header')

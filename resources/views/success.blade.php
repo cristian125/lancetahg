@@ -7,13 +7,13 @@
             $('.navbar').hide();
             $('footer').hide();
             
-            // Botón para redirigir fuera del iframe
-            $('#goHomeBtn').click(function() {
-                window.top.location.href = "{{ route('home') }}"; // Redirigir fuera del iframe
+            // Botón para redirigir fuera del iframe a la página de pedidos
+            $('#goOrdersBtn').click(function() {
+                window.top.location.href = "{{ route('myorders') }}"; // Redirigir fuera del iframe
             });
         });
     </script>
-
+    
     <div class="container mt-5">
         <div class="row justify-content-center">
             <div class="col-md-8">
@@ -22,11 +22,11 @@
                         <h3>¡Pago Realizado con Éxito!</h3>
                     </div>
                     <div class="card-body">
-                        <p class="lead">Tu pago ha sido procesado correctamente.</p>
-                        <p>Gracias por tu compra.</p>
+                        <p class="lead">Su pago ha sido procesado correctamente.</p>
+                        <p>Gracias por su compra.</p>
 
-                        <!-- Botón para volver al inicio -->
-                        <button id="goHomeBtn" class="btn btn-primary mt-3">Volver al Inicio</button>
+                        <!-- Botón para ir a los pedidos -->
+                        <button id="goOrdersBtn" class="btn btn-primary mt-3">Ver Mis Pedidos</button>
                     </div>
                 </div>
             </div>

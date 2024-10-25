@@ -1,4 +1,4 @@
-<div class="accordion-item">
+<div class="accordion-item" id="accDirecciones">
     <h2 class="accordion-header" id="accDirecciones">
         <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#Direcciones"
             aria-expanded="False" aria-controls="Direcciones">
@@ -11,25 +11,7 @@
             <div class="row p-2">
                 <button id="addDireccion" class="btn btn-lanceta col-sm-2"><i class="fa fa-plus"></i> Nueva
                     dirección</button>
-                {{-- 
-                    <nav class="navbar navbar-expand-lg bg-light">
-                        <div class="container-fluid">
-                            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                                data-bs-target="#navDirecciones" aria-controls="navbarScroll" aria-expanded="false"
-                                aria-label="Toggle navigation">
-                                <span class="navbar-toggler-icon"></span>
-                            </button>
-                            <div class="collapse navbar-collapse" id="navDirecciones">
-                                <ul class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll"
-                                    style="--bs-scroll-height: 100px;">
-                                    <li class="nav-item">
-                                        
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </nav> 
-                --}}
+
             </div>
             <div class="row">
                 <ul class="list-group">

@@ -1,6 +1,7 @@
 @extends('admin.index')
 
 @section('content')
+<script src="https://cdn.tiny.cloud/1/wvaefm1arxme7m88dltt36jyacb4oqanhvybh3pu7972u0ok/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
     <div class="container-fluid py-5">
         <h2 class="text-center mb-4">Modificar Item</h2>
         <div class="row justify-content-center">
@@ -12,7 +13,6 @@
                             enctype="multipart/form-data">
                             @csrf
                             @method('PUT')
-
                             <!-- Sección 5: Imágenes del Producto -->
                             <h4 class="mt-4 mb-3 text-primary">Imágenes del Producto</h4>
                             <div class="row">
@@ -27,7 +27,6 @@
                                             <img id="mainImagePreview" src="{{ asset('storage/itemsview/default.jpg') }}"
                                                 alt="Imagen Principal" class="img-fluid rounded mb-2">
                                         @endif
-
                                     </div>
                                 </div>
 
@@ -37,7 +36,7 @@
                                     <!-- Área de drop para arrastrar y soltar imágenes -->
                                     <div id="dropArea" class="drop-area p-3 border rounded text-center"
                                         style="border: 2px dashed #007bff; cursor: pointer;">
-                                        <p class="text-muted">Arrastra y suelta tus imágenes aquí o haz clic para
+                                        <p class="text-muted">Arrastra y suelte sus imágenes aquí o haz clic para
                                             seleccionar</p>
                                         <input type="file" name="secondary_images[]" id="secondaryImagesInput"
                                             class="d-none" multiple>
@@ -292,53 +291,54 @@
 
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             const dropArea = document.getElementById('dropArea');
             const inputElement = document.getElementById('secondaryImagesInput');
             const secondaryImagesContainer = document.getElementById('secondaryImagesContainer');
-    
+
             // Prevenir comportamiento por defecto en eventos de arrastre
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
                 dropArea.addEventListener(eventName, preventDefaults, false);
             });
-    
+
             // Cambiar estilo al arrastrar
             ['dragenter', 'dragover'].forEach(eventName => {
                 dropArea.addEventListener(eventName, () => dropArea.classList.add('highlight'), false);
             });
-    
+
             ['dragleave', 'drop'].forEach(eventName => {
                 dropArea.addEventListener(eventName, () => dropArea.classList.remove('highlight'), false);
             });
-    
+
             // Manejar la subida de imágenes al soltar
             dropArea.addEventListener('drop', handleDrop, false);
-            dropArea.addEventListener('click', () => inputElement.click()); // Permitir clic para seleccionar archivos
-    
+            dropArea.addEventListener('click', () => inputElement
+        .click()); // Permitir clic para seleccionar archivos
+
             function preventDefaults(e) {
                 e.preventDefault();
                 e.stopPropagation();
             }
-    
+
             function handleDrop(e) {
                 const dt = e.dataTransfer;
                 const files = dt.files;
                 handleFiles(files);
             }
-    
+
             function handleFiles(files) {
                 [...files].forEach(file => {
                     previewFile(file); // Previsualizar la imagen
                     uploadImage(file); // Subir la imagen automáticamente
                 });
             }
-    
+
             // Previsualizar imagen mientras se carga
             function previewFile(file) {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
-    
-                reader.onloadend = function () {
+
+                reader.onloadend = function() {
                     const imgHtml = `
                         <div class="col-3 mb-3 position-relative secondary-image-item">
                             <img src="${reader.result}" alt="Imagen Secundaria" class="img-fluid rounded w-100 h-auto">
@@ -350,25 +350,25 @@
                     secondaryImagesContainer.insertAdjacentHTML('beforeend', imgHtml);
                 }
             }
-    
+
             // Subir imagen al servidor automáticamente
             function uploadImage(file) {
                 const formData = new FormData();
                 formData.append('secondary_images[]', file);
                 formData.append('item_id', '{{ $item->id }}'); // ID del producto
                 formData.append('_token', '{{ csrf_token() }}'); // Token CSRF
-    
+
                 fetch('{{ route('subir.imagen.secundaria') }}', {
-                    method: 'POST',
-                    body: formData,
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Actualizar la lista de imágenes secundarias después de la subida
-                        secondaryImagesContainer.innerHTML = ''; // Limpiar el contenedor
-                        data.image_urls.forEach(url => {
-                            const imageHtml = `
+                        method: 'POST',
+                        body: formData,
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Actualizar la lista de imágenes secundarias después de la subida
+                            secondaryImagesContainer.innerHTML = ''; // Limpiar el contenedor
+                            data.image_urls.forEach(url => {
+                                const imageHtml = `
                                 <div class="col-3 mb-3 position-relative secondary-image-item">
                                     <img src="${url}" alt="Imagen Secundaria" class="img-fluid rounded w-100 h-auto">
                                     <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 eliminar-imagen" data-image="${url}">
@@ -376,22 +376,22 @@
                                     </button>
                                 </div>
                             `;
-                            secondaryImagesContainer.insertAdjacentHTML('beforeend', imageHtml);
-                        });
-                    } else {
-                        alert('Error al subir las imágenes.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Ocurrió un error al subir las imágenes.');
-                });
+                                secondaryImagesContainer.insertAdjacentHTML('beforeend', imageHtml);
+                            });
+                        } else {
+                            alert('Error al subir las imágenes.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Ocurrió un error al subir las imágenes.');
+                    });
             }
-    
+
             // Eliminar imagen
-            $(document).on('click', '.eliminar-imagen', function () {
+            $(document).on('click', '.eliminar-imagen', function() {
                 const imageUrl = $(this).data('image');
-    
+
                 if (confirm('¿Estás seguro de que deseas eliminar esta imagen?')) {
                     $.ajax({
                         url: '{{ route('eliminar.imagen') }}',
@@ -400,13 +400,13 @@
                             _token: '{{ csrf_token() }}',
                             image: imageUrl,
                         },
-                        success: function (response) {
+                        success: function(response) {
                             if (response.success) {
                                 alert('Imagen eliminada correctamente.');
                                 location.reload();
                             }
                         },
-                        error: function () {
+                        error: function() {
                             alert('Ocurrió un error al eliminar la imagen.');
                         }
                     });
@@ -414,7 +414,7 @@
             });
         });
     </script>
-    
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Obtenemos todos los campos del formulario
@@ -715,4 +715,20 @@
             cursor: copy;
         }
     </style>
+        <script>
+    tinymce.init({
+        selector: '#descripcion', // Solo en el campo de descripción
+        language: 'es', // Idioma en español
+        height: 400,
+        plugins: 'lists link image code',
+        toolbar: 'undo redo | formatselect | bold italic | alignleft aligncenter alignright | bullist numlist | link image | code',
+        branding: false,
+        setup: function (editor) {
+            // Asegurarse de que el contenido se guarda aunque esté vacío
+            editor.on('change', function () {
+                tinymce.triggerSave();
+            });
+        }
+    });
+        </script>
 @endsection

@@ -4,11 +4,77 @@
     }
 }
 
-@media (orientation: landscape) and (width <=1200px) {
-    #login-dropdown .dropdown-menu {
-        margin-left: 0px !important;
+
+
+/* Estilos generales */
+
+
+/* Media Query para tablets y pantallas medianas */
+@media (max-width: 991px) {
+    #custom-search {
+        width: 100% !important;
+    }
+    .navbar-nav {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .navbar-collapse {
+        flex-grow: 1;
+        width: 170px;
+    }
+    .navbar-toggler {
+        margin-right: 0;
+    }
+    .navbar-brand {
+        margin-right: auto;
+    }
+    .cookie-banner {
+        flex-direction: column;
+        text-align: center;
+    }
+    .cookie-banner .btn {
+        margin-top: 10px;
     }
 }
+
+/* Media Query para móviles */
+@media (max-width: 576px) {
+    #custom-search-results {
+        top: 40px;
+        left: 0;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    .custom-product-info {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .add-to-cart-btn {
+        margin-top: 10px;
+    }
+    .navbar-nav .nav-item {
+        width: 100%;
+    }
+    .navbar-nav .dropdown-menu {
+        position: static;
+        float: none;
+    }
+    .megamenu-content {
+        position: static;
+    }
+    .item-img {
+        width: 60px;
+        height: 60px;
+    }
+    .custom-product-info div {
+        max-width: 100%;
+    }
+    .add-to-cart-btn {
+        width: 100%;
+        margin-top: 10px;
+    }
+}
+
 
 /* Estilo para el dropdown de inicio de sesión */
 #login-dropdown .dropdown-menu {
@@ -61,9 +127,12 @@
     width: 100%;
 }
 
-.navbar-light .navbar-brand img {
-    height: 30px; /* Ajustado a un tamaño visible */
+.navbar-brand {
+    display: flex;
+    align-items: center; /* Centrado vertical */
+    height: 100%; /* Asegura que el contenedor ocupe toda la altura disponible */
 }
+
 
 .navbar-light .navbar-nav .nav-link {
     color: #005f7f;
@@ -104,7 +173,7 @@
 
 /* Estilo para el dropdown principal */
 .navbar-dark .dropdown-menu {
-    background-color: #89c7db;
+    background-color: #005f7f;
     border-color: #343a40;
 }
 

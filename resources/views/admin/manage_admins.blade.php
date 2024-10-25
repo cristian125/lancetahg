@@ -48,7 +48,7 @@
                                     </form>
                                 @else
                                     <!-- Mensaje cuando no se puede cambiar el rol de uno mismo -->
-                                    <span class="text-muted">No puedes cambiar tu propio rol</span>
+                                    <span class="text-muted">No puede cambiar su propio rol</span>
                                 @endif
                             </td>
                         </tr>

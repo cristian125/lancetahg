@@ -1,10 +1,8 @@
 <section class="py-5">
     <div class="container">
         <div class="row gx-5">
-            <aside class="col-lg-6">
-                <div id="main-image-container"
-                    class="border rounded-4 mb-3 d-flex justify-content-center align-items-center"
-                    style="width: 100%; height: 400px; position: relative;">
+            <aside class="col-lg-6 ">
+                <div id="main-image-container" class="border rounded-4 mb-3 d-flex justify-content-center align-items-center" style="width: 100%; height: 400px; position: relative;">
                     @if ($producto->descuento > 0)
                         <div class="badge-offer"><i class="fas fa-tags">
                             </i> ¡Oferta!
@@ -35,11 +33,9 @@
                 <div class="ps-lg-3">
                     <!-- Mostrar el nombre del producto correctamente -->
                     <h4 class="title text-dark">{{ $producto->no_s }} - {{ $producto->nombre }}</h4>
-
                     <div class="d-flex flex-row my-3">
                         <span class="stock-info {{ $claseStock }} ms-2">{{ $mensajeStock }}</span>
                     </div>
-
                     <div class="mb-3">
                         @if ($producto->descuento > 0)
                             <span
@@ -117,6 +113,7 @@
                     <hr />
                     <div class="row">
                         <p class="fw-bold">Descripción: </p>
+
                         <!-- Mostrar la descripción del producto -->
                         <p>{!! $producto->descripcion !!}</p>
                     </div>
@@ -181,7 +178,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> 
     <div class="container mt-5">
         <h4 class="mb-4 text-center">Otros usuarios también se interesaron en estos productos similares:</h4>
         <div id="related-products-slider" class="owl-carousel owl-theme">

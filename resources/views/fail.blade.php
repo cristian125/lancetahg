@@ -23,7 +23,7 @@
                         <h3>Pago Rechazado</h3>
                     </div>
                     <div class="card-body">
-                        <p class="lead">Lamentablemente, tu pago no ha podido ser procesado.</p>
+                        <p class="lead">Lamentablemente, su pago no ha podido ser procesado.</p>
 
                         @if (session('error'))
                             <p>{{ session('error') }}</p>

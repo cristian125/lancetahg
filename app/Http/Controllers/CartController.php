@@ -68,6 +68,9 @@ class CartController extends ProductController
             return false;
         });
 
+
+        
+
         // Obtener los productos no elegibles
         $eligibleProductNos = $eligibleCartItems->pluck('no_s')->all();
         $nonEligibleItems = $cartItems->reject(function ($item) use ($eligibleProductNos) {
@@ -218,26 +221,19 @@ class CartController extends ProductController
         return redirect('/checkout')->with('success', 'El pedido ha sido validado. Procede al pago.');
     }
 
-
     public function showCheckout(Request $request)
     {
-
-
         $mantenimiento = ProductosDestacadosController::checkMaintenance();
         if ($mantenimiento == 'true') {
             return redirect(route('mantenimento'));
         }
-
-
-
-
-
+    
         $userId = auth()->id();
-
+    
         if (!$userId) {
             return redirect()->route('login');
         }
-
+    
         // Obtener el envío pendiente del usuario desde la tabla 'shippments'
         $shippment = DB::table('shippments')
             ->where('user_id', $userId)
@@ -245,7 +241,7 @@ class CartController extends ProductController
             ->select(
                 'id',
                 'cart_id',
-                'no_ext',  // Asegúrate de seleccionar 'no_ext'
+                'no_ext',
                 'entre_calles',
                 'colonia',
                 'municipio',
@@ -255,18 +251,18 @@ class CartController extends ProductController
                 'codigo_postal',
                 'nombre_contacto',
                 'shipping_cost_IVA',
-                'shipping_method', // Agregar shipping_method
-                'store_id', // Agregar store_id para la recogida en tienda
+                'shipping_method',
+                'store_id',
                 'shipping_cost',
-                'pickup_date', // Fecha de recogida en tienda
-                'pickup_time'  // Hora de recogida en tienda
+                'pickup_date',
+                'pickup_time'
             )
             ->first();
-
+    
         if (!$shippment) {
             return view('checkout', ['error' => 'No se han encontrado detalles del envío.']);
         }
-
+    
         // Obtener detalles de la tienda si el envío es para recoger en tienda
         $storeDetails = null;
         if ($shippment->shipping_method === 'RecogerEnTienda') {
@@ -274,25 +270,55 @@ class CartController extends ProductController
                 ->where('id', $shippment->store_id)
                 ->first();
         }
-
-        // Obtener los items del envío desde 'shippment_items'
+    
+        // Obtener los items del carrito, incluyendo el campo grupo_iva
         $cartItems = DB::table('shippment_items')
+            ->join('itemsdb', 'shippment_items.no_s', '=', 'itemsdb.no_s')
             ->where('shippment_id', $shippment->id)
-            ->select('description', 'quantity', 'unit_price', 'final_price', 'discount')
+            ->select(
+                'shippment_items.no_s',
+                'shippment_items.description',
+                'shippment_items.quantity',
+                'shippment_items.unit_price',
+                'shippment_items.final_price',
+                'shippment_items.discount',
+                'itemsdb.unidad_medida_venta as unidad',
+                'itemsdb.grupo_iva' // Incluir el campo grupo_iva
+            )
             ->get();
-
+    
+        // Calcular los totales de productos con y sin IVA
+        $totalConIVA = $cartItems->filter(function ($item) {
+            return $item->grupo_iva === 'IVA16';
+        })->sum(function ($item) {
+            return $item->final_price * $item->quantity;
+        });
+    
+        $totalSinIVA = $cartItems->filter(function ($item) {
+            return $item->grupo_iva === 'IVA0';
+        })->sum(function ($item) {
+            return $item->final_price * $item->quantity;
+        });
+    
         // Calcular los totales
         $shippingCost = $shippment->shipping_cost_IVA;
-
+    
         $totalPriceItems = $cartItems->sum(function ($item) {
             return $item->final_price * $item->quantity;
         });
-
+    
+        // Calcular subtotal sin IVA
+        $subtotalSinIVA = $totalPriceItems / 1.16;
+    
+        // Calcular el IVA total (16%)
+        $ivaTotal = $subtotalSinIVA * 0.16;
+    
+        // Calcular el total final con IVA y envío
         $totalFinal = $totalPriceItems + $shippingCost;
-
+    
         // Generar un 'oid' único
-        $oid = uniqid('C-', true);  // Prefijo "C-" seguido de un identificador único
-
+        $oid = uniqid('C-', true);
+    
         // Guardar la transacción de pago
         DB::table('payment_transactions')->insert([
             'user_id' => $userId,
@@ -312,10 +338,19 @@ class CartController extends ProductController
             'created_at' => now(),
             'updated_at' => now()
         ]);
-
+    
+        // Insertar estado 1 (Confirmación de pedido) en order_history
+        DB::table('order_history')->insert([
+            'order_id' => $oid,
+            'status' => 1, // Confirmación de pedido
+            'status_1_confirmation_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    
         // Generar hash y preparar datos del formulario de pago
         $paymentData = [
-            'oid' => $oid,  // Incluir el 'oid' generado
+            'oid' => $oid,
             'chargetotal' => number_format($totalFinal, 2, '.', ''),
             'checkoutoption' => 'combinedpage',
             'currency' => '484',
@@ -328,26 +363,68 @@ class CartController extends ProductController
             'txndatetime' => now()->format('Y:m:d-H:i:s'),
             'txntype' => 'sale',
         ];
-
-        // Ordenar los parámetros alfabéticamente por nombre
+    
         ksort($paymentData);
-
-        // Generar el hash
         $secretKey = env('PAYMENT_SECRET_KEY');
         $hashString = implode('|', $paymentData);
         $hash = base64_encode(hash_hmac('sha256', $hashString, $secretKey, true));
-
         $paymentData['hashExtended'] = $hash;
-
+    
+        // Retornar la vista con las variables calculadas
         return view('checkout', [
             'shippment' => $shippment,
             'cartItems' => $cartItems,
+            'subtotalSinIVA' => $subtotalSinIVA,
+            'ivaTotal' => $ivaTotal,
             'totalPriceItems' => $totalPriceItems,
+            'totalConIVA' => $totalConIVA, // Total con IVA
+            'totalSinIVA' => $totalSinIVA, // Total sin IVA
             'shippingCost' => $shippingCost,
             'totalFinal' => $totalFinal,
             'error' => null,
             'paymentData' => $paymentData,
-            'storeDetails' => $storeDetails  // Pasar los detalles de la tienda si es "RecogerEnTienda"
+            'storeDetails' => $storeDetails
         ]);
     }
+    
+    public function updatePaymentMethod(Request $request)
+{
+    $userId = auth()->id();
+
+    if (!$userId) {
+        return response()->json(['success' => false, 'message' => 'Usuario no autenticado']);
+    }
+
+    $paymentMethod = $request->input('payment_method');
+
+    if (!$paymentMethod) {
+        return response()->json(['success' => false, 'message' => 'No se recibió el método de pago']);
+    }
+
+    // Obtener el 'oid' de la transacción de pago más reciente del usuario
+    $paymentTransaction = DB::table('payment_transactions')
+        ->where('user_id', $userId)
+        ->orderBy('created_at', 'desc')
+        ->first();
+
+    if (!$paymentTransaction) {
+        return response()->json(['success' => false, 'message' => 'No se encontró una transacción de pago para el usuario']);
+    }
+
+    $oid = $paymentTransaction->oid;
+
+    // Actualizar el método de pago en 'order_history'
+    DB::table('order_history')
+        ->where('order_id', $oid)
+        ->update([
+            'payment_method' => $paymentMethod,
+            'updated_at' => now(),
+        ]);
+
+    // Devolver una respuesta exitosa
+    return response()->json(['success' => true]);
+}
+
+    
+    
 }

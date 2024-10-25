@@ -59,7 +59,7 @@
 }
 
 .product-info {
-  text-align: center; /* Centra el texto */
+
   flex-grow: 1;
 }
 
@@ -68,9 +68,11 @@
 }
 
 .product-info p {
-  margin-bottom: 0;
+  text-align: right!important;
+  margin-bottom: 10%;
   font-weight: bold;
-  color: #333;
+  color: #535353;
+  font-size: 130%;
 }
 
 .owl-carousel .item {

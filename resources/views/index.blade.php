@@ -111,7 +111,6 @@
             }
         });
     </script>
-    
 @endsection
 @section('body')
 <!-- Banner de Cookies -->

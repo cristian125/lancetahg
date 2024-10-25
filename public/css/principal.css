@@ -89,8 +89,8 @@
 
 /* Estilo para el número de serie */
 .product-serial {
-    font-size: 12px !important; /* Tamaño de fuente más pequeño */
-    color: #007bff !important; /* Color azul para destacar */
+    font-size: 18px !important; /* Tamaño de fuente más pequeño */
+    color: #00B398 !important; /* Color azul para destacar */
     font-weight: bold !important; /* Negrita para enfatizar */
     margin-bottom: 5px !important; /* Espacio inferior */
     display: block !important; /* Mantiene el formato en bloque */

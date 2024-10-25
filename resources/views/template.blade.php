@@ -102,19 +102,7 @@
 
     <!-- Estilos personalizados -->
     <style>
-        .modal .close {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            z-index: 10;
-            background-color: rgba(255, 0, 0, 0.8);
-            border-radius: 40%;
-            border: 2px solid #333;
-            padding: 10px;
-            font-size: 20px;
-            color: #ffffff;
-            transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
-        }
+
 
         .modal .close:hover {
             background-color: #ff0000;
@@ -143,7 +131,7 @@
         <div id="modalAviso" class="modal fade" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg" style="margin-top: 10vh;">
                 <div class="modal-content p-0" style="border: none; background: transparent;">
-                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <button type="button" class="btn btn-danger close" data-bs-dismiss="modal" aria-label="Close" style="margin-right: 1.5em">
                         <span aria-hidden="true">&times;</span>
                     </button>
                     <img src="{{ asset('storage/' . $modalImagen) }}" alt="Aviso Modal"

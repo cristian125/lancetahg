@@ -7,7 +7,7 @@
     <!-- Mostrar mensajes de error -->
     @if($errors->any())
         <div class="alert alert-danger">
-            <strong>¡Ups! Hubo algunos problemas con tus entradas.</strong>
+            <strong>¡Ups! Hubo algunos problemas con sus entradas.</strong>
             <ul>
                 @foreach($errors->all() as $error)
                     <li>{{ $error }}</li>

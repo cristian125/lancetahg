@@ -89,10 +89,10 @@ Route::group(['middleware' => ['web']], function () {
 
 
     Route::get('/register', [RegisterController::class, 'showRegistrationForm']);
-    Route::post('/register', [RegisterController::class, 'register'])->name('register');
+    Route::post('/register', [RegisterController::class, 'register'])->name('register')->middleware('throttle:5,3');;
 
     // Rutas para el login
-    Route::post('/login', [LoginController::class, 'login'])->name('login');
+    Route::post('/login', [LoginController::class, 'login'])->name('login')->middleware('throttle:5,3');;
     Route::get('/producto/img/{id}', [ProductController::class, 'getImage'])->name('producto.imagen');
     Route::get('/ajax-search', [ProductController::class, 'ajaxSearch'])->name('ajax.search');
     Route::get('/search-result', [ProductController::class, 'search'])->name('product.search');
@@ -206,9 +206,13 @@ Route::group(['middleware' => ['auth', 'web']], function () {
     Route::post('/cart/remove-shipping', [ProductController::class, 'removeShipping']);
     Route::post('/update-datos', [UserDataController::class, 'update'])->name('update.datos');
 
+Route::get('/verificar-existencias', [StorePickupController::class, 'ajaxVerificarExistencias'])->name('verificarExistencias');
+
+
 
     Route::get('/mis-pedidos', [UserOrderController::class, 'myOrders'])->name('myorders');
-    Route::get('/pedido/{orderId}', [UserOrderController::class, 'orderDetails'])->name('order.details');
+    Route::get('pedido/{orderId}', [UserOrderController::class, 'orderDetails'])->name('order.details');
+
 
     Route::get('/pedido/{orderId}/pdf', [UserOrderController::class, 'downloadOrderPdf'])->name('order.pdf');
 
@@ -228,7 +232,13 @@ Route::group(['middleware' => ['auth', 'web']], function () {
     Route::post('/cart/addPaqueteriaMethod', [ShippingPaqueteriaController::class, 'addPaqueteriaMethod'])->name('cart.addPaqueteriaMethod');
 
     Route::get('/checkout', [CartController::class, 'showCheckout'])->name('checkout');
+    // Ruta para procesar el método de pago (POST)
+    Route::post('/update-payment-method', [CartController::class, 'updatePaymentMethod'])->name('update.payment.method');
+
 });
+
+
+
 
 
 Route::group(['middleware' => ['auth', 'web']], function () {
@@ -263,7 +273,7 @@ Route::post('/process-order', [PaymentController::class, 'processOrder'])->name(
 Route::prefix('adminlanz')->middleware('adminsession')->group(function () {
     // Rutas de autenticación del administrador
     Route::get('/', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
-    Route::post('/login', [AdminAuthController::class, 'login'])->name('admin.login.post');
+    Route::post('/login', [AdminAuthController::class, 'login'])->name('admin.login.post')->middleware('throttle:5,3');
     Route::post('/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
 
     // Rutas para el registro de administrador
@@ -360,15 +370,13 @@ Route::prefix('adminlanz')->middleware('adminsession')->group(function () {
             Route::delete('/grid/{id}', [CarouselController::class, 'deleteGridImage'])->name('admin.delete_grid_image');
 
 
-            // PRODUCTOS RELACIONADOS
-            Route::get('/relacionados', [ProductosRelacionadosController::class, 'indexGrid'])->name('admin.relacionados');
+
 
 
             Route::get('/banner', [BannerController::class, 'index'])->name('admin.banner_settings');
             Route::post('/banner/upload', [BannerController::class, 'uploadBanner'])->name('admin.upload_banner');
             Route::patch('/banner/{id}/toggle', [BannerController::class, 'toggleBanner'])->name('admin.toggle_banner');
             Route::delete('/banner/{id}', [BannerController::class, 'deleteBanner'])->name('admin.delete_banner');
-
 
             Route::get('/destacados', [AdminDestacadosController::class, 'showDestacadosForm'])->name('admin.destacados.form');
             Route::post('/destacados/guardar', [AdminDestacadosController::class, 'guardarDestacados'])->name('admin.destacados.guardar');
@@ -378,7 +386,6 @@ Route::prefix('adminlanz')->middleware('adminsession')->group(function () {
 
             // Ruta única para manejar la configuración de mantenimiento
             Route::match(['get', 'post'], '/config', [AdminConfigController::class, 'configurarMantenimiento'])->name('configadmin');
-
 
             Route::get('/payment-logs', [PaymentLogController::class, 'index'])->name('admin.payment_logs.index');
             Route::get('/payment-logs/{id}', [PaymentLogController::class, 'show'])->name('admin.payment_logs.show');

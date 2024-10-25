@@ -1,4 +1,4 @@
-<div class="accordion-item">
+<div class="accordion-item" id="facturación">
     <h2 class="accordion-header" id="accFacturacion">
         <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#colFacturacion"
             aria-expanded="False" aria-controls="colFacturacion">
@@ -8,6 +8,9 @@
     <div id="colFacturacion" class="accordion-collapse collapse" aria-labelledby="accFacturacion"
         data-bs-parent="#accordionAccount">
         <div class="accordion-body">
+            <div class="alert alert-info">
+                <i class="fa fa-info-circle"></i> <strong>Nota:</strong> Los datos proporcionados en esta sección se utilizarán únicamente para el envío y no para facturación, de acuerdo con las disposiciones de la Carta Porte 3.1 del SAT. En caso de no proporcionar esta información, la factura se emitirá bajo el concepto de Público en General.
+            </div>
             <div class="row">
                 <form id="frmFacturacion" action="{{ route('cuenta.facturacion.actualizar') }}" method="POST">
                     @csrf

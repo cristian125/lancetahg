@@ -125,13 +125,13 @@
         selector: '#editor', 
         language: 'es',
         height: 800,
-        plugins: [
-            'anchor', 'autolink', 'charmap', 'codesample', 'emoticons', 'image', 'link', 'lists', 'media',
-            'searchreplace', 'table', 'visualblocks', 'wordcount', 'checklist', 'mediaembed', 'casechange',
-            'export', 'formatpainter', 'pageembed', 'a11ychecker', 'tinymcespellchecker', 'permanentpen',
-            'powerpaste', 'advtable', 'advcode', 'editimage', 'advtemplate', 'mentions', 'tableofcontents',
-            'footnotes', 'mergetags', 'autocorrect', 'typography', 'inlinecss', 'markdown',
-        ],
+        // plugins: [
+        //     'anchor', 'autolink', 'charmap', 'codesample', 'emoticons', 'image', 'link', 'lists', 'media',
+        //     'searchreplace', 'table', 'visualblocks', 'wordcount', 'checklist', 'mediaembed', 'casechange',
+        //     'export', 'formatpainter', 'pageembed', 'a11ychecker', 'tinymcespellchecker', 'permanentpen',
+        //     'powerpaste', 'advtable', 'advcode', 'editimage', 'advtemplate', 'mentions', 'tableofcontents',
+        //     'footnotes', 'mergetags', 'autocorrect', 'typography', 'inlinecss', 'markdown',
+        // ],
         spellchecker_language: 'es',
         toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
         setup: function(editor) {
@@ -214,6 +214,9 @@
     body {
         background: rgb(195,195,195);
         background: linear-gradient(90deg, rgba(195,195,195,1) 4%, rgba(227,227,227,1) 79%);
+    }
+    .tox-notification{
+        display: none !important;
     }
 </style>
 @endsection

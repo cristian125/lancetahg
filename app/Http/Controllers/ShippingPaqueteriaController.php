@@ -97,7 +97,7 @@ class ShippingPaqueteriaController extends Controller
         $client = new Client();
         
         // Definir la URL base y los parámetros de la consulta
-        $url = route('paqueteexpress.solicitar'); // Asegúrate de que esta ruta esté configurada correctamente en tu web.php
+        $url = route('api.orders'); 
         
         // Hacer la petición GET con parámetros
         $token = csrf_token();
@@ -113,7 +113,7 @@ class ShippingPaqueteriaController extends Controller
             ]
         ]);
 
-        dd($response->getBody()->getContents());
+        // dd($response->getBody()->getContents());
         // Obtener el cuerpo de la respuesta
         $body = $response->getBody()->getContents();
 

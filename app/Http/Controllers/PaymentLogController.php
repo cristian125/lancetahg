@@ -28,6 +28,10 @@ class PaymentLogController extends Controller
         return view('admin.payment_logs.paymentlogs', compact('logs', 'search'));
     }
 
+
+
+
+
     public function show($id)
     {
         // Obtener el detalle de un log específico

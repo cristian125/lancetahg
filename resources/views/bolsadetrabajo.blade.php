@@ -4,7 +4,7 @@
 <div class="container my-5">
     <h1 class="text-center mb-4">Bolsa de Trabajo</h1>
     <div class="text-center mb-4">
-        <p>En Lanceta HG estamos buscando personas talentosas para formar parte de nuestro equipo de trabajo. Si te interesa unirte a esta gran familia envíanos tus datos.</p>
+        <p>En Lanceta HG estamos buscando personas talentosas para formar parte de nuestro equipo de trabajo. Si le interesa unirse a esta gran familia envíe sus datos.</p>
         <p class="text-muted"><small>Los campos con <span class="text-danger">*</span> son requeridos</small></p>
     </div>
     <form method="POST" enctype="multipart/form-data">

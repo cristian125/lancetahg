@@ -1,4 +1,7 @@
 <div class="container my-4">
+	<div class="alert alert-warning text-center" role="alert">
+        Debe bajar hasta el final de los términos y condiciones para habilitar el botón de "Aceptar y proceder al pago".
+    </div>
 	<h1 class="mb-4 text-center">
 		T&eacute;rminos y condiciones
 	</h1>

@@ -20,6 +20,7 @@ class Kernel extends HttpKernel
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+        
     ];
 
     /**
@@ -53,6 +54,8 @@ class Kernel extends HttpKernel
      */
     protected $routeMiddleware = [
         'auth' => \App\Http\Middleware\Authenticate::class,
+        'basicauth' => \App\Http\Middleware\BasicAuthMiddleware::class, // Registro del middleware
+
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
         'bindings' => \Illuminate\Routing\Middleware\SubstituteBindings::class,
         'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
@@ -65,5 +68,7 @@ class Kernel extends HttpKernel
         'admin.auth' => \App\Http\Middleware\AdminAuthMiddleware::class,
         'admin.role' => \App\Http\Middleware\CheckAdminRole::class,
         'adminsession' => \App\Http\Middleware\AdminSession::class,
+        'generate.slug' => \App\Http\Middleware\GenerateSlug::class,
+        'auth.basic1' => \App\Http\Middleware\BasicAuthMiddleware::class,
     ];
 }

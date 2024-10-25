@@ -9,7 +9,8 @@
 <div id="cookieConsent" class="cookie-banner fixed-bottom p-3 d-none" style="z-index: 9999;">
     <div class="container d-flex justify-content-between align-items-center">
         <div class="cookie-message">
-            <span>Este sitio utiliza cookies para garantizar que obtenga la mejor experiencia en nuestro sitio web.</span>
+            <span>Este sitio utiliza cookies para garantizar que obtenga la mejor experiencia en nuestro sitio
+                web.</span>
         </div>
         <button id="acceptCookies" class="btn btn-info">Aceptar</button>
     </div>
@@ -17,11 +18,13 @@
 
 <style>
     .cookie-banner {
-        background-color: #26d2b6 !important; /* Color del fondo */
+        background-color: #26d2b6 !important;
+        /* Color del fondo */
         color: #005f7f;
         padding: 15px;
         font-size: 14px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra ligera para destacar */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        /* Sombra ligera para destacar */
         border-top-left-radius: 8px;
         border-top-right-radius: 8px;
     }
@@ -34,29 +37,29 @@
     }
 
     .cookie-banner .btn:hover {
-        background-color: #004f6f; 
+        background-color: #004f6f;
     }
 
     .cookie-message a {
-        color: #005f7f!important; 
+        color: #005f7f !important;
         text-decoration: underline;
     }
 </style>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function() {
         const cookieBanner = document.getElementById('cookieConsent');
         const acceptCookiesBtn = document.getElementById('acceptCookies');
-    
+
         // Comprobar si el usuario ya ha aceptado las cookies
         if (!localStorage.getItem('cookiesAccepted')) {
             // Mostrar el banner si no ha sido aceptado antes
             cookieBanner.classList.remove('d-none');
             cookieBanner.classList.add('d-flex');
         }
-    
+
         // Al hacer clic en "Aceptar"
-        acceptCookiesBtn.addEventListener('click', function () {
+        acceptCookiesBtn.addEventListener('click', function() {
             localStorage.setItem('cookiesAccepted', 'true');
             cookieBanner.classList.remove('d-flex');
             cookieBanner.classList.add('d-none');
@@ -66,9 +69,10 @@
 
 <nav id="mainNavbar" class="navbar navbar-expand-lg navbar-custom navbar-dark">
     <div class="container justify-content-center">
-        <a class="navbar-brand" href="{{ url('/') }}">
+        <a class="navbar-brand d-flex align-items-center justify-content-center" href="{{ url('/') }}">
             <img src="{{ asset('storage/logos/logolhg.png') }}" alt="Logo" style="height: 30px;">
         </a>
+        
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
             aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -98,69 +102,96 @@
                 </li>
             </ul>
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                <li class="nav-item me-2">
-                    <form class="d-flex" role="search">
-                        <div class="dropdown">
-                            <input id="search" class="form-control me-2 dropdown-toggle" type="search"
-                                placeholder="¿Qué producto está buscando?" aria-label="Search" data-bs-toggle="dropdown"
-                                aria-expanded="true">
-                            <div id="dropdown-container" class="dropdown-menu dropdown-menu-dark">
-                                <ul id="items-search-list" class="list-unstyled">
-                                    <!-- Aquí se mostrarán los resultados generados por JavaScript -->
-                                </ul>
-                                <div id="item-result-count" class="text-center text-light bg-primary">
-                                    <!-- Aquí se mostrará el mensaje de conteo de resultados -->
-                                </div>
-                            </div>
+                <!-- Buscador en la barra de navegación -->
+                <li class="nav-item me-2 w-100">
+                    <form class="d-flex position-relative w-100" role="search" id="custom-search-form">
+                        <input id="custom-search" class="form-control me-2 w-100" type="search" placeholder="Buscar productos..." aria-label="Search" autocomplete="off">
+                        <button id="btnsearch" class="btn btn-outline-success" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+                        <div id="custom-search-results" class="position-absolute bg-white w-100 shadow rounded mt-1 p-2" style="display:none; max-height: 400px; overflow-y: auto; z-index: 999; width: 200%;">
+                            <ul id="custom-results-list" class="list-unstyled mb-0"></ul>
                         </div>
-                        <button id="btnsearch" class="btn btn-outline-success" type="submit"><i class="bi bi-search"></i></button>
                     </form>
+                    
                 </li>
+
+
+
+
+
                 @if (Auth::check() == true)
-                @php
-                    // Obtener los datos del usuario desde la tabla users_data
-                    $userData = DB::table('users_data')->where('user_id', Auth::id())->first();
-                @endphp
-                <!-- Mostrar el nombre del usuario con tratamiento si está autenticado -->
-                <li class="nav-item dropdown me-3">
-                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button"
-                        data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-person-fill me-2"></i>
-                        <!-- Mostrar el tratamiento si existe, seguido del nombre -->
-                        @if ($userData && !empty($userData->tratamiento))
-                            {{ $userData->tratamiento }} {{ $userData->nombre }} {{ $userData->apellido_paterno }}
-                        @else
-                            {{ Auth::user()->name }}
-                        @endif
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-end p-4 shadow-lg border-0 rounded" aria-labelledby="userDropdown"
-                        style="min-width: 300px;">
-                        <form id="logout-form" action="{{ route('logout') }}" method="POST">
-                            @csrf
-                            <!-- Botón para la cuenta -->
-                            <div class="row mb-3">
-                                <a href="/cuenta" class="btn btn-primary btn-block d-flex align-items-center justify-content-center">
-                                    <i class="bi bi-person-circle me-2"></i> Cuenta
-                                </a>
-                            </div>
-            
-                            <!-- Botón para "Mis Pedidos" -->
-                            <div class="row mb-3">
-                                <a href="{{ route('myorders') }}" class="btn btn-secondary btn-block d-flex align-items-center justify-content-center">
-                                    <i class="bi bi-box-seam me-2"></i> Mis Pedidos
-                                </a>
-                            </div>
-            
-                            <!-- Botón para cerrar sesión -->
-                            <div class="row">
-                                <button type="submit" class="btn btn-danger w-100 d-flex align-items-center justify-content-center">
-                                    <i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </li>
-            @else
+                    @php
+                        // Obtener los datos del usuario desde la tabla users_data
+                        $userData = DB::table('users_data')->where('user_id', Auth::id())->first();
+                    @endphp
+                    <!-- Mostrar el nombre del usuario con tratamiento si está autenticado -->
+                    <li class="nav-item dropdown me-3">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown"
+                            role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-fill me-2"></i>
+                            <!-- Mostrar el tratamiento si existe, seguido del nombre -->
+                            @if ($userData && !empty($userData->tratamiento))
+                                {{ $userData->tratamiento }} {{ $userData->nombre }} {{ $userData->apellido_paterno }}
+                            @else
+                                {{ Auth::user()->name }}
+                            @endif
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end p-4 shadow-lg border-0 rounded"
+                            aria-labelledby="userDropdown" style="min-width: 300px;">
+                            <form id="logout-form" action="{{ route('logout') }}" method="POST">
+                                @csrf
+                                <!-- Botón para la cuenta -->
+                                <div id="account-button-container" class="row">
+                                    <a id="account-btn" href="/cuenta"
+                                        class="btn btn-dark btn-block d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-person-circle me-2"></i> Cuenta
+                                    </a>
+                                </div>
+
+                                <!-- Botón para "Mis Pedidos" -->
+                                <div id="orders-button-container" class="row">
+                                    <a id="orders-btn" href="{{ route('myorders') }}"
+                                        class="btn btn-secondary btn-block d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-box-seam me-2"></i> Mis Pedidos
+                                    </a>
+                                </div>
+
+                                <!-- Botón para "Mis Direcciones" -->
+                                <div id="addresses-button-container" class="row">
+                                    <a id="addresses-btn" href="{{ route('cuenta', ['section' => 'Direcciones']) }}"
+                                        class="btn btn-info btn-block d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-geo-alt me-2"></i> Direcciones
+                                    </a>
+                                </div>
+
+                                <!-- Botón para "Datos Personales" -->
+                                <div id="personal-data-button-container" class="row">
+                                    <a id="personal-data-btn" href="{{ route('cuenta', ['section' => 'colDatos']) }}"
+                                        class="btn btn-warning btn-block d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-file-person me-2"></i> Datos Personales
+                                    </a>
+                                </div>
+                                <!-- Botón para "Ayuda" con estilo personalizado -->
+                                <div id="help-button-container" class="row">
+                                    <a id="help-btn" href="/page/ayuda"
+                                        class="btn btn-light btn-outline-primary btn-block d-flex align-items-center justify-content-center ">
+                                        <i class="bi bi-question-circle me-2"></i> Ayuda
+                                    </a>
+                                </div>
+                                <!-- Botón para cerrar sesión -->
+                                <div id="logout-button-container" class="row">
+                                    <button id="logout-btn" type="submit"
+                                        class="btn btn-danger w-100 d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+
+                    </li>
+                @else
                     <!-- Mostrar el formulario de inicio de sesión si no está autenticado -->
                     <li class="nav-item dropdown" id="login-dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="loginDropdown" role="button">
@@ -190,7 +221,7 @@
                                         </li>
                                     </ul>
                                 </div>
-                                
+
                             </form>
                         </div>
                     </li>
@@ -238,7 +269,8 @@
                 let subcategoriaContent = '';
 
                 $.each(data, function(codigoDivision, division) {
-                    let safeCodigo = codigoDivision.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+                    let safeCodigo = codigoDivision.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g,
+                        '');
                     let urlBase = `/categorias/${encodeURIComponent(codigoDivision)}`;
 
                     categoriasList += `
@@ -317,7 +349,8 @@
 
                 var target = categoryItem.getAttribute('data-target');
                 if (target) {
-                    document.querySelector(target).style.display = 'block'; // Mostrar la subcategoría correspondiente
+                    document.querySelector(target).style.display =
+                        'block'; // Mostrar la subcategoría correspondiente
                 }
             });
         });
@@ -325,7 +358,8 @@
         document.querySelectorAll('.megamenu-content').forEach(function(menu) {
             menu.addEventListener('mouseleave', function() {
                 document.querySelectorAll('.submenu').forEach(function(submenu) {
-                    submenu.style.display = 'none'; // Ocultar todas las subcategorías cuando se sale del megamenú
+                    submenu.style.display =
+                        'none'; // Ocultar todas las subcategorías cuando se sale del megamenú
                 });
             });
         });
@@ -335,7 +369,7 @@
         const loginDropdown = document.getElementById('login-dropdown');
         const loginToggle = loginDropdown.querySelector('.nav-link.dropdown-toggle');
         const dropdownMenu = loginDropdown.querySelector('.dropdown-menu');
-        
+
         const emailField = document.getElementById('email');
         const passwordField = document.getElementById('password');
 
@@ -403,3 +437,249 @@
         });
     });
 </script>
+
+<script>
+$(document).ready(function() {
+    let typingTimer;
+    const typingInterval = 300; // 0.3 segundos de espera para mejor experiencia
+
+    // Configurar la acción de búsqueda
+    $('#custom-search').on('keyup', function() {
+        clearTimeout(typingTimer);
+        let searchWord = $(this).val().trim();
+
+        if (searchWord.length > 2) {
+            typingTimer = setTimeout(function() {
+                executeSearch(searchWord);
+            }, typingInterval);
+        } else {
+            $('#custom-search-results').hide();
+        }
+    });
+
+    // Cerrar el cuadro de búsqueda al hacer clic fuera
+    $(document).click(function(e) {
+        if (!$(e.target).closest('#custom-search-results, #custom-search').length) {
+            $('#custom-search-results').hide();
+        }
+    });
+
+    // Ejecutar búsqueda AJAX
+    function executeSearch(query) {
+        $.ajax({
+            type: "GET",
+            url: "/ajax-search",
+            data: { search: query },
+            dataType: "json",
+            success: function(data) {
+                displaySearchResults(data);
+            },
+            error: function() {
+                $('#custom-results-list').empty();
+                $('#custom-search-results').hide();
+            }
+        });
+    }
+
+    // Mostrar resultados de búsqueda
+    function displaySearchResults(products) {
+        const $resultsList = $('#custom-results-list');
+        $resultsList.empty(); // Limpiar resultados anteriores
+
+        if (products.length === 0) {
+            $resultsList.append('<li class="text-center">No se encontraron productos.</li>');
+        } else {
+            products.forEach(function(product) {
+                let productHTML = `
+                <li class="d-flex align-items-center mb-2" style="width: 100%;">
+                    <a href="/producto/${product.id}" class="d-flex w-100 text-decoration-none text-dark">
+                        <img src="${product.imagen_principal}" class="item-img me-2" alt="Producto">
+                        <div class="custom-product-info d-flex justify-content-between w-100">
+                            <div>
+                                <p class="mb-0"><strong>${product.nombre}</strong></p>
+                                <p class="mb-0">Código: ${product.no_s}</p>
+                                ${product.descuento > 0 ? `<p class="mb-0 text-danger"><del>$${product.precio_unitario_IVAinc}</del> <strong>$${product.precio_final}</strong></p>` : `<p class="mb-0">Precio: $${product.precio_final}</p>`}
+                            </div>
+                            <button class="btn btn-primary btn-sm add-to-cart-btn" data-id="${product.id}"><i class="fas fa-cart-plus"></i></button>
+                        </div>
+                    </a>
+                </li>`;
+                $resultsList.append(productHTML);
+            });
+
+            $('#custom-search-results').show();
+        }
+
+        // Manejar la adición al carrito
+        $('.add-to-cart-btn').on('click', function(e) {
+            e.preventDefault(); // Prevenir la redirección
+            const productId = $(this).data('id');
+            addToCart(productId);
+        });
+    }
+
+    // Función para añadir al carrito y recargar la página
+    function addToCart(productId) {
+        $.ajax({
+            type: "POST",
+            url: "/cart/add",
+            data: { id: productId, _token: $('meta[name="csrf-token"]').attr('content') },
+            success: function() {
+                window.location.reload(); // Recargar la página para actualizar el carrito
+            },
+            error: function() {
+                alert("Error al añadir el producto al carrito.");
+            }
+        });
+    }
+});
+
+</script>
+<style>
+
+    #custom-search {
+    width: 550px !important;
+}
+
+#custom-search-results {
+    border: 1px solid #005f7fea;
+    max-width: 92% !important;
+    background: #00B398;
+    max-height: 400px;
+    overflow-y: auto;
+    z-index: 999;
+    position: absolute;
+    top: 33px;
+    text-align: left !important;
+}
+
+    /* Personalizar la barra de desplazamiento */
+    #custom-search-results::-webkit-scrollbar {
+        width: 10px;
+        /* Ancho del scrollbar */
+    }
+
+    #custom-search-results::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+#custom-search-results::-webkit-scrollbar-thumb {
+    background-color: #007bff;
+    border-radius: 10px;
+}
+
+    #custom-search-results::-webkit-scrollbar-thumb:hover {
+        background-color: #0056b3;
+        /* Color al pasar el mouse */
+    }
+
+
+    #custom-results-list {
+        max-height: 400px;
+
+    }
+
+    #custom-results-list::-webkit-scrollbar {
+        width: 8px;
+        /* Ancho de la barra de desplazamiento */
+    }
+
+    #custom-results-list::-webkit-scrollbar-thumb {
+        background-color: #007bff;
+        /* Color del scrollbar */
+        border-radius: 10px;
+        /* Bordes redondeados para el scrollbar */
+    }
+
+    #custom-results-list::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        /* Fondo del track del scrollbar */
+    }
+
+    #custom-results-list li {
+        padding: 10px;
+        border-bottom: 1px solid #005f7fea;
+        text-align: left!important;
+    }
+
+    #custom-results-list li:hover {
+        background-color: #009688;
+        /* Cambia el color al pasar sobre los resultados */
+        color: white;
+        /* Asegúrate que el texto también cambie a blanco */
+    }
+
+    .item-img {
+        width: 80px;
+        /* Aumenta el tamaño de la miniatura */
+        height: 80px;
+        object-fit: cover;
+        margin-right: 20px;
+        /* Mayor margen entre la imagen y los detalles */
+    }
+
+    .product-info {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        font-size: 16px;
+        /* Texto más grande para mejor legibilidad */
+    }
+    .custom-product-info {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    font-size: 16px;
+    white-space: normal; /* Permitir el ajuste de texto en varias líneas */
+    overflow: hidden;
+}
+
+.custom-product-info div {
+    max-width: calc(100% - 120px); /* Ajuste para el espacio del botón */
+    margin-right: 15px;
+}
+
+.add-to-cart-btn {
+    background-color: #d61d1d;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px; /* Ajusta el padding para hacerlo más pequeño */
+    width: 50px; /* Reduce el ancho del botón */
+    height: 40px; /* Ajusta la altura del botón */
+    text-align: center;
+    flex-shrink: 0;
+    transition: background-color 0.3s ease;
+    display: flex;
+    float: left;
+    align-items: center;
+    justify-content: center;
+}
+
+.add-to-cart-btn i {
+    font-size: 1.2rem; /* Ajusta el tamaño del icono dentro del botón */
+}
+
+.add-to-cart-btn:hover {
+    background-color: #0056b3;
+}
+
+
+.item-img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    margin-right: 20px;
+}
+
+.custom-results-list li {
+    padding: 10px;
+    border-bottom: 1px solid #005f7fea;
+}
+
+.custom-results-list li:hover {
+    background-color: #009688;
+    color: white;
+}
+
+</style>

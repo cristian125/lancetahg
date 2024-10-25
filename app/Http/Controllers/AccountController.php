@@ -11,31 +11,28 @@ use Carbon\Carbon;
 
 class AccountController extends Controller
 {
+    
     public function index(Request $request)
     {
-        // Obtener el usuario autenticado
+        $sectionToOpen = $request->get('section', null);  // Obtener la sección desde la URL
+    
+        // Obtener los datos necesarios
         $user = Auth::user();
         $userID = $user->id;
-    
-        // Obtener las direcciones del usuario
         $direcciones = $this->obtenerDirecciones($userID);
-    
-        // Obtener la dirección de facturación
         $direccion_facturacion = DB::table('users_address')
             ->where('user_id', $userID)
             ->where('facturacion', 1)
             ->first();
-    
-        // Obtener los datos adicionales del usuario desde users_data
         $userData = DB::table('users_data')->where('user_id', $userID)->first();
     
-        // Obtener los archivos para el modal y el accordion
+        // Archivos de modales y acordeones
         $files_modal = File::allFiles(resource_path('views/partials/modal/cuenta'));
         $files_accordion = File::allFiles(resource_path('views/partials/accordion/cuenta'));
     
         $modal_files = new \stdClass();
         $accordion_files = new \stdClass();
-        
+    
         $i = 0;
         foreach($files_modal as $file)
         {
@@ -48,17 +45,20 @@ class AccountController extends Controller
             $accordion_files->$i = str_replace('.blade.php', '', $file->getRelativePathname());
             $i++;
         }
-    
-        // Pasar los datos del usuario, las direcciones y la dirección de facturación a la vista
-        return response()->view('cuenta', [
+
+        // Pasar los datos a la vista
+        return view('cuenta', [
             'direcciones' => $direcciones,
             'direccion_facturacion' => $direccion_facturacion,
             'modal_files' => $modal_files,
             'accordion_files' => $accordion_files,
-            'user' => $user,              // Datos del usuario desde users
-            'userData' => $userData        // Datos adicionales desde users_data
+            'user' => $user,             
+            'userData' => $userData,
+            'sectionToOpen' => $sectionToOpen // Pasar la sección a la vista
         ]);
     }
+    
+    
     
 
     public function agregarDireccion(Request $request)

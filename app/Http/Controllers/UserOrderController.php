@@ -13,55 +13,70 @@ class UserOrderController extends Controller
         // Obtener el ID del usuario autenticado
         $userId = Auth::id();
     
-        // Recuperar los pedidos del usuario
+        // Recuperar los pedidos del usuario con paginación
         $orders = DB::table('orders')
             ->where('user_id', $userId)
             ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function ($order) {
-                $order->created_at = \Carbon\Carbon::parse($order->created_at);
-                return $order;
-            });
+            ->paginate(5); // Paginar mostrando 10 pedidos por página
+    
+        // Transformar los pedidos con el método map
+        $orders->map(function ($order) {
+            $order->created_at = \Carbon\Carbon::parse($order->created_at);
+            // Verificar si la orden tiene menos de 10 minutos de haber sido creada
+            $order->is_new = $order->created_at->diffInMinutes(now()) < 1000;
+            return $order;
+        });
     
         // Pasar los pedidos a la vista
         return view('orders_preview', compact('orders'));
     }
     
+
+
+
+
     public function orderDetails($orderId)
-    {
-        // Obtener el ID del usuario autenticado
-        $userId = Auth::id();
-    
-        // Obtener los detalles del pedido específico
-        $order = DB::table('orders')
-            ->where('id', $orderId)
-            ->where('user_id', $userId)
-            ->first();
-    
-        // Verificar si el pedido pertenece al usuario
-        if (!$order) {
-            return redirect()->route('myorders')->with('error', 'Pedido no encontrado.');
-        }
-    
-        // Convertir el campo 'created_at' a un objeto Carbon
-        $order->created_at = \Carbon\Carbon::parse($order->created_at);
-    
-        // Obtener los productos asociados a este pedido
-        $order_items = DB::table('order_items')
-            ->where('order_id', $orderId)
-            ->get();
+{
+    // Obtener el ID del usuario autenticado
+    $userId = Auth::id();
 
-        // Calcular el descuento total en dinero
-        $totalDescuento = 0;
-        foreach ($order_items as $item) {
-            // Calcular el descuento de cada artículo
-            $descuentoPorProducto = ($item->discount / 100) * $item->unit_price * $item->quantity;
-            $totalDescuento += $descuentoPorProducto;
-        }
+    // Verificar si existe la orden con el ID y pertenece al usuario
+    $order = DB::table('orders')
+        ->where('id', $orderId)  // Usar ID para buscar el pedido
+        ->where('user_id', $userId) // Asegurar que la orden pertenece al usuario
+        ->first();
 
-        // Pasar los datos a la vista junto con el descuento total
-        return view('order_details', compact('order', 'order_items', 'totalDescuento'));
+    if (!$order) {
+        return redirect()->route('myorders')->with('error', 'Pedido no encontrado.');
     }
 
+    // Obtener los productos asociados a este pedido
+    $order_items = DB::table('order_items')
+        ->join('itemsdb', 'order_items.product_id', '=', 'itemsdb.no_s') // Join con tabla de productos
+        ->select('order_items.*', 'itemsdb.nombre as product_name') // Seleccionar campos necesarios
+        ->where('order_items.order_id', $order->id)
+        ->get();
+
+    if ($order_items->isEmpty()) {
+        return redirect()->route('myorders')->with('error', 'No hay productos asociados a este pedido.');
+    }
+
+    // Obtener el historial del pedido (status) usando el OID como order_id en la tabla `order_history`
+    $orderHistory = DB::table('order_history')
+        ->where('order_id', $order->oid) // Usar el OID de la tabla orders para buscar el historial en order_history
+        ->first();
+
+    // Calcular el descuento total en dinero
+    $totalDescuento = 0;
+    foreach ($order_items as $item) {
+        $descuentoPorProducto = ($item->discount / 100) * $item->unit_price * $item->quantity;
+        $totalDescuento += $descuentoPorProducto;
+    }
+
+    // Pasar los datos a la vista junto con el historial del pedido y el método de pago
+    return view('order_details', compact('order', 'order_items', 'totalDescuento', 'orderHistory'));
+}
+
+    
     
 }

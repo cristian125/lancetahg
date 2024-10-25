@@ -1,4 +1,4 @@
-<div class="accordion-item">
+<div class="accordion-item" id="datos">
     <h2 class="accordion-header" id="accDatos">
         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#colDatos"
             aria-expanded="false" aria-controls="colDatos">
@@ -102,3 +102,60 @@
         </div>
     </div>
 </div>
+<script>
+    $(document).ready(function() {
+        // Validación personalizada del formulario
+        $('#frmDatos').on('submit', function(e) {
+            // Prevenir el envío por defecto
+            e.preventDefault();
+            let valid = true;
+            
+            // Validar campo de tratamiento
+            if ($('#tratamiento').val() === "") {
+                valid = false;
+                alert("Por favor, seleccione un tratamiento.");
+                $('#tratamiento').focus();
+                return false;
+            }
+
+            // Validar campo de nombre
+            // if ($('#nombre').val().trim() === "") {
+            //     valid = false;
+            //     alert("El campo de nombre no puede estar vacío.");
+            //     $('#nombre').focus();
+            //     return false;
+            // }
+
+            // Validar campo de apellido paterno
+            if ($('#apellido_paterno').val().trim() === "") {
+                valid = false;
+                alert("El campo de apellido paterno no puede estar vacío.");
+                $('#apellido_paterno').focus();
+                return false;
+            }
+
+            // Validar campo de apellido materno
+            if ($('#apellido_materno').val().trim() === "") {
+                valid = false;
+                alert("El campo de apellido materno no puede estar vacío.");
+                $('#apellido_materno').focus();
+                return false;
+            }
+
+            // Validar campo de teléfono
+            let telefono = $('#telefono').val();
+            let phoneRegex = /^\d{10}$/;
+            if (!phoneRegex.test(telefono)) {
+                valid = false;
+                alert("Por favor, ingrese un número de teléfono válido de 10 dígitos.");
+                $('#telefono').focus();
+                return false;
+            }
+
+            // Si todas las validaciones son correctas, enviar el formulario
+            if (valid) {
+                this.submit();
+            }
+        });
+    });
+</script>
