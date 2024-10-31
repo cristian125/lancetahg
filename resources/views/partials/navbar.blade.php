@@ -612,7 +612,7 @@
         function executeSearch(query) {
             $.ajax({
                 type: "GET",
-                url: "{{ route('product.search') }}",
+                url: "{{ route('ajax.search') }}",
                 data: {
                     search: query,
                 },
