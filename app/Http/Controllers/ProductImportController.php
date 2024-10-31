@@ -5,13 +5,13 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Api\ProductController;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Table;
 
 class ProductImportController extends Controller
 {
     public function showItemsData(Request $request)
     {
-        $logs = DB::table('api_import_logs')->orderBy('request_time', 'desc')->paginate(10); 
-
+        $logs = DB::table('api_import_logs')->orderBy('request_time', 'desc')->paginate(10);
 
         if ($request->ajax()) {
             $tableHtml = view('admin.partials.logs_table', compact('logs'))->render();

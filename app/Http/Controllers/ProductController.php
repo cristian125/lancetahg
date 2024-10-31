@@ -939,9 +939,6 @@ class ProductController extends Controller
         ]);
     }
 
-
-
-
     public function removeShipping(Request $request)
     {
         $userId = auth()->id();
@@ -1016,6 +1013,7 @@ class ProductController extends Controller
         $id = $request->id;
         $imgurl = "storage/itemsview/{$id}/{$id}.jpg";
         $default = "storage/itemsview/default.jpg";
+
         if (storage::disk('public')->has("itemsview/{$id}/{$id}.jpg") == true) {
             return response()->file($imgurl, ['Content-Type' => 'image/jpeg']);
         } else {
