@@ -6,7 +6,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class ShippingLocalController extends ProductController
+class ShippingLocalController extends Controller
 {
     private $id = 0;
     private $user_id = 0;

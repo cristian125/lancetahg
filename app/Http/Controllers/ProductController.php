@@ -11,29 +11,30 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str; // Importa Str aquí
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Exception;
 
 class ProductController extends Controller
 {
-
-
-
-
-
     public function show($id, $slug = null, Request $request)
     {
+
         // Verificar si el sitio está en mantenimiento
         $mantenimiento = ProductosDestacadosController::checkMaintenance();
         if ($mantenimiento == 'true') {
             return redirect(route('mantenimento'));
         }
 
-        // Obtener el producto por ID desde `itemsdb`
-        $producto = DB::table('itemsdb')->where('id', $id)->where('activo', 1)->first();
+        // Obtener el producto por ID desde `itemsdb`, con `activo` igual a 1 o 2
+        $producto = DB::table('itemsdb')->where('id', $id)->whereIn('activo', [1, 2])->first();
+
 
         if (!$producto) {
             abort(404, 'Producto no encontrado');
         }
-
+        // Obtener el nombre del proveedor del producto
+        $nombreProveedor = $producto->proveedor_nombre ?? ' ';
         // Llamar al método `removeShipping` cuando se visualice el producto
         $this->removeShipping($request);
 
@@ -41,7 +42,6 @@ class ProductController extends Controller
         $inventario = DB::table('inventario')->where('no_s', $producto->no_s)->first();
         $cantidadDisponible = $inventario ? $inventario->cantidad_disponible : 0;
 
-        // Obtener la cantidad ya en el carrito del usuario
         $userId = auth()->id();
         $cantidadEnCarrito = DB::table('cart_items')
             ->join('carts', 'cart_items.cart_id', '=', 'carts.id')
@@ -71,9 +71,9 @@ class ProductController extends Controller
         }
 
         $imagenesMiniaturas = collect([$imagenPrincipal])->merge($imagenesSecundarias);
-
-        // Generar mensaje y clases CSS para stock
-        $mensajeStock = $cantidadDisponible > 0 ? "{$cantidadDisponible} en stock" : "No hay stock disponible";
+        $mensajeStock = $cantidadDisponible > 0
+            ? "Disponibles: {$cantidadDisponible} en stock"
+            : "No disponible para venta en línea. <br> Llame al 55-5578-1958 para preguntar por su disponibilidad.";
         $claseStock = $cantidadDisponible > 0 ? 'text-success' : 'text-danger';
         $botonDeshabilitado = $cantidadDisponible > 0 ? '' : 'disabled';
 
@@ -169,7 +169,8 @@ class ProductController extends Controller
             'productosRelacionados',
             'id',
             'atributosProducto',
-            'groupedProducts'
+            'groupedProducts',
+            'nombreProveedor'
         ));
     }
 
@@ -293,8 +294,9 @@ class ProductController extends Controller
     public function addToCart(Request $request)
     {
         $userId = auth()->id();
+        $requestedQuantity = $request->input('quantity', 1); // Recibir la cantidad solicitada o establecerla en 1 por defecto
 
-        // Obtener el carrito del usuario, o crear uno nuevo si no existe
+        // Obtener el carrito del usuario o crear uno nuevo si no existe
         $cart = DB::table('carts')->where('user_id', $userId)->first();
         if (!$cart) {
             $cartId = DB::table('carts')->insertGetId([
@@ -306,13 +308,20 @@ class ProductController extends Controller
             $cartId = $cart->id;
         }
 
-        // Obtener el producto de la base de datos
+        // Obtener el producto y su inventario
         $producto = DB::table('itemsdb')->where('id', $request->id)->first();
         $inventario = DB::table('inventario')->where('no_s', $producto->no_s)->first();
 
-        // Verificar si el producto existe y si hay stock
+        // Verificar disponibilidad del producto y su cantidad en inventario
         if (!$producto || !$inventario || $inventario->cantidad_disponible <= 0) {
             return response()->json(['error' => 'Producto no disponible o stock agotado'], 400);
+        }
+
+        if ($requestedQuantity > $inventario->cantidad_disponible) {
+            return response()->json([
+                'error' => 'Inventario insuficiente',
+                'suggested_quantity' => $inventario->cantidad_disponible
+            ], 400);
         }
 
         // Verificar si el producto ya está en el carrito
@@ -321,39 +330,44 @@ class ProductController extends Controller
             ->where('no_s', $producto->no_s)
             ->first();
 
-        // Calcular el descuento
-        $descuento = $producto->descuento ?? 0; // Asegurarse de que se utiliza un valor predeterminado si no hay descuento
+        // Calcular el precio con descuento
+        $descuento = $producto->descuento ?? 0;
         $precioConDescuento = $producto->precio_unitario_IVAinc - ($producto->precio_unitario_IVAinc * ($descuento / 100));
 
         if ($cartItem) {
-            // Incrementar la cantidad si ya está en el carrito
-            if ($cartItem->quantity + 1 > $inventario->cantidad_disponible) {
-                return response()->json(['error' => 'Inventario insuficiente'], 400);
+            // Incrementar cantidad en carrito asegurando el límite de inventario
+            $newQuantity = $cartItem->quantity + $requestedQuantity;
+            if ($newQuantity > $inventario->cantidad_disponible) {
+                return response()->json([
+                    'error' => 'Inventario insuficiente',
+                    'suggested_quantity' => $inventario->cantidad_disponible - $cartItem->quantity
+                ], 400);
             }
             DB::table('cart_items')
                 ->where('cart_id', $cartId)
                 ->where('no_s', $producto->no_s)
-                ->increment('quantity');
+                ->update(['quantity' => $newQuantity]);
         } else {
-            // Insertar el nuevo producto en el carrito
+            // Agregar el producto al carrito con la cantidad solicitada
             DB::table('cart_items')->insert([
                 'cart_id' => $cartId,
                 'no_s' => $producto->no_s,
                 'description' => $producto->nombre,
                 'unit_price' => $producto->precio_unitario_IVAinc,
-                'final_price' => $precioConDescuento, // Aplicar el precio con descuento
-                'discount' => $descuento, // Insertar el descuento en la columna 'discount'
-                'quantity' => 1,
+                'final_price' => $precioConDescuento,
+                'discount' => $descuento,
+                'quantity' => $requestedQuantity,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
         }
 
-        // Eliminar el método de envío **siempre** que se añade un producto al carrito
+        // Eliminar el método de envío cada vez que se añade un producto
         DB::table('cart_shippment')->where('cart_id', $cartId)->delete();
 
         return response()->json(['message' => 'Producto añadido al carrito con descuento y método de envío eliminado.']);
     }
+
 
     public function addMultipleToCart(Request $request)
     {
@@ -431,11 +445,10 @@ class ProductController extends Controller
                 'stock_restante' => $cantidadRestante,
             ], 200);
         } catch (\Exception $e) {
-            \Log::error($e->getMessage());
+            Log::error($e->getMessage());
             return response()->json(['error' => 'Ocurrió un error al añadir el producto al carrito'], 500);
         }
     }
-
     public function updateQuantity(Request $request)
     {
         $userId = auth()->id();
@@ -445,28 +458,58 @@ class ProductController extends Controller
         // Obtener el carrito del usuario
         $cartId = DB::table('carts')->where('user_id', $userId)->value('id');
 
-        // Si la cantidad es 0, eliminar el ítem
-        if ($newQuantity <= 0) {
+        // Consulta para encontrar el ítem en el carrito
+        $cartItem = DB::table('cart_items')
+            ->where('cart_id', $cartId)
+            ->where('no_s', $productCode)
+            ->first();
+
+        $availableQuantity = DB::table('inventario')
+            ->where('no_s', $productCode)
+            ->value('cantidad_disponible');
+
+        if ($cartItem) {
+            if ($newQuantity > $availableQuantity) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No hay suficiente stock disponible.',
+                    'maxQuantity' => $availableQuantity,
+                ]);
+            }
+
+            if ($newQuantity < 1) {
+                $newQuantity = 1;
+            }
+
             DB::table('cart_items')
-                ->where('cart_id', $cartId)
-                ->where('no_s', $productCode)
-                ->delete();
-        } else {
-            // Actualizar la cantidad si es mayor que 0
-            DB::table('cart_items')
-                ->where('cart_id', $cartId)
-                ->where('no_s', $productCode)
+                ->where('id', $cartItem->id)
                 ->update(['quantity' => $newQuantity]);
+
+            // Eliminar el método de envío si es necesario
+            DB::table('cart_shippment')->where('cart_id', $cartId)->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Cantidad actualizada exitosamente.',
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Producto no encontrado en el carrito.',
+                'currentQuantity' => 0,
+            ]);
         }
-
-        // Eliminar el método de envío **siempre** que se actualice la cantidad
-        DB::table('cart_shippment')->where('cart_id', $cartId)->delete();
-
-        return redirect()->back()->with('success', 'Cantidad actualizada y método de envío eliminado.');
     }
 
     public function search(Request $request, $division = null, $grupo = null, $categoria = null)
     {
+
+        // Verificar si el sitio está en mantenimiento
+        $mantenimiento = ProductosDestacadosController::checkMaintenance();
+        if ($mantenimiento == 'true') {
+            return redirect(route('mantenimento'));
+        }
+
         // Obtener el precio máximo de la base de datos
         $maxPriceInDatabase = DB::table('itemsdb')->max('precio_unitario_IVAinc');
 
@@ -491,8 +534,8 @@ class ProductController extends Controller
         if ($request->has('search') && trim($request->input('search')) !== '') {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
-                $q->where('descripcion', 'like', '%' . $search . '%')
-                    ->orWhere('no_s', 'like', '%' . $search . '%');
+                $q->where('nombre', 'like', $search . '%') // Filtrar por nombres que comiencen con el término de búsqueda
+                    ->orWhere('no_s', 'like', $search . '%');
             });
         }
 
@@ -543,7 +586,6 @@ class ProductController extends Controller
         $sortName = $request->input('sort_name');
 
         if ($sortOffer) {
-            // Creamos una expresión para determinar si el producto está en oferta
             $onOfferExpression = DB::raw('CASE WHEN descuento > 0 THEN 1 ELSE 0 END');
             $query->orderBy($onOfferExpression, $sortOffer == 'asc' ? 'asc' : 'desc');
         }
@@ -556,12 +598,10 @@ class ProductController extends Controller
             $query->orderBy('nombre', $sortName == 'asc' ? 'asc' : 'desc');
         }
 
-        // Si no se especifica ningún ordenamiento, aplicar un orden por defecto
         if (!$sortOffer && !$sortPrice && !$sortName) {
             $query->orderBy('nombre', 'asc');
         }
 
-        // Ejecutar la consulta y aplicar paginación
         $productos = $query->paginate(16)->appends($request->all());
 
         // Procesar los productos para añadir las imágenes y utilizar 'precio_final'
@@ -586,7 +626,7 @@ class ProductController extends Controller
             'division' => $division,
             'grupo' => $grupo,
             'categoria' => $categoria,
-            'maxPriceInDatabase' => $maxPriceInDatabase, // Pasar el valor máximo a la vista
+            'maxPriceInDatabase' => $maxPriceInDatabase,
         ]);
     }
 
@@ -594,7 +634,8 @@ class ProductController extends Controller
     {
         $search = $request->input('search');
         $query = DB::table('itemsdb')
-            ->select('id', 'nombre', 'descripcion', 'precio_unitario_IVAinc', 'precio_con_descuento', 'descuento', 'no_s', 'unidad_medida_venta'); // Usar 'nombre' en lugar de 'descripcion' para el nombre real
+            ->select('id', 'nombre', 'descripcion', 'precio_unitario_IVAinc', 'precio_con_descuento', 'descuento', 'no_s', 'unidad_medida_venta')
+            ->where('activo', 1); // Usar 'nombre' en lugar de 'descripcion' para el nombre real
 
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
@@ -631,40 +672,43 @@ class ProductController extends Controller
 
     public function showCart(Request $request)
     {
+
+
+
         $mantenimiento = ProductosDestacadosController::checkMaintenance();
         if ($mantenimiento == 'true') {
             return redirect(route('mantenimento'));
         }
-    
+
         $userId = auth()->id();
-    
+
         if (!$userId) {
             return redirect()->route('login');
         }
-    
+
         $user = auth()->user();
         $userData = DB::table('users_data')->where('user_id', $userId)->first();
-    
+
         // Verificar si el usuario tiene direcciones
         $direcciones = DB::table('users_address')->where('user_id', $userId)->get();
         $tieneDirecciones = $direcciones->isNotEmpty(); // Verifica si tiene al menos una dirección
-    
+
         // Combinar el nombre y apellidos para el contacto
         $contactName = $user->name;
         if ($userData) {
             $contactName = $userData->nombre . ' ' . $userData->apellido_paterno . ' ' . $userData->apellido_materno;
         }
-    
+
         // Obtener el ID del carrito del usuario
         $cartId = DB::table('carts')
             ->where('user_id', $userId)
             ->value('id');
-    
+
         // Si no existe un carrito, redirigir al inicio
         if (!$cartId) {
             return redirect()->route('home');
         }
-    
+
         // Consultar los elementos del carrito junto con las restricciones de envío y la cantidad disponible
         $cartItems = DB::table('cart_items')
             ->join('itemsdb', 'cart_items.no_s', '=', 'itemsdb.no_s')
@@ -689,32 +733,32 @@ class ProductController extends Controller
                 'itemsdb.grupo_iva'
             )
             ->get();
-    
+
         // Asignar las rutas de las imágenes de los productos
         foreach ($cartItems as $item) {
             $codigoProducto = str_pad($item->product_code, 6, "0", STR_PAD_LEFT);
             $imagePath = "storage/itemsview/{$codigoProducto}/{$codigoProducto}.jpg";
-    
+
             if (file_exists(public_path($imagePath))) {
                 $item->image = $imagePath;
             } else {
                 $item->image = 'storage/itemsview/default.jpg';
             }
         }
-    
+
         // Obtener detalles del envío si existen
         $shippment = DB::table('cart_shippment')
             ->leftJoin('tiendas', 'cart_shippment.store_id', '=', 'tiendas.id')
             ->where('cart_id', $cartId)
             ->select('cart_shippment.*', 'tiendas.nombre as store_name', 'tiendas.direccion as store_address')
             ->first();
-    
+
         // Verificar si existe un método de envío
         $shippmentExists = $shippment !== null;
-    
+
         // Obtener el tipo de envío seleccionado desde la tabla cart_shippment
         $tipoEnvioSeleccionado = $shippment ? $shippment->ShipmentMethod : null;
-    
+
         if ($tipoEnvioSeleccionado) {
             $eligibleCartItems = $cartItems->filter(function ($item) use ($tipoEnvioSeleccionado) {
                 if ($tipoEnvioSeleccionado === 'EnvioLocal') {
@@ -726,16 +770,16 @@ class ProductController extends Controller
                 } elseif ($tipoEnvioSeleccionado === 'EnvioPorCobrar') {
                     return $item->allow_cobrar_shipping == 1;
                 }
-                
+
                 return true;
             });
-            // ...
-        
-        
-    
+
+
+
+
             // Obtener los códigos de producto de los artículos elegibles
             $eligibleProductCodes = $eligibleCartItems->pluck('product_code')->all();
-    
+
             // Filtrar los productos no elegibles
             $nonEligibleItems = $cartItems->reject(function ($item) use ($eligibleProductCodes) {
                 return in_array($item->product_code, $eligibleProductCodes);
@@ -745,45 +789,45 @@ class ProductController extends Controller
             $eligibleCartItems = $cartItems;
             $nonEligibleItems = collect(); // Colección vacía
         }
-    
+
         // Calcular el precio total del carrito incluyendo IVA (descuento ya aplicado en final_price)
         $totalPrice = $eligibleCartItems->sum(function ($item) {
             return $item->final_price * $item->quantity;
         });
-    
+
         // Calcular el subtotal sin IVA
         $subtotalSinIVA = $totalPrice / 1.16;
-    
+
         // Calcular el total del descuento aplicado
         $totalDescuento = $eligibleCartItems->sum(function ($item) {
             return $item->unit_price * $item->quantity * ($item->discount / 100);
         });
-    
+
         // Calcular el IVA sobre el subtotal sin IVA
         $iva = $subtotalSinIVA * 0.16;
-    
+
         // Obtener el costo de envío con IVA
         $shippingCostIVA = $shippment->shippingcost_IVA ?? 0.00;
-    
+
         // Ajustar el costo de envío si el método es 'EnvioPorCobrar'
         if ($shippmentExists && $shippment->ShipmentMethod === 'EnvioPorCobrar') {
             $shippingCostIVA = 0.00;
         }
-    
+
         // Calcular el total final incluyendo IVA y el envío
         $totalFinal = $subtotalSinIVA + $iva + $shippingCostIVA;
-    
+
         // Obtener los métodos de envío activos desde la base de datos
         $activeShippingMethods = DB::table('shipping_methods')
             ->where('is_active', 1)
             ->get();
-    
+
         // Definir los tipos de envío disponibles según las restricciones y los métodos activos
         $envios = [];
-    
+
         foreach ($activeShippingMethods as $method) {
             $price = 0.00; // Precio por defecto
-    
+
             // Asignar el precio y otros detalles según el método de envío
             if ($method->name === 'EnvioLocal') {
                 $price = 250.00;
@@ -794,47 +838,71 @@ class ProductController extends Controller
             } elseif ($method->name === 'EnvioPorCobrar') {
                 $price = 0.00; // El cliente paga al recibir
             }
-    
+
             $envios[] = [
                 'name' => $method->display_name,
                 'value' => $method->name,
                 'price' => $price,
             ];
         }
-    
+
         // Si no hay métodos de envío disponibles, mostrar un mensaje de error
         $noShippingMethodsAvailable = empty($envios);
-    
+
         // Obtener datos para cada método de envío
         $shippingLocalController = new ShippingLocalController();
         $localShippingData = $shippingLocalController->handleLocalShipping($request, $userId, $totalPrice);
-    
+
         $shippingPaqueteriaController = new ShippingPaqueteriaController();
         $paqueteriaShippingData = $shippingPaqueteriaController->handlePaqueteriaShipping($request, $userId, $totalPrice);
-    
+
         $storePickupController = new StorePickupController();
+
         $storePickupData = $storePickupController->handleStorePickup($request, $userId);
-    
+
         // Instanciar el controlador de Envío por Cobrar
         $shippingCobrarController = new ShippingCobrarController();
         $cobrarShippingData = $shippingCobrarController->handleCobrarShipping($request, $userId, $totalPrice);
-    
-    // Filtrar productos no elegibles para ciertos tipos de envío (para mostrar alertas al usuario)
-    $nonEligibleLocalShipping = $cartItems->filter(function ($item) {
-        return empty($item->allow_local_shipping);
-    });
-    $nonEligiblePaqueteriaShipping = $cartItems->filter(function ($item) {
-        return empty($item->allow_paqueteria_shipping);
-    });
-    $nonEligibleStorePickup = $cartItems->filter(function ($item) {
-        return empty($item->allow_store_pickup);
-    });
-    $nonEligibleCobrarShipping = $cartItems->filter(function ($item) {
-        return empty($item->allow_cobrar_shipping);
+
+        // Filtrar productos no elegibles para ciertos tipos de envío (para mostrar alertas al usuario)
+        $nonEligibleLocalShipping = $cartItems->filter(function ($item) {
+            return empty($item->allow_local_shipping);
+        });
+        $nonEligiblePaqueteriaShipping = $cartItems->filter(function ($item) {
+            return empty($item->allow_paqueteria_shipping);
+        });
+        $nonEligibleStorePickup = $cartItems->filter(function ($item) {
+            return empty($item->allow_store_pickup);
+        });
+        $nonEligibleCobrarShipping = $cartItems->filter(function ($item) {
+            return empty($item->allow_cobrar_shipping);
+        });
+
+    // Subtotal de los productos sin descuento y sin IVA
+    $subtotalProductosSinIVA = $eligibleCartItems->sum(function ($item) {
+        $unitPriceSinIVA = $item->unit_price / 1.16; // Asumiendo que unit_price incluye IVA
+        return $unitPriceSinIVA * $item->quantity;
     });
 
-        
-    
+    // Total del descuento aplicado sin IVA
+    $totalDescuentoSinIVA = $eligibleCartItems->sum(function ($item) {
+        $unitPriceSinIVA = $item->unit_price / 1.16;
+        $discountAmount = $unitPriceSinIVA * ($item->discount / 100) * $item->quantity;
+        return $discountAmount;
+    });
+
+    // Costo de envío sin IVA
+    $shippingCostSinIVA = $shippingCostIVA / 1.16;
+
+    // Total sin IVA
+    $totalSinIVA = $subtotalProductosSinIVA - $totalDescuentoSinIVA + $shippingCostSinIVA;
+
+    // IVA total
+    $ivaTotal = $totalSinIVA * 0.16;
+
+    // Total final incluyendo IVA
+    $totalFinal = $totalSinIVA + $ivaTotal;
+
         // Pasar todos los datos necesarios a la vista
         return view('carrito', [
             'cartItems' => $cartItems, // Todos los productos en el carrito
@@ -862,9 +930,15 @@ class ProductController extends Controller
             'noShippingMethodsAvailable' => $noShippingMethodsAvailable,
             'contactName' => $contactName, // Pasar el nombre de contacto
             'tieneDirecciones' => $tieneDirecciones,
+            'subtotalProductosSinIVA' => $subtotalProductosSinIVA,
+            'totalDescuentoSinIVA' => $totalDescuentoSinIVA,
+            'shippingCostSinIVA' => $shippingCostSinIVA,
+            'totalSinIVA' => $totalSinIVA,
+            'ivaTotal' => $ivaTotal,
+            'totalFinal' => $totalFinal,
         ]);
     }
-    
+
 
 
 
@@ -885,69 +959,57 @@ class ProductController extends Controller
         return response()->json(['success' => true]);
     }
 
-    public function reduceQuantity(Request $request)
-    {
-        $userId = auth()->id();
-        $productCode = $request->input('product_code');
-        $quantityChange = (int) $request->input('quantity');
+    // public function updateQuantity(Request $request)
+    // {
+    //     $userId = auth()->id();
+    //     $productCode = $request->input('product_code');
+    //     $newQuantity = (int) $request->input('quantity');
 
-        // Consulta para encontrar el ítem en el carrito
-        $cartItem = DB::table('cart_items')
-            ->where('cart_items.cart_id', function ($query) use ($userId) {
-                $query->select('id')
-                    ->from('carts')
-                    ->where('user_id', $userId)
-                    ->limit(1);
-            })
-            ->where('no_s', $productCode)
-            ->first();
+    //     Consulta para encontrar el ítem en el carrito
+    //     $cartItem = DB::table('cart_items')
+    //         ->where('cart_items.cart_id', function ($query) use ($userId) {
+    //             $query->select('id')
+    //                 ->from('carts')
+    //                 ->where('user_id', $userId)
+    //                 ->limit(1);
+    //         })
+    //         ->where('no_s', $productCode)
+    //         ->first();
 
-        $availableQuantity = DB::table('inventario')
-            ->where('no_s', $productCode)
-            ->value('cantidad_disponible');
+    //     $availableQuantity = DB::table('inventario')
+    //         ->where('no_s', $productCode)
+    //         ->value('cantidad_disponible');
 
-        if ($cartItem) {
-            $newQuantity = $cartItem->quantity + $quantityChange;
+    //     if ($cartItem) {
+    //         if ($newQuantity > $availableQuantity) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'No hay suficiente stock disponible. La cantidad máxima es ' . $availableQuantity . '.',
+    //                 'currentQuantity' => $cartItem->quantity
+    //             ]);
+    //         }
 
-            if ($quantityChange < 0) {
-                $newQuantity = $cartItem->quantity - abs($quantityChange);
-            }
+    //         if ($newQuantity < 1) {
+    //             $newQuantity = 1;
+    //         }
 
-            if ($newQuantity > $availableQuantity) {
-                $newQuantity = $availableQuantity;
-            } elseif ($newQuantity < 1) {
-                $newQuantity = 1;
-            }
+    //         DB::table('cart_items')
+    //             ->where('id', $cartItem->id)
+    //             ->update(['quantity' => $newQuantity]);
 
-            DB::table('cart_items')
-                ->where('id', $cartItem->id)
-                ->update(['quantity' => $newQuantity]);
-        }
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Cantidad actualizada exitosamente.'
+    //         ]);
+    //     } else {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Producto no encontrado en el carrito.',
+    //             'currentQuantity' => 0
+    //         ]);
+    //     }
+    // }
 
-        // Verificar si el carrito está vacío después de actualizar la cantidad
-        $remainingItems = DB::table('cart_items')
-            ->where('cart_id', function ($query) use ($userId) {
-                $query->select('id')
-                    ->from('carts')
-                    ->where('user_id', $userId)
-                    ->limit(1);
-            })
-            ->count();
-
-        if ($remainingItems === 0) {
-            // Eliminar el método de envío si no hay productos
-            DB::table('cart_shippment')
-                ->where('cart_id', function ($query) use ($userId) {
-                    $query->select('id')
-                        ->from('carts')
-                        ->where('user_id', $userId)
-                        ->limit(1);
-                })
-                ->delete();
-        }
-
-        return redirect()->back()->with('success', 'Cantidad actualizada exitosamente.');
-    }
 
     public function getImage(Request $request)
     {

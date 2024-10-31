@@ -78,7 +78,7 @@
                                                             {{ $direccion->facturacion ? 'checked' : '' }}>
                                                         <label class="form-check-label label-facturacion"
                                                             for="direccionFact{{ $direccion->id }}">
-                                                            Dirección de Facturación
+                                                            Dirección Físcal
                                                         </label>
                                                     </div>
                                                 </div>
@@ -97,7 +97,7 @@
 </div>
 
 
-<script>
+{{-- <script>
     document.addEventListener("DOMContentLoaded", function() {
 
         // Mostrar mensaje de éxito
@@ -179,9 +179,9 @@
                     .then(data => {
                         ocultarLoader(); // Ocultar loader
                         if (data.message ===
-                            'Dirección de facturación actualizada correctamente') {
+                            'Dirección físcal actualizada correctamente') {
                             mostrarToast(
-                                'Dirección de facturación actualizada correctamente.');
+                                'Dirección físcal actualizada correctamente.');
                         }
                     })
                     .catch(error => {
@@ -192,12 +192,101 @@
             });
         });
     });
-    
+
+</script> --}}
+<script>
+    $(document).ready(function() {
+
+        // Mostrar mensaje de éxito
+        function mostrarToast(mensaje) {
+            const $toast = $('<div>', {
+                class: 'toast-message',
+                text: mensaje
+            });
+            $('body').append($toast);
+
+            setTimeout(function() {
+                $toast.css('animation', 'fadeout 0.5s');
+                setTimeout(function() {
+                    $toast.remove();
+                }, 500);
+            }, 2500);
+        }
+
+        // Mostrar el spinner de carga
+        function mostrarLoader() {
+            $('body').addClass('loading');
+        }
+
+        // Ocultar el spinner de carga
+        function ocultarLoader() {
+            $('body').removeClass('loading');
+        }
+
+        // Seleccionar como dirección predeterminada
+        $('.radio-predeterminada').on('change', function() {
+            const direccionID = $(this).data('id');
+            mostrarLoader();
+
+            $.ajax({
+                url: '/setDireccionPredeterminada',
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                data: JSON.stringify({
+                    direccion_predeterminada: direccionID
+                }),
+                contentType: 'application/json',
+                success: function(data) {
+                    ocultarLoader();
+                    if (data.message === 'Dirección predeterminada actualizada correctamente') {
+                        mostrarToast('Dirección de envío actualizada correctamente.');
+                    }
+                },
+                error: function(error) {
+                    ocultarLoader();
+                    console.error('Error:', error);
+                    mostrarToast('Error al actualizar la dirección.');
+                }
+            });
+        });
+
+        // Seleccionar como dirección de facturación
+        $('.radio-facturacion').on('change', function() {
+            const direccionID = $(this).data('id');
+            const id = $(this).attr('id');
+            mostrarLoader();
+
+            $.ajax({
+                url: '/setDireccionFacturacion',
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                data: JSON.stringify({
+                    direccion_facturacion: direccionID
+                }),
+                contentType: 'application/json',
+                success: function(data) {
+                    ocultarLoader();
+                    if (data.message === 'Dirección físcal actualizada correctamente') {
+                        mostrarToast('Dirección físcal actualizada correctamente.');
+                    }
+                    location.href = '{{ route("cuenta") }}?section=Direcciones#'+id;
+                },
+                error: function(error) {
+                    ocultarLoader();
+                    console.error('Error:', error);
+                    mostrarToast('Error al actualizar la dirección.');
+                }
+            });
+        });
+    });
 </script>
 
-
 <style>
-    
+
     /* Toast Message */
     .toast-message {
         position: fixed;

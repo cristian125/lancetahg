@@ -6,9 +6,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Carbon\Carbon;
 
 class PaymentController extends Controller
 {
+
+
 
     private function logPaymentRequest(array $responseData, string $requestType)
     {
@@ -56,213 +59,268 @@ class PaymentController extends Controller
             'created_at' => now(),
         ]);
     }
+    private function formatCompleteAddress($shippment)
+    {
+        // Crear un array para almacenar los componentes de la dirección
+        $addressComponents = [];
+
+        if (!empty($shippment->shipping_address)) {
+            $addressComponents[] = $shippment->shipping_address;
+        }
+
+        if (!empty($shippment->no_ext)) {
+            $addressComponents[] = "No. Ext: {$shippment->no_ext}";
+        }
+
+        if (!empty($shippment->no_int)) {
+            $addressComponents[] = "No. Int: {$shippment->no_int}";
+        }
+
+        if (!empty($shippment->entre_calles)) {
+            $addressComponents[] = "Entre Calles: {$shippment->entre_calles}";
+        }
+
+        if (!empty($shippment->colonia)) {
+            $addressComponents[] = "Colonia: {$shippment->colonia}";
+        }
+
+        if (!empty($shippment->municipio)) {
+            $addressComponents[] = "Municipio: {$shippment->municipio}";
+        }
+
+        if (!empty($shippment->pais)) {
+            $addressComponents[] = "País: {$shippment->pais}";
+        }
+
+        if (!empty($shippment->codigo_postal)) {
+            $addressComponents[] = "Código Postal: {$shippment->codigo_postal}";
+        }
+
+        if (!empty($shippment->referencias)) {
+            $addressComponents[] = "Referencias: {$shippment->referencias}";
+        }
+
+        // Concatenar los componentes con comas
+        $completeAddress = implode(', ', $addressComponents);
+
+        // Asegurarse de que no exceda los 255 caracteres
+        return substr($completeAddress, 0, 255);
+    }
 
     public function handleSuccess(Request $request)
     {
+        try {
+            // Obtener los datos de la respuesta del request
+            $responseData = $request->all();
 
-        // Obtener los datos de la respuesta del request
-        $responseData = $request->all();
             // Validar el hash de la respuesta para asegurarse de que sea válido
-        if (!$this->validateResponseHash($responseData)) {
-            Log::warning('Hash de respuesta inválido:', $responseData);
-            return redirect()->route('payment.fail')->with('error', 'Respuesta inválida. Por favor, contacte con soporte.');
-        }
+            if (!$this->validateResponseHash($responseData)) {
+                Log::warning('Hash de respuesta inválido:', $responseData);
+                return redirect()->route('payment.fail')->with('error', 'Respuesta inválida. Por favor, contacte con soporte.');
+            }
 
+            // Registrar la solicitud del pago como éxito
+            $this->logPaymentRequest($responseData, 'success');
 
-        // Registrar la solicitud del pago como éxito
-        $this->logPaymentRequest($responseData, 'success');
-    
-        // Obtener el OID (identificador del pedido)
-        $oid = $responseData['oid'];
-    
-        // Buscar la transacción en la base de datos utilizando el OID
-        $transaction = DB::table('payment_transactions')->where('oid', $oid)->first();
-    
-        if (!$transaction) {
-            return redirect()->route('cart.show')->with('error', 'No se pudo encontrar la transacción.');
-        }
-    
-        $userId = $transaction->user_id;
-    
-        if (!$userId) {
-            return redirect()->route('login')->with('error', 'Debe iniciar sesión para completar el proceso de compra.');
-        }
-    
-        // Buscar el envío pendiente del usuario
-        $shippment = DB::table('shippments')->where('user_id', $userId)->where('status', 'pending')->first();
-    
-        if (!$shippment) {
-            return redirect()->route('cart.show')->with('error', 'No se encontraron detalles del envío.');
-        }
-    
-        // Obtener los artículos del envío
-        $shippmentItems = DB::table('shippment_items')->where('shippment_id', $shippment->id)->get();
-    
-        if ($shippmentItems->isEmpty()) {
-            return redirect()->route('cart.show')->with('error', 'No se encontraron productos para procesar.');
-        }
-    
-        // Calcular el subtotal
-        $subtotal = $shippmentItems->sum(function ($item) {
-            return $item->final_price * $item->quantity;
-        });
-    
-        // Calcular el descuento total
-        $totalDiscount = $shippmentItems->sum(function ($item) {
-            return ($item->unit_price * $item->quantity) * ($item->discount / 100);
-        });
-    
-        $shippingCost = $shippment->shipping_cost_IVA;
-        $totalConIva = $subtotal + $shippingCost;
-    
-        // Insertar la orden en la tabla `orders`
-        $orderId = DB::table('orders')->insertGetId([
-            'user_id' => $userId,
-            'oid' => $oid,
-            'total' => $transaction->chargetotal,
-            'shipping_address' => $shippment->shipping_address,
-            'shipping_cost' => $shippingCost,
-            'discount' => $totalDiscount,
-            'shipment_method' => $shippment->shipping_method,
-            'subtotal_sin_envio' => $subtotal,
-            'total_con_iva' => $totalConIva,
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);
-    
-        // Verificar el estado del pago (APROBADO o FALLADO)
-        $paymentStatus = $responseData['status'] ?? 'FALLADO';
-    
-        // Convertir la fecha `txndate_processed` al formato MySQL (YYYY-MM-DD HH:MM:SS)
-        $txndateProcessed = isset($responseData['txndate_processed']) ?
-            \Carbon\Carbon::createFromFormat('d/m/y h:i:s A', $responseData['txndate_processed'])->format('Y-m-d H:i:s') :
-            null;  // Si no existe, asignar NULL
-    
-        // Insertar el registro de pago en `order_payment`
-        DB::table('order_payment')->insert([
-            'order_id' => $orderId,
-            'chargetotal' => $transaction->chargetotal,
-            'request_type' => $responseData['txntype'] ?? 'unknown',  // Cambia 'unknown' por el valor de txntype
-            'txtn_processed' => $txndateProcessed,  // Ahora se inserta la fecha convertida o NULL
-            'timezone' => $responseData['timezone'] ?? 'UTC',
-            'processor_network_information' => $responseData['processor_network_information'] ?? null,
-            'associationResponseMessage' => $responseData['associationResponseMessage'] ?? null,
-            'ccbrand' => $responseData['ccbrand'] ?? null,
-            'refnumber' => $responseData['refnumber'] ?? null,
-            'cardnumber' => $responseData['cardnumber'] ?? null,
-            'ipgTransactionId' => $responseData['ipgTransactionId'] ?? null,
-            'fail_reason' => $responseData['fail_reason'] ?? null,
-            'status' => $responseData['status'] == 'APROBADO' ? 'APROBADO' : 'FALLADO',
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);
-    
-        // Si el pago fue aprobado, continuar con el proceso
-        if ($paymentStatus === 'APROBADO') {
-            // Insertar detalles del envío en `order_shippment`
-            DB::table('order_shippment')->insert([
-                'order_id' => $orderId,
+            // Obtener el OID (identificador del pedido)
+            $oid = $responseData['oid'];
+
+            // Buscar la transacción en la base de datos utilizando el OID
+            $transaction = DB::table('payment_transactions')->where('oid', $oid)->first();
+
+            if (!$transaction) {
+                return redirect()->route('cart.show')->with('error', 'No se pudo encontrar la transacción.');
+            }
+
+            $userId = $transaction->user_id;
+
+            if (!$userId) {
+                return redirect()->route('login')->with('error', 'Debe iniciar sesión para completar el proceso de compra.');
+            }
+
+            // Buscar el envío pendiente del usuario
+            $shippment = DB::table('shippments')->where('user_id', $userId)->where('status', 'pending')->first();
+
+            if (!$shippment) {
+                return redirect()->route('cart.show')->with('error', 'No se encontraron detalles del envío.');
+            }
+
+            // Obtener los artículos del envío
+            $shippmentItems = DB::table('shippment_items')->where('shippment_id', $shippment->id)->get();
+
+            if ($shippmentItems->isEmpty()) {
+                return redirect()->route('cart.show')->with('error', 'No se encontraron productos para procesar.');
+            }
+
+            // Calcular el subtotal
+            $subtotal = $shippmentItems->sum(function ($item) {
+                return $item->final_price * $item->quantity;
+            });
+
+            // Calcular el descuento total
+            $totalDiscount = $shippmentItems->sum(function ($item) {
+                return ($item->unit_price * $item->quantity) * ($item->discount / 100);
+            });
+
+            $shippingCost = $shippment->shipping_cost_IVA;
+            $totalConIva = $subtotal + $shippingCost;
+
+            // Concatenar toda la dirección
+            $completeAddress = $this->formatCompleteAddress($shippment);
+
+            // Insertar la orden en la tabla `orders` con la dirección completa
+            $orderId = DB::table('orders')->insertGetId([
                 'user_id' => $userId,
-                'cart_id' => $shippment->cart_id,
-                'store_id' => $shippment->store_id,
-                'pickup_date' => $shippment->pickup_date,
-                'pickup_time' => $shippment->pickup_time,
-                'shipping_method' => $shippment->shipping_method,
-                'shipping_cost' => $shippment->shipping_cost,
-                'shipping_cost_IVA' => $shippment->shipping_cost_IVA,
+                'oid' => $oid,
+                'total' => $transaction->chargetotal,
+                'shipping_address' => $completeAddress, // Dirección completa
+                'shipping_cost' => $shippingCost,
+                'discount' => $totalDiscount,
+                'shipment_method' => $shippment->shipping_method,
                 'subtotal_sin_envio' => $subtotal,
-                'total_con_IVA' => $totalConIva,
-                'shipping_address' => $shippment->shipping_address,
-                'no_int' => $shippment->no_int,
-                'no_ext' => $shippment->no_ext,
-                'entre_calles' => $shippment->entre_calles,
-                'colonia' => $shippment->colonia,
-                'municipio' => $shippment->municipio,
-                'pais' => $shippment->pais,
-                'referencias' => $shippment->referencias,
-                'cord_x' => $shippment->cord_x,
-                'cord_y' => $shippment->cord_y,
-                'codigo_postal' => $shippment->codigo_postal,
-                'nombre_contacto' => $shippment->nombre_contacto,
-                'telefono_contacto' => $shippment->telefono_contacto,
-                'email_contacto' => $shippment->email_contacto,
-                'status' => 'completed',
+                'total_con_iva' => $totalConIva,
+                'created_at' => now(),
+                'updated_at' => now(),
+                'current_state' => 2 // Asegúrate de establecer este campo si es necesario
+            ]);
+
+            // Verificar el estado del pago (APROBADO o FALLADO)
+            $paymentStatus = $responseData['status'] ?? 'FALLADO';
+
+            // Convertir la fecha `txndate_processed` al formato MySQL (YYYY-MM-DD HH:MM:SS)
+            $txndateProcessed = isset($responseData['txndate_processed']) ?
+                Carbon::createFromFormat('d/m/y h:i:s A', $responseData['txndate_processed'])->format('Y-m-d H:i:s') :
+                null;  // Si no existe, asignar NULL
+
+            // Insertar el registro de pago en `order_payment`
+            DB::table('order_payment')->insert([
+                'order_id' => $orderId,
+                'chargetotal' => $transaction->chargetotal,
+                'request_type' => $responseData['txntype'] ?? 'unknown',  // Cambia 'unknown' por el valor de txntype
+                'txtn_processed' => $txndateProcessed,  // Ahora se inserta la fecha convertida o NULL
+                'timezone' => $responseData['timezone'] ?? 'UTC',
+                'processor_network_information' => $responseData['processor_network_information'] ?? null,
+                'associationResponseMessage' => $responseData['associationResponseMessage'] ?? null,
+                'ccbrand' => $responseData['ccbrand'] ?? null,
+                'refnumber' => $responseData['refnumber'] ?? null,
+                'cardnumber' => $responseData['cardnumber'] ?? null,
+                'ipgTransactionId' => $responseData['ipgTransactionId'] ?? null,
+                'fail_reason' => $responseData['fail_reason'] ?? null,
+                'status' => $responseData['status'] == 'APROBADO' ? 'APROBADO' : 'FALLADO',
                 'created_at' => now(),
                 'updated_at' => now()
             ]);
-    
-            // Actualizar la historia del pedido en `order_history`
-            DB::table('order_history')->where('order_id', $oid)->update([
-                'status' => 3,
-                'status_2_payment_process_at' => now(),
-                'status_3_paid_at' => now(),
-                'updated_at' => now()
-            ]);
-    
-            // Procesar cada producto del envío
-            foreach ($shippmentItems as $item) {
-                $productDetails = DB::table('itemsdb')->where('no_s', $item->no_s)->first();
-                $unitDetails = DB::table('items_unidades')->where('item_no', $item->no_s)->first();
-                $finalPrice = $item->unit_price - ($item->unit_price * ($item->discount / 100));
-                $totalPrice = $finalPrice * $item->quantity;
-    
-                DB::table('order_items')->insert([
+
+            // Si el pago fue aprobado, continuar con el proceso
+            if ($paymentStatus === 'APROBADO') {
+                // Insertar detalles del envío en `order_shippment` con la dirección completa
+                DB::table('order_shippment')->insert([
                     'order_id' => $orderId,
-                    'product_id' => $item->no_s,
-                    'description' => $productDetails->nombre,
-                    'quantity' => $item->quantity,
-                    'unit_price' => $item->unit_price,
-                    'total_price' => $totalPrice,
-                    'discount' => $item->discount,
-                    'iva_rate' => $productDetails->grupo_iva,
-                    'length' => $unitDetails->length ?? null,
-                    'width' => $unitDetails->width ?? null,
-                    'depth' => $unitDetails->height ?? null,
+                    'user_id' => $userId,
+                    'cart_id' => $shippment->cart_id,
+                    'store_id' => $shippment->store_id,
+                    'pickup_date' => $shippment->pickup_date,
+                    'pickup_time' => $shippment->pickup_time,
+                    'shipping_method' => $shippment->shipping_method,
+                    'shipping_cost' => $shippment->shipping_cost,
+                    'shipping_cost_IVA' => $shippment->shipping_cost_IVA,
+                    'subtotal_sin_envio' => $subtotal,
+                    'total_con_IVA' => $totalConIva,
+                    'shipping_address' => $completeAddress, // Dirección completa
+                    'no_int' => $shippment->no_int,
+                    'no_ext' => $shippment->no_ext,
+                    'entre_calles' => $shippment->entre_calles,
+                    'colonia' => $shippment->colonia,
+                    'municipio' => $shippment->municipio,
+                    'pais' => $shippment->pais,
+                    'referencias' => $shippment->referencias,
+                    'cord_x' => $shippment->cord_x,
+                    'cord_y' => $shippment->cord_y,
+                    'codigo_postal' => $shippment->codigo_postal,
+                    'nombre_contacto' => $shippment->nombre_contacto,
+                    'telefono_contacto' => $shippment->telefono_contacto,
+                    'email_contacto' => $shippment->email_contacto,
+                    'status' => 'completed',
                     'created_at' => now(),
                     'updated_at' => now()
                 ]);
-    
-                // Actualizar inventario
-                DB::table('inventario')->where('no_s', $item->no_s)->decrement('cantidad_disponible', $item->quantity);
+
+                // Actualizar la historia del pedido en `order_history`
+                DB::table('order_history')->where('order_id', $oid)->update([
+                    'status' => 3,
+                    'status_2_payment_process_at' => now(),
+                    'status_3_paid_at' => now(),
+                    'updated_at' => now()
+                ]);
+
+                // Procesar cada producto del envío
+                foreach ($shippmentItems as $item) {
+                    $productDetails = DB::table('itemsdb')->where('no_s', $item->no_s)->first();
+                    $unitDetails = DB::table('items_unidades')->where('item_no', $item->no_s)->first();
+                    $finalPrice = $item->unit_price - ($item->unit_price * ($item->discount / 100));
+                    $totalPrice = $finalPrice * $item->quantity;
+
+                    DB::table('order_items')->insert([
+                        'order_id' => $orderId,
+                        'product_id' => $item->no_s,
+                        'description' => $productDetails->nombre,
+                        'quantity' => $item->quantity,
+                        'unit_price' => $item->unit_price,
+                        'total_price' => $totalPrice,
+                        'discount' => $item->discount,
+                        'iva_rate' => $productDetails->grupo_iva,
+                        'length' => $unitDetails->length ?? null,
+                        'width' => $unitDetails->width ?? null,
+                        'depth' => $unitDetails->height ?? null,
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+
+                    // Actualizar inventario
+                    DB::table('inventario')->where('no_s', $item->no_s)->decrement('cantidad_disponible', $item->quantity);
+                }
+
+                // Vaciar el carrito
+                DB::table('cart_items')->where('cart_id', $shippment->cart_id)->delete();
+
+                if (DB::table('cart_items')->where('cart_id', $shippment->cart_id)->count() == 0) {
+                    DB::table('carts')->where('id', $shippment->cart_id)->delete();
+                }
+
+                DB::table('shippments')->where('id', $shippment->id)->update(['status' => 'completed']);
+
+                // Enviar correo de confirmación de la orden
+                $tienda = DB::table('tiendas')->where('id', $shippment->store_id)->first();
+                $correoTienda = $tienda->correo ?? 'aaronorozr@gmail.com';
+
+                $orderItems = DB::table('order_items')
+                    ->join('itemsdb', 'order_items.product_id', '=', 'itemsdb.no_s')
+                    ->select('order_items.*', 'itemsdb.no_s', 'itemsdb.nombre as product_name')
+                    ->where('order_id', $orderId)
+                    ->get();
+
+                $order = DB::table('orders')->where('id', $orderId)->first();
+                $pickupDate = $shippment->pickup_date;
+                $pickupTime = $shippment->pickup_time;
+
+                Mail::send('emails.order', compact('order', 'orderItems', 'pickupDate', 'pickupTime'), function ($message) use ($correoTienda, $orderId) {
+                    $message->to($correoTienda)
+                        ->bcc('soporte@lancetahg.com')
+                        ->subject('Nueva orden de pedido #' . $orderId);
+                });
+
+                // Redirigir al éxito del pago
+                return redirect()->route('payment.success')->with('message', '¡Pago realizado con éxito! Pedido creado correctamente.');
+            } else {
+                // Si el pago falló
+                return redirect()->route('payment.fail')->with('error', 'El pago falló. Por favor, inténtalo de nuevo.');
             }
-    
-            // Vaciar el carrito
-            DB::table('cart_items')->where('cart_id', $shippment->cart_id)->delete();
-    
-            if (DB::table('cart_items')->where('cart_id', $shippment->cart_id)->count() == 0) {
-                DB::table('carts')->where('id', $shippment->cart_id)->delete();
-            }
-    
-            DB::table('shippments')->where('id', $shippment->id)->update(['status' => 'completed']);
-    
-            // Enviar correo de confirmación de la orden
-            $tienda = DB::table('tiendas')->where('id', $shippment->store_id)->first();
-            $correoTienda = $tienda->correo ?? 'aaronorozr@gmail.com';
-    
-            $orderItems = DB::table('order_items')
-                ->join('itemsdb', 'order_items.product_id', '=', 'itemsdb.no_s')
-                ->select('order_items.*', 'itemsdb.no_s', 'itemsdb.nombre as product_name')
-                ->where('order_id', $orderId)
-                ->get();
-    
-            $order = DB::table('orders')->where('id', $orderId)->first();
-            $pickupDate = $shippment->pickup_date;
-            $pickupTime = $shippment->pickup_time;
-    
-            Mail::send('emails.order', compact('order', 'orderItems', 'pickupDate', 'pickupTime'), function ($message) use ($correoTienda, $orderId) {
-                $message->to($correoTienda)
-                    ->bcc('soporte@lancetahg.com')
-                    ->subject('Nueva orden de pedido #' . $orderId);
-            });
-    
-            // Redirigir al éxito del pago
-            return redirect()->route('payment.success')->with('message', '¡Pago realizado con éxito! Pedido creado correctamente.');
-        } else {
-            // Si el pago falló
-            return redirect()->route('payment.fail')->with('error', 'El pago falló. Por favor, inténtalo de nuevo.');
+        } catch (\Exception $e) {
+            Log::error('Error en handleSuccess: ' . $e->getMessage());
+            return redirect()->route('payment.fail')->with('error', 'Ocurrió un error al procesar tu pedido. Por favor, inténtalo de nuevo.');
         }
     }
-    
+
 
 
 
@@ -685,6 +743,4 @@ class PaymentController extends Controller
 
         return response()->json(['success' => true, 'message' => 'Pedido procesado correctamente.']);
     }
-
-
 }

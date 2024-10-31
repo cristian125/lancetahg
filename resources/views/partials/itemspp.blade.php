@@ -156,20 +156,20 @@
     </div>
 </div>
 
-<div class="container mt-4 ">
+<div class="container mt-0">
     @foreach ($destacados->chunk(4) as $chunk)
         <div class="row mt-4">
             @foreach ($chunk as $producto)
                 <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
-                    <div class="product-container border border-info-subtle" style="position: relative;">
+                    <div class="product-container " style="position: relative;">
                         @if ($producto->descuento > 0)
                             <div class="badge-offer-destacados">
                                 <i class="fas fa-tags"></i> ¡Oferta!
                             </div>
                         @endif
 
-                        <a href="{{ url('/producto/' . $producto->id) }}" class="text-decoration-none">
-                            <div class="border border-light-subtle">
+                        <a href="{{ url('/producto/' . $producto->id.'-'. $producto->nombre) }}" class="text-decoration-none">
+                            <div>
                             <img src="{{ $producto->imagen_principal }}" alt="{{ $producto->nombre }}">
                             </div>
                             <div class="overlay">
@@ -188,12 +188,11 @@
                             <p>{{ $producto->no_s }}</p>
                             <p>{{ $producto->nombre }}<br>{{ $producto->marca }}</p>
                         </div>
-                        <div class="product-info">
-                            <p class="product-serial">{{ $producto->no_s }}</p>
-                            <p>{{ $producto->nombre }}<br />{{ $producto->marca }}</p>
-                            <p class="product-price">${{ number_format($producto->precio_final, 2, '.', ',') }} MXN
-                            </p>
+                        <div class="product-info1">
+                            <span>{{ ucwords(strtolower($producto->nombre)) }}<br />{{ ucwords(strtolower($producto->marca)) }}</span>
+                            <span class="product-price">${{ number_format($producto->precio_final, 2, '.', ',') }} MXN</span>
                         </div>
+
                     </div>
                 </div>
             @endforeach
@@ -203,7 +202,7 @@
 
 
 <style>
-    
+
     /* Estilos del carrusel */
     .carousel-custom-size {
         width: 100%;
@@ -233,6 +232,6 @@
     /* Estilos para las imágenes del grid */
     .offer-container img {
         width: 100%;
-        
+    }
 
 </style>

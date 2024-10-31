@@ -1,12 +1,12 @@
 @php
     use App\Http\Controllers\FooterController;
 
-  
     $modalActivo = $modalActivo ?? 0;
     $modalImagen = $modalImagen ?? '';
 @endphp
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -64,16 +64,16 @@
     <link href="{{ asset('css/principal.css') }}" rel="stylesheet">
     <link href="{{ asset('css/footer.css') }}" rel="stylesheet">
     <link href="{{ asset('css/vistaitem.css') }}" rel="stylesheet">
-<!-- Include the jQuery Cookie plugin -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <!-- Include the jQuery Cookie plugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <script src="https://www.google.com/recaptcha/api.js?render={{ config('services.recapcha.site_key') }}"></script>
+
     @yield('header')
 
-    <!-- Tu script personalizado -->
     <!-- Tu script personalizado -->
     <script>
         $(document).ready(function() {
             var modalClosed = $.cookie('modalClosed');
-            console.log('Estado de la cookie al cargar la página: ' + modalClosed);
 
             if (!modalClosed) {
                 @if ($modalActivo && $modalImagen)
@@ -87,23 +87,25 @@
 
             // Al cerrar el modal, crear la cookie de sesión
             $('#modalAviso').on('hidden.bs.modal', function() {
-                $.cookie('modalClosed', 'true', { path: '/' }); // Cookie de sesión
-                console.log('Cookie de sesión creada: ' + $.cookie('modalClosed'));
+                $.cookie('modalClosed', 'true', {
+                    path: '/'
+                }); // Cookie de sesión
+                // console.log('Cookie de sesión creada: ' + $.cookie('modalClosed'));
             });
 
             // Crear la cookie al hacer clic en el botón de cerrar
             $('[data-bs-dismiss="modal"]').on('click', function() {
                 $(this).closest('.modal').modal('hide');
-                $.cookie('modalClosed', 'true', { path: '/' }); // Cookie de sesión
-                console.log('Cookie de sesión creada al hacer clic en cerrar: ' + $.cookie('modalClosed'));
+                $.cookie('modalClosed', 'true', {
+                    path: '/'
+                }); // Cookie de sesión
+                // console.log('Cookie de sesión creada al hacer clic en cerrar: ' + $.cookie('modalClosed'));
             });
         });
     </script>
 
     <!-- Estilos personalizados -->
     <style>
-
-
         .modal .close:hover {
             background-color: #ff0000;
             color: #fff;
@@ -131,7 +133,8 @@
         <div id="modalAviso" class="modal fade" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg" style="margin-top: 10vh;">
                 <div class="modal-content p-0" style="border: none; background: transparent;">
-                    <button type="button" class="btn btn-danger close" data-bs-dismiss="modal" aria-label="Close" style="margin-right: 1.5em">
+                    <button type="button" class="btn btn-danger close" data-bs-dismiss="modal" aria-label="Close"
+                        style="margin-right: 1.5em">
                         <span aria-hidden="true">&times;</span>
                     </button>
                     <img src="{{ asset('storage/' . $modalImagen) }}" alt="Aviso Modal"
@@ -152,4 +155,5 @@
     @endisset
 
 </body>
+
 </html>

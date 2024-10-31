@@ -1,165 +1,366 @@
 @extends('template')
 
 @section('body')
-<div class="container mt-5">
-    <div class="card shadow p-5" style="border-radius: 10px; border: 1px solid #e0e0e0;">
-        <h3 class="mb-4 text-center" style="font-weight: 600; color: #4A4A4A;">Detalles del Pedido ID: {{ $order->id }}</h3>
+    <div class="container my-5">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-5">
+                <h3 class="mb-4 text-center fw-bold text-secondary">Detalles del Pedido <span
+                        class="text-primary">#{{ $order->id }}</span></h3>
 
-        <!-- Información del Pedido -->
-        <div class="row">
-            <div class="col-md-6">
-                <div class="info-block mb-4" style="background-color: #fafafa; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-                    <h5 class="mb-3 text-primary" style="font-weight: 500;">Resumen del Pedido</h5>
-                    <table class="table table-borderless">
-                        <tbody>
-                            <tr>
-                                <td><strong>Total:</strong></td>
-                                <td class="text-right" style="font-weight: 600; color: #333;">${{ number_format($order->total, 2) }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Subtotal sin Envío:</strong></td>
-                                <td class="text-right">${{ number_format($order->subtotal_sin_envio, 2) }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Descuento Total en Pedido:</strong></td>
-                                <td class="text-right">${{ number_format($totalDescuento, 2) }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Total con IVA:</strong></td>
-                                <td class="text-right" style="font-weight: 600;">${{ number_format($order->total_con_iva, 2) }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <!-- Información del Pedido y Envío -->
+                <div class="row">
+                    <!-- Resumen del Pedido -->
+                    <div class="col-md-6 mb-4">
+                        <div class="p-4 bg-light rounded-3 border">
+                            <h5 class="mb-3 text-primary">Resumen del Pedido</h5>
+                            <table class="table table-borderless mb-0">
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Total:</strong></td>
+                                        <td class="text-end text-dark fw-bold">${{ number_format($order->total, 2) }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Subtotal sin Envío:</strong></td>
+                                        <td class="text-end text-dark">${{ number_format($order->subtotal_sin_envio, 2) }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Descuento Total:</strong></td>
+                                        <td class="text-end text-dark">${{ number_format($totalDescuento, 2) }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Total con IVA:</strong></td>
+                                        <td class="text-end text-dark fw-bold">
+                                            ${{ number_format($order->total_con_iva, 2) }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- Información de Envío -->
+                    <div class="col-md-6 mb-4">
+                        <div class="p-4 bg-light rounded-3 border">
+                            <h5 class="mb-3 text-primary">Información de Envío</h5>
+                            <table class="table table-borderless mb-0">
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Dirección de Envío:</strong></td>
+                                        <td class="text-end text-dark">{{ $order->shipping_address ?? 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Método de Envío:</strong></td>
+                                        <td class="text-end text-dark">{{ $order->shipment_method_display ?? 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Costo de Envío:</strong></td>
+                                        <td class="text-end text-dark">${{ number_format($order->shipping_cost, 2) }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Fecha de Creación:</strong></td>
+                                        <td class="text-end text-dark">
+                                            {{ \Carbon\Carbon::parse($order->created_at)->format('d/m/Y H:i') }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                 </div>
-            </div>
 
-            <div class="col-md-6">
-                <div class="info-block mb-4" style="background-color: #fafafa; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-                    <h5 class="mb-3 text-primary" style="font-weight: 500;">Información de Envío</h5>
-                    <table class="table table-borderless">
-                        <tbody>
-                            <tr>
-                                <td><strong>Dirección de Envío:</strong></td>
-                                <td class="text-right">{{ $order->shipping_address ?? 'N/A' }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Método de Envío:</strong></td>
-                                <td class="text-right">{{ $order->shipment_method ?? 'N/A' }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Costo de Envío:</strong></td>
-                                <td class="text-right">${{ number_format($order->shipping_cost, 2) }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Fecha de Creación:</strong></td>
-                                <td class="text-right">{{ \Carbon\Carbon::parse($order->created_at)->format('d/m/Y H:i') }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-<!-- Información del Estado del Pedido -->
-@if($orderHistory)
-    <div class="status-block mb-4 p-4" style="background-color: #f7f7f7; border-radius: 10px; border: 1px solid #ddd;">
-        <h5 class="mb-3 text-primary" style="font-weight: 500;">Estado del Pedido</h5>
-        <ul class="list-unstyled">
-            <!-- Mostrar el método de pago seleccionado -->
-            @if($orderHistory->payment_method)
-                <li><strong>Método de Pago:</strong> {{ $orderHistory->payment_method }}</li>
-            @endif
-            @if($orderHistory->status_1_confirmation_at)
-                <li><strong>Verificado:</strong> {{ \Carbon\Carbon::parse($orderHistory->status_1_confirmation_at)->format('d/m/Y H:i') }}</li>
-            @endif
-            @if($orderHistory->status_2_payment_process_at)
-                <li><strong>En Proceso de Pago:</strong> {{ \Carbon\Carbon::parse($orderHistory->status_2_payment_process_at)->format('d/m/Y H:i') }}</li>
-            @endif
-            @if($orderHistory->status_3_paid_at)
-                <li><strong>Pagado:</strong> {{ \Carbon\Carbon::parse($orderHistory->status_3_paid_at)->format('d/m/Y H:i') }}</li>
-            @endif
-            @if($orderHistory->status_4_rejected_at)
-                <li><strong>Rechazado:</strong> {{ \Carbon\Carbon::parse($orderHistory->status_4_rejected_at)->format('d/m/Y H:i') }}</li>
-            @endif
-            @if($orderHistory->status_5_confirmed_at)
-                <li><strong>Confirmado y Completado:</strong> {{ \Carbon\Carbon::parse($orderHistory->status_5_confirmed_at)->format('d/m/Y H:i') }}</li>
-            @endif
-        </ul>
-    </div>
-@else
-    <div class="alert alert-warning mt-3" role="alert">
-        No hay información de estado disponible para este pedido.
-    </div>
-@endif
-
-        <!-- Mostrar productos de la orden -->
-        <div class="products-block p-3 mt-4" style="background-color: #fafafa; border: 1px solid #ddd; border-radius: 10px;">
-            <h4 class="mb-4 text-primary" style="font-weight: 500;">Productos del Pedido</h4>
-            @if($order_items->isNotEmpty())
-                <table class="table table-striped table-hover">
-                    <thead class="thead-light">
-                        <tr>
-                            <th>Producto</th>
-                            <th>Cantidad</th>
-                            <th>Precio Unitario (con Descuento)</th>
-                            <th>Sub Total</th>
-                            <th>Descuento Aplicado</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($order_items as $item)
+                <!-- Cuadro Exclusivo para Método de Pago -->
+                @if ($payment)
+                    <div class="p-4 bg-light rounded-3 border mb-4">
+                        <h5 class="mb-3 text-primary">Método de Pago</h5>
+                        <table class="table table-borderless mb-0">
+                            <tbody>
+                                <tr>
+                                    <td><strong>Monto:</strong></td>
+                                    <td class="text-end text-dark fw-bold">${{ number_format($payment->chargetotal, 2) }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Tipo de Transacción:</strong></td>
+                                    <td class="text-end text-dark">{{ $payment->request_type }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Fecha de Procesamiento:</strong></td>
+                                    <td class="text-end text-dark">
+                                        {{ \Carbon\Carbon::parse($payment->txtn_processed)->format('d/m/Y H:i') }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Número de Tarjeta:</strong></td>
+                                    <td class="text-end text-dark">{{ $payment->cardnumber ?? 'N/A' }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+                <!-- Información del Estado del Pedido -->
+                @if ($orderHistory)
+                    <div class="p-4 bg-light rounded-3 border mb-4">
+                        <h5 class="mb-4 text-primary">Estado del Pedido</h5>
+                        <ul class="timeline">
                             @php
-                                $descuentoEnDinero = ($item->discount / 100) * $item->unit_price;
-                                $precioConDescuento = $item->unit_price - $descuentoEnDinero;
+
+                                $statuses = [
+                                    'status_1_confirmation_at' => [
+                                        'label' => 'Verificado',
+                                        'icon' => 'bi-check-circle-fill',
+                                        'color' => 'success',
+                                    ],
+                                    'status_2_payment_process_at' => [
+                                        'label' => 'En Proceso de Pago',
+                                        'icon' => 'bi-check-circle-fill',
+                                        'color' => 'success',
+                                    ], // Ícono cambiado aquí
+                                    'status_3_paid_at' => [
+                                        'label' => 'Pagado',
+                                        'icon' => 'bi-check-circle-fill',
+                                        'color' => 'success',
+                                    ],
+                                    'status_4_rejected_at' => [
+                                        'label' => 'Rechazado',
+                                        'icon' => 'bi-x-circle-fill',
+                                        'color' => 'danger',
+                                    ],
+                                    'status_5_confirmed_at' => [
+                                        'label' => 'Confirmado y Completado',
+                                        'icon' => 'bi-check2-circle',
+                                        'color' => 'success',
+                                    ],
+                                ];
                             @endphp
-                            <tr>
-                                <td>{{ $item->product_name }}</td>
-                                <td>{{ $item->quantity }}</td>
-                                <td>${{ number_format($precioConDescuento, 2) }}</td>
-                                <td>${{ number_format($item->total_price, 2) }}</td>
-                                <td>${{ number_format($descuentoEnDinero * $item->quantity, 2) }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            @else
-                <div class="alert alert-warning mt-3" role="alert">
-                    No hay productos asociados a este pedido.
+
+                            @foreach ($statuses as $key => $status)
+                                @if (isset($orderHistory->$key) && !empty($orderHistory->$key))
+                                    <li class="timeline-item">
+                                        <span class="timeline-icon bg-{{ $status['color'] }} text-white">
+                                            <i class="{{ $status['icon'] }}"></i>
+                                        </span>
+                                        <div class="timeline-content">
+                                            <h6 class="fw-bold mb-1">{{ $status['label'] }}</h6>
+                                            <p class="mb-0 text-muted">
+                                                {{ \Carbon\Carbon::parse($orderHistory->$key)->format('d/m/Y H:i') }}</p>
+                                        </div>
+                                    </li>
+                                @endif
+                            @endforeach
+
+                            <!-- Mostrar "Confirmado y Completado" como en proceso si el pedido está pagado pero no confirmado -->
+                            @if ($orderHistory->status_3_paid_at && !$orderHistory->status_5_confirmed_at)
+                                <li class="timeline-item">
+                                    <span class="timeline-icon bg-warning text-white">
+                                        <i class="bi bi-hourglass-split"></i>
+                                    </span>
+                                    <div class="timeline-content">
+                                        <h6 class="fw-bold mb-1">Confirmado y Completado</h6>
+                                        <p class="mb-0 text-muted">En proceso...</p>
+                                    </div>
+                                </li>
+                            @endif
+                        </ul>
+                    </div>
+                @else
+                    <div class="alert alert-warning mb-4" role="alert">
+                        No hay información de estado disponible para este pedido.
+                    </div>
+                @endif
+
+                <!-- Mostrar productos de la orden -->
+                <div class="p-4 bg-light rounded-3 border mb-4">
+                    <h4 class="mb-4 text-primary">Productos del Pedido</h4>
+                    @if ($order_items->isNotEmpty())
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-secondary">
+                                    <tr>
+                                        <th scope="col">Producto</th>
+                                        <th scope="col" class="text-center">Cantidad</th>
+                                        <th scope="col" class="text-end">Precio Unitario</th>
+                                        <th scope="col" class="text-end">Sub Total</th>
+                                        <th scope="col" class="text-end">Descuento</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($order_items as $item)
+                                        @php
+                                            $descuentoEnDinero = ($item->discount / 100) * $item->unit_price;
+                                            $precioConDescuento = $item->unit_price - $descuentoEnDinero;
+                                        @endphp
+                                        <tr>
+                                            <td>{{ $item->product_name }}</td>
+                                            <td class="text-center">{{ $item->quantity }}</td>
+                                            <td class="text-end">${{ number_format($precioConDescuento, 2) }}</td>
+                                            <td class="text-end">${{ number_format($item->total_price, 2) }}</td>
+                                            <td class="text-end">
+                                                ${{ number_format($descuentoEnDinero * $item->quantity, 2) }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <div class="alert alert-warning" role="alert">
+                            No hay productos asociados a este pedido.
+                        </div>
+                    @endif
                 </div>
-            @endif
+
+                <!-- Botón para Volver a Mis Pedidos -->
+                <div class="text-center">
+                    <a href="{{ route('myorders') }}" class="btn btn-secondary btn-lg rounded-3">
+                        <i class="bi bi-arrow-left-circle me-2"></i> Volver a mis pedidos
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="text-center mt-4">
-        <a href="{{ route('myorders') }}" class="btn btn-secondary" style="padding: 12px 30px; border-radius: 8px; font-size: 16px;">Volver a mis pedidos</a>
-    </div>
-</div>
+    <!-- Estilos CSS Personalizados -->
+    <style>
+        body {
+            background-color: #f5f7fa;
+        }
 
-<style>
-    .info-block, .status-block, .products-block {
-        background-color: #fafafa;
-        border-radius: 10px;
-        border: 1px solid #ddd;
-    }
+        .text-primary {
+            color: #007bff !important;
+        }
 
-    .table td {
-        vertical-align: middle;
-    }
+        .text-secondary {
+            color: #6c757d !important;
+        }
 
-    .table td.text-right {
-        text-align: right;
-    }
+        .fw-bold {
+            font-weight: 700 !important;
+        }
 
-    .btn-secondary {
-        background-color: #6c757d;
-        border: none;
-        padding: 12px 30px;
-        font-size: 16px;
-        font-weight: 500;
-    }
+        .fw-semibold {
+            font-weight: 600 !important;
+        }
 
-    .btn-secondary:hover {
-        background-color: #565e64;
-    }
-</style>
+        .list-group-item {
+            background-color: #f8f9fa;
+            border: none;
+        }
+
+        .list-group-item:not(:last-child) {
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: #e9ecef;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            border-color: #545b62;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+
+        .btn-primary:hover {
+            background-color: #0069d9;
+            border-color: #0062cc;
+        }
+
+        .btn-lg {
+            padding: 0.75rem 1.5rem;
+            font-size: 1.125rem;
+            line-height: 1.5;
+            border-radius: 0.3rem;
+        }
+
+        .bi {
+            font-size: 1.25rem;
+        }
+
+        /* Estilos para la Línea de Tiempo */
+        .timeline {
+            list-style: none;
+            padding-left: 0;
+            position: relative;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 30px;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: #dee2e6;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 30px;
+            padding-left: 70px;
+        }
+
+        .timeline-icon {
+            position: absolute;
+            left: 15px;
+            top: 0;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .timeline-content {
+            padding: 0 15px;
+        }
+
+        .timeline-item:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Loader Styles (si se necesita en futuras implementaciones) */
+        .loader {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #007bff;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Responsividad para dispositivos móviles */
+        @media (max-width: 767.98px) {
+            .timeline::before {
+                left: 20px;
+            }
+
+            .timeline-item {
+                padding-left: 60px;
+            }
+
+            .timeline-icon {
+                left: 5px;
+            }
+        }
+    </style>
 @endsection

@@ -19,6 +19,7 @@ use App\Http\Controllers\ShippingMethodController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdminReqController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\ClienteDistinguidoController;
 use App\Http\Controllers\EditorController;
@@ -36,7 +37,8 @@ use App\Http\Controllers\ModalConfigController;
 use App\Http\Controllers\ShippingCobrarController;
 use App\Http\Controllers\PaymentLogController;
 use App\Http\Controllers\ProductosRelacionadosController;
-
+use App\Http\Controllers\ProductImportController;
+use App\Http\Controllers\Api\OrdersHeaderController;
 
 
 /*
@@ -53,6 +55,7 @@ use App\Http\Controllers\ProductosRelacionadosController;
 /***
  * Usuario sin autenticar
  */
+
 Route::fallback(function () {
     return response()->view('errors.404', [], 404);
 });
@@ -95,6 +98,7 @@ Route::group(['middleware' => ['web']], function () {
     Route::post('/login', [LoginController::class, 'login'])->name('login')->middleware('throttle:5,3');;
     Route::get('/producto/img/{id}', [ProductController::class, 'getImage'])->name('producto.imagen');
     Route::get('/ajax-search', [ProductController::class, 'ajaxSearch'])->name('ajax.search');
+
     Route::get('/search-result', [ProductController::class, 'search'])->name('product.search');
 
     Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe']);
@@ -197,10 +201,12 @@ Route::group(['middleware' => ['auth', 'web']], function () {
     Route::get('/admin', [ProductosDestacadosController::class, 'index'])->name('admin');
     Route::post('/cart/add', [ProductController::class, 'addToCart'])->name('cart.add');
     Route::post('/cart/remove', [ProductController::class, 'removeFromCart'])->name('cart.remove');
-    Route::get('/carrito', [ProductController::class, 'showCart'])->name('cart.show');
+    Route::any('/carrito', [ProductController::class, 'showCart'])->name('cart.show');
     Route::post('/cart/add-multiple', [ProductController::class, 'addMultipleToCart']);
     Route::post('/cart/check-stock', [ProductosDestacadosController::class, 'checkStock']);
-    Route::post('/cart/update-quantity', [ProductController::class, 'reduceQuantity'])->name('cart.reduceQuantity');
+    Route::post('/cart/update-quantity', [ProductController::class, 'updateQuantity'])->name('cart.updateQuantity');
+
+
     Route::post('/cart/update', [ShippingLocalController::class, 'actualizarEnvio'])->name('cart.actualizarEnvio');
     Route::post('/cart/shipment', [ShippingLocalController::class, 'addShippingMethod'])->name('cart.updateMethod');
     Route::post('/cart/remove-shipping', [ProductController::class, 'removeShipping']);
@@ -239,7 +245,7 @@ Route::post('/cart/update-method', [ShippingCobrarController::class, 'addShippin
     Route::get('/checkout', [CartController::class, 'showCheckout'])->name('checkout');
     // Ruta para procesar el método de pago (POST)
     Route::post('/update-payment-method', [CartController::class, 'updatePaymentMethod'])->name('update.payment.method');
-
+    Route::post('/cart/process-cod', [CartController::class, 'processCod'])->name('process.cod');
 });
 
 
@@ -394,6 +400,10 @@ Route::prefix('adminlanz')->middleware('adminsession')->group(function () {
 
             Route::get('/payment-logs', [PaymentLogController::class, 'index'])->name('admin.payment_logs.index');
             Route::get('/payment-logs/{id}', [PaymentLogController::class, 'show'])->name('admin.payment_logs.show');
+
+            Route::get('/items-data', [ProductImportController::class, 'showItemsData'])->name('admin.itemsData');
+            Route::get('/fetch-items', [ProductImportController::class, 'fetchItemsManually'])->name('admin.fetchItems');
+
         });
     });
 });

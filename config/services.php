@@ -30,4 +30,15 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'external_api' => [
+        'base_url' => env('EXTERNAL_API_BASE_URL', 'http://lan-ec.ddns.me:8085/api/lancetaweb'),
+        'token' => env('EXTERNAL_API_TOKEN', 'AJHJKAHDKAHKDHAKJDHKA14546A45'),
+        'password' => env('EXTERNAL_API_KEY', 'default_password'),
+    ],
+
+    'recapcha' => [
+        'site_key'=> env('RECAPCHA_V3_KEY'),
+        'secret_key'=> env('RECAPCHA_V3_SECRET'),
+    ],
+
 ];

@@ -223,6 +223,12 @@
                                 <span class="text-truncate">Páginas</span>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="{{ route('admin.itemsData') }}" class="nav-link {{ request()->is('admin/pages') ? 'active' : '' }}">
+                                <i class="fas fa-network-wired"></i>
+                                <span class="text-truncate">Peticiones Web</span>
+                            </a>
+                        </li>
                     @endif
                 </ul>
             </div>

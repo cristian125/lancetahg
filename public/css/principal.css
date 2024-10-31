@@ -52,12 +52,12 @@
     overflow: hidden; /* Oculta cualquier cosa que se salga del contenedor */
     text-align: center; /* Centra todo el contenido dentro del contenedor */
     padding: 10px; /* Espaciado interno */
-    background-color: #f9f9f9; /* Fondo claro */
+    background-color: #ffffff; 
     border-radius: 10px; /* Bordes redondeados */
-    transition: all 0.3s ease; /* Transición suave */
+    transition: all 0.3s ease; /* Transición suave */   
     width: 280px !important; /* Establece un ancho máximo constante */
-    height: 355px !important; /* Establece una altura constante */
-    margin: 0 auto; /* Centra horizontalmente */
+    height: 305px !important; /* Establece una altura constante */
+
 }
 
 
@@ -72,19 +72,20 @@
 }
 
 /* Estilo para la información del producto */
-.product-info {
+.product-info1 {
     color: #444 !important; /* Color gris oscuro para facilitar la lectura */
     width: 100%;
     height: 35%;
-    font-size: 12px !important; /* Tamaño de fuente más pequeño para la lectura */
+    font-size: 15px !important; /* Tamaño de fuente más pequeño para la lectura */
     line-height: 1 !important; /* Espaciado entre líneas para mejor legibilidad */
     font-weight: 400 !important; /* Peso de fuente regular */
     /* background-color: #ffffff !important; /* Fondo blanco */
     padding: 5px !important; /* Espaciado interno */
     border-radius: 8px !important; /* Bordes redondeados */
     box-shadow: none !important; /* Sin sombra */
-    text-align: left !important; /* Alinear texto al centro para una presentación más uniforme */
-    margin-bottom: 10px !important; /* Espacio inferior para dar lugar al precio */
+    text-align: center !important; /* Alinear texto al centro para una presentación más uniforme */
+
+    text-transform: capitalize; /* Capitalizar texto */
 }
 
 /* Estilo para el número de serie */
@@ -98,21 +99,22 @@
 
 /* Estilo para el precio del producto */
 .product-container .product-price {
-    font-size: 16px !important; /* Tamaño de fuente adecuado */
+    font:600 21px/26px "Open Sans",sans-serif;
+    font-size: 20px !important; /* Tamaño de fuente adecuado */
     color: #2396e2 !important; /* Color azul oscuro para el precio */
-    font-weight: bold !important; /* Negrita para destacar el precio */
+    /* font-weight: bold !important; Negrita para destacar el precio */
     background-color: transparent !important; /* Elimina el fondo */
     padding: 0 !important; /* Sin espaciado interno */
     display: block !important; /* Para que el fondo se ajuste al texto */
     text-align: center !important; /* Centrar el texto */
-    position: absolute; /* Posiciona el precio de forma absoluta */
-    bottom: 10%; /* Fija el precio a 10px del fondo del contenedor */
+    position: relative; /* Posiciona el precio de forma absoluta */
+    bottom: 1%; /* Fija el precio a 10px del fondo del contenedor */
     left: 0; /* Alinea a la izquierda */
     right: 0; /* Alinea a la derecha */
     text-shadow: none !important; /* Sin sombra de texto */
     border: none !important; /* Sin bordes */
     letter-spacing: normal !important; /* Espaciado normal entre letras */
-    margin: 0 !important; /* Sin margen adicional */
+    z-index: 1;
 }
 
 
@@ -149,16 +151,22 @@
 /* Superposición para el botón "Ver" */
 .product-container .overlay {
     position: absolute;
+    margin-top: -10px;
     left: 50%; /* Centra horizontalmente */
     top: 65%; /* Ajusta esta posición para mover el rectángulo más arriba */
     transform: translate(-50%, -50%); /* Centra el rectángulo */
-    background-color: #005f7f; /* Color azul con transparencia */
-    color: white;
+    background-color: #005f7f88; /* Color azul con transparencia */
+    color: #ffffff;
     padding: 9.5px 100%; /* Ajusta el tamaño del rectángulo */
     border-radius: 5px; /* Bordes redondeados */
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.5s ease, visibility 0.5s ease;
+    z-index: 50;
+}
+
+.product-container .overlay:hover{
+    background-color:#005f7f;
 }
 
 /* Superposición para el botón "Añadir al Carrito" */
@@ -173,24 +181,29 @@
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.5s ease, visibility 0.5s ease;
+    z-index: 50;
 }
 
 .product-container:hover .overlay,
 .product-container:hover .overlay-cart {
     opacity: 1;
     visibility: visible;
+    /* background-color: #2396e2ff; */
+    /* padding:0px; */
 }
 
 .overlay-text {
+    
     font-size: 18px;
     font-weight: bold;
     text-align: center;
 }
 
+
 /* Estilo para el botón "Añadir al Carrito" en el overlay */
 .overlay-cart button {
     margin: 0;
-    background-color: #00B398;
+    background-color: #00B39888;
     color: white;
     border: none;
     padding: 10px 15px;
@@ -207,6 +220,7 @@
 
 /* Superposición adicional para mostrar la descripción y número de serie */
 .product-container .overlay-info {
+    display: none;
     position: absolute;
     left: 0; /* Alinea el overlay al borde izquierdo del contenedor */
     right: 0; /* Alinea el overlay al borde derecho del contenedor */

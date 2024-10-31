@@ -14,6 +14,12 @@ class AccountController extends Controller
     
     public function index(Request $request)
     {
+                // Verificar si el sitio está en mantenimiento
+                $mantenimiento = ProductosDestacadosController::checkMaintenance();
+                if ($mantenimiento == 'true') {
+                    return redirect(route('mantenimento'));
+                }
+        
         $sectionToOpen = $request->get('section', null);  // Obtener la sección desde la URL
     
         // Obtener los datos necesarios

@@ -8,9 +8,11 @@
     <div id="colFacturacion" class="accordion-collapse collapse" aria-labelledby="accFacturacion"
         data-bs-parent="#accordionAccount">
         <div class="accordion-body">
+
             <div class="alert alert-info">
-                <i class="fa fa-info-circle"></i> <strong>Nota:</strong> Los datos proporcionados en esta sección se utilizarán únicamente para el envío y no para facturación, de acuerdo con las disposiciones de la Carta Porte 3.1 del SAT. En caso de no proporcionar esta información, la factura se emitirá bajo el concepto de Público en General.
+                <i class="fa fa-info-circle"></i> <strong>Nota:</strong> Los datos proporcionados en esta sección se utilizarán únicamente para el envío y no para facturación, de acuerdo con las disposiciones de la <a href="http://omawww.sat.gob.mx/tramitesyservicios/Paginas/documentos/Instructivo_ComplementoCartaPorte_Autotransporte_3.0.pdf" target="_blank">Carta Porte 3.1 del SAT (Receptor, Apartado 1.1)</a>. En caso de no proporcionar esta información, la factura se emitirá bajo el concepto de Público en General.
             </div>
+
             <div class="row">
                 <form id="frmFacturacion" action="{{ route('cuenta.facturacion.actualizar') }}" method="POST">
                     @csrf
@@ -19,7 +21,7 @@
                     @if($direccion_facturacion)
                         <div class="row mb-3">
                             <div class="col-md-12">
-                                <label class="form-label fw-bold">Dirección de Facturación Seleccionada:</label>
+                                <label class="form-label fw-bold">Dirección Físcal Seleccionada:</label>
                                 <p class="border p-2">
                                     {{ $direccion_facturacion->calle }} {{ $direccion_facturacion->no_ext }},
                                     {{ $direccion_facturacion->colonia }}, {{ $direccion_facturacion->municipio }},
@@ -87,7 +89,6 @@
                             </div>
                         </div>
                     </div>
-
                     <!-- Botón Guardar -->
                     <div class="row mt-4">
                         <div class="col-md-12">

@@ -1,50 +1,54 @@
 <div id="loader" class="loader" style="display: none;"></div>
-<div class="container mt-5" id="unique-cart-container">
-    <h1 class="mb-4 text-center" id="unique-cart-title">Su Carrito de Compras</h1>
-    @if (
-        $nonEligibleLocalShipping->isNotEmpty() ||
-            $nonEligiblePaqueteriaShipping->isNotEmpty() ||
-            $nonEligibleStorePickup->isNotEmpty() ||
-            $nonEligibleCobrarShipping->isNotEmpty())
-        <div class="alert alert-warning" role="alert">
-            <strong>Atención:</strong>
-            Uno o más productos en su carrito no son elegibles para los siguientes métodos de envío:
-            <ul>
-                @if ($nonEligibleLocalShipping->isNotEmpty())
-                    <li><strong>Envío Local</strong></li>
-                @endif
-                @if ($nonEligiblePaqueteriaShipping->isNotEmpty())
-                    <li><strong>Envío por Paquetería</strong></li>
-                @endif
-                @if ($nonEligibleStorePickup->isNotEmpty())
-                    <li><strong>Recoger en Tienda</strong></li>
-                @endif
-                @if ($nonEligibleCobrarShipping->isNotEmpty())
-                    <li><strong>Envío por Cobrar</strong></li>
-                @endif
-            </ul>
-            Revisa los productos para elegir un método de envío adecuado.
-        </div>
-    @endif
 
-    @if (!$tieneDirecciones)
-        <div class="alert alert-warning">
-            <strong>No tiene direcciones registradas, porfavor agregue una dirección.</strong>
-            <a href="{{ route('cuenta', ['section' => 'Direcciones']) }}">Haz clic aquí para agregar una dirección.</a>
-        </div>
-    @endif
-    @if (session('error'))
-        <div class="alert alert-danger">
-            {{ session('error') }}
-        </div>
-    @endif
+<div class="container mt-5" id="unique-cart-container">
     @if ($cartItems->isEmpty())
+
         <div class="empty-cart text-center" id="unique-empty-cart">
             <img src="{{ asset('storage/iconos/carrito_vacio.png') }}" alt="Carrito vacío" class="img-fluid mb-4"
                 style="max-width: 200px;">
             <p>No hay productos en su carrito. <a href="{{ url('/') }}">Continúe comprando</a></p>
         </div>
     @else
+        <h1 class="mb-4 text-center" id="unique-cart-title">Su Carrito de Compras</h1>
+        @if (
+            $nonEligibleLocalShipping->isNotEmpty() ||
+                $nonEligiblePaqueteriaShipping->isNotEmpty() ||
+                $nonEligibleStorePickup->isNotEmpty() ||
+                $nonEligibleCobrarShipping->isNotEmpty())
+            <div class="alert alert-warning" role="alert">
+                <strong>Atención:</strong>
+                Uno o más productos en su carrito no son elegibles para los siguientes métodos de envío:
+                <ul>
+                    @if ($nonEligibleLocalShipping->isNotEmpty())
+                        <li><strong>Envío Local</strong></li>
+                    @endif
+                    @if ($nonEligiblePaqueteriaShipping->isNotEmpty())
+                        <li><strong>Envío por Paquetería</strong></li>
+                    @endif
+                    @if ($nonEligibleStorePickup->isNotEmpty())
+                        <li><strong>Recoger en Tienda</strong></li>
+                    @endif
+                    @if ($nonEligibleCobrarShipping->isNotEmpty())
+                        <li><strong>Envío por Cobrar</strong></li>
+                    @endif
+                </ul>
+                Revise los productos para elegir un método de envío adecuado.
+            </div>
+        @endif
+
+        @if (!$tieneDirecciones)
+            <div class="alert alert-warning">
+                <strong>No tiene direcciones registradas, porfavor agregue una dirección.</strong>
+                <a href="{{ route('cuenta', ['section' => 'Direcciones']) }}">Haz clic aquí para agregar una
+                    dirección.</a>
+            </div>
+        @endif
+        @if (session('error'))
+            <div class="alert alert-danger">
+                {{ session('error') }}
+            </div>
+        @endif
+
         <div class="alert alert-info" role="alert">
             <strong>Nota:</strong> Si realiza cambios en su carrito (como añadir o eliminar productos), el método
             de
@@ -56,40 +60,42 @@
             <!-- Este mensaje será llenado dinámicamente por el script -->
         </div>
         @if (!$shippmentExists)
-            <div id="general-shipping-block" class="mb-4 p-4 bg-light rounded shadow-lg border border-warning">
+            <div id="general-shipping-block" class="mb-4 p-4 bg-white rounded shadow-lg border border-warning">
                 <!-- Selector de tipo de envío -->
-                <div class="mb-4 p-3 bg-light rounded shadow-sm">
+                <div class="mb-4 p-3 bg-white rounded shadow-sm position-relative" style="border: 1px solid #dee2e6;">
                     <h5 class="mb-3 text-primary"><i class="bi bi-truck"></i> Seleccione método de envío</h5>
-                    <div class="form-group">
-                        <select id="shipping-type-selector" class="form-select">
-                            <option value="">(Seleccione una opción)</option>
+                    <div class="form-group position-relative">
+                        <select id="shipping-type-selector" class="form-select custom-select">
+                            <option value="" hidden>(Seleccione una opción)</option>
                             @foreach ($envios as $envio)
                                 <option value="{{ $envio['name'] }}" data-price="{{ $envio['price'] }}">
-                                    {{ $envio['name'] }}</option>
+                                    {{ $envio['name'] }}
+                                </option>
                             @endforeach
                         </select>
+
                     </div>
                 </div>
 
                 <!-- Loader para mostrar mientras se hace la solicitud -->
-                <div id="store-pickup-block" class="mb-4 p-3 bg-light rounded shadow-sm" style="display: none;">
+                <div id="store-pickup-block" class="mb-4 p-3 bg-white rounded shadow-sm" style="display: none;">
                     @include('partials.envios.storepickup')
                 </div>
                 <!-- Bloque que se despliega para Envío Local -->
-                <div id="local-shipping-block" class="mb-4 p-3 bg-light rounded shadow-sm" style="display: none;">
+                <div id="local-shipping-block" class="mb-4 p-3 bg-white rounded shadow-sm" style="display: none;">
                     @include('partials.envios.local')
                 </div>
                 <!-- Bloque que se despliega para Envío por Paquetería -->
-                <div id="paqueteria-shipping-block" class="mb-4 p-3 bg-light rounded shadow-sm" style="display: none;">
+                <div id="paqueteria-shipping-block" class="mb-4 p-3 bg-white rounded shadow-sm" style="display: none;">
                     @include('partials.envios.paqueteexpress')
                 </div>
                 <!-- Bloque que se despliega para Envío por Cobrar -->
-                <div id="cobrar-shipping-block" class="mb-4 p-3 bg-light rounded shadow-sm" style="display: none;">
+                <div id="cobrar-shipping-block" class="mb-4 p-3 bg-white rounded shadow-sm" style="display: none;">
                     @include('partials.envios.cobrar')
                 </div>
-
-
             </div>
+
+
         @endif
         <!-- El resto de la vista sigue igual -->
         <div class="unique-cart-items" id="unique-cart-items">
@@ -119,20 +125,48 @@
                                 <!-- Nombre del producto y botón de eliminar -->
                                 <div class="d-flex align-items-center justify-content-between flex-wrap mb-2">
                                     <h5 class="mb-2">{{ $item->product_name }}</h5>
-                                    <a href="#" class="btn btn-danger btn-sm remove-from-cart1"
-                                        data-nos="{{ $item->product_code ?? $item->no_s }}">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
                                 </div>
 
                                 <!-- Mensaje indicando que el producto no es elegible -->
-                                <div class="non-eligible-message">
-                                    <p class="text-danger mb-1">
+                                <div class="non-eligible-message" id="unique-non-eligible-message">
+                                    <p class="unique-non-eligible-header text-danger mb-1">
                                         <i class="bi bi-exclamation-triangle-fill"></i>
-                                        Este producto no es elegible para el método de envío seleccionado, <br>
-                                        No será enviado, no se sumará al total, ni se incluirá en la orden de pedido.
+                                        Este producto no es compatible con el envío seleccionado.
+                                    </p>
+                                    <p class="unique-non-eligible-info text-warning mb-1">
+                                        Solo los productos elegibles se sumarán al total y serán procesados en esta
+                                        orden.
+                                    </p>
+                                    <p class="unique-non-eligible-reminder text-success mb-1">
+                                        Este producto permanecerá en su carrito para que pueda comprarlo más adelante
+                                        con el envío adecuado.
                                     </p>
                                 </div>
+
+                                <style>
+                                    #unique-non-eligible-message {
+                                        padding: 15px;
+                                        background-color: #ffebee;
+                                        /* Fondo rojo claro */
+                                        border: 1px solid #f5c6cb;
+                                        border-radius: 8px;
+                                        margin-bottom: 15px;
+                                    }
+
+                                    .unique-non-eligible-header {
+                                        color: #d9534f;
+                                        font-weight: bold;
+                                    }
+
+                                    .unique-non-eligible-info {
+                                        color: #f0ad4e;
+                                    }
+
+                                    .unique-non-eligible-reminder {
+                                        color: #5cb85c;
+                                    }
+                                </style>
+
 
 
                                 <!-- Mostrar métodos de envío disponibles para este producto -->
@@ -175,6 +209,10 @@
                                             seleccionado.</strong>
                                         <p>Por favor, elija un método de envío diferente o modifique los productos en su
                                             carrito.</p>
+                                        <button class="btn btn-info btn-m remove-shipping  ">
+                                            <i class="bi bi-trash"></i> Eliminar envío y seleccionar otro método de
+                                            envío disponible.
+                                        </button>
                                     </div>
                                 @endif
                             </div>
@@ -182,13 +220,7 @@
                     @endforeach
                 </div>
             @endif
-            @if ($eligibleCartItems->isEmpty())
-                <div class="alert alert-danger text-center">
-                    <h4><i class="bi bi-exclamation-triangle-fill"></i> No hay productos disponibles para el método de
-                        envío seleccionado.</h4>
-                    <p>Por favor, elija un método de envío diferente o modifique los productos en su carrito.</p>
-                </div>
-            @else
+            @if ($eligibleCartItems->isNotEmpty())
                 <h3>Los productos de su carrito:</h3>
                 @foreach ($eligibleCartItems as $item)
                     <div class="unique-cart-item row mb-4 p-3 border-bottom shadow-sm">
@@ -226,33 +258,40 @@
                             </div>
 
                             <!-- Cantidad, precio unitario, y total -->
-                            <div class="row">
-                                <div class="col-12 col-md-3 d-flex align-items-center mb-2 mb-md-0">
-                                    <strong>Cantidad:</strong>
-                                    <div class="quantity-controls d-flex ms-2">
-                                        <button type="button" class="btn btn-sm quantity-decrease custom-btn-minus"
-                                            data-product-code="{{ $item->product_code ?? $item->no_s }}"
-                                            data-max-quantity="{{ $item->available_quantity }}">-</button>
-                                        <input type="text" name="quantity"
-                                            class="form-control text-center quantity-input"
-                                            value="{{ $item->quantity }}" min="1"
-                                            max="{{ $item->available_quantity }}" readonly>
-                                        <button type="button" class="btn btn-sm quantity-increase custom-btn-plus"
-                                            data-product-code="{{ $item->product_code ?? $item->no_s }}"
-                                            data-max-quantity="{{ $item->available_quantity }}">+</button>
+                            <div class="row align-items-center">
+                                <!-- Columna de cantidad -->
+                                <div class="col-12 col-md-4 mb-3 mb-md-0">
+                                    <div class="d-flex flex-column flex-md-row align-items-center">
+                                        <strong class="me-md-2">Cantidad:</strong>
+                                        <div class="quantity-controls d-flex align-items-center">
+                                            <input type="number" name="quantity"
+                                                class="form-control text-center quantity-input me-2"
+                                                style="width: 80px;" value="{{ $item->quantity }}" min="1"
+                                                max="{{ $item->available_quantity }}"
+                                                data-product-code="{{ $item->product_code ?? $item->no_s }}"
+                                                data-max-quantity="{{ $item->available_quantity }}">
+                                            <button type="button" class="btn btn-primary btn-sm update-quantity-btn"
+                                                data-product-code="{{ $item->product_code ?? $item->no_s }}">
+                                                <i class="bi bi-arrow-repeat"></i> <!-- Ícono de actualización -->
+                                            </button>
+                                        </div>
+                                        <!-- Mostrar cantidad disponible -->
+                                        <p class="text-center text-muted mt-2 mt-md-0 ms-md-3">Disponible:
+                                            {{ $item->available_quantity }}</p>
                                     </div>
                                 </div>
 
-                                <div class="col-12 col-md-4 mb-2 mb-md-0">
+                                <!-- Columna de precio unitario -->
+                                <div class="col-12 col-md-4 mb-3 mb-md-0">
                                     @php
                                         $precioDescontado =
                                             $item->unit_price - $item->unit_price * ($item->discount / 100);
                                     @endphp
-                                    <p class="mb-0 unique-product-price1 bg-light p-2 rounded">
+                                    <p class="mb-0 unique-product-price1 bg-light p-2 rounded text-md-center">
                                         @if ($item->discount > 0)
                                             <span style="text-decoration: line-through; color: #888;">
                                                 ${{ number_format($item->unit_price, 2, '.', ',') }} MXN
-                                            </span>
+                                            </span><br>
                                             <span style="font-size: 1.2em; color: #28a745; font-weight: bold;">
                                                 ${{ number_format($precioDescontado, 2, '.', ',') }} MXN
                                             </span>
@@ -264,13 +303,17 @@
                                         <small class="text-muted d-block">Precio unitario con IVA incluido</small>
                                     </p>
                                 </div>
+
+                                <!-- Columna de total -->
                                 <div class="col-12 col-md-4">
-                                    <p class="mb-0 unique-product-total-price1 bg-light p-2 rounded">
+                                    <p class="mb-0 unique-product-total-price1 bg-light p-2 rounded text-md-center">
                                         <strong>Total:</strong>
                                         ${{ number_format($item->final_price * $item->quantity, 2, '.', ',') }} MXN
                                     </p>
                                 </div>
                             </div>
+
+
 
                             <!-- Etiqueta de descuento -->
                             @if ($item->discount > 0)
@@ -289,8 +332,11 @@
                                 @endif
                             </div>
                             <!-- Indicaciones sobre métodos de envío no disponibles y disponibles -->
-                            @if (!$item->allow_local_shipping || !$item->allow_paqueteria_shipping || !$item->allow_store_pickup || !$item->allow_cobrar_shipping)
-
+                            @if (
+                                !$item->allow_local_shipping ||
+                                    !$item->allow_paqueteria_shipping ||
+                                    !$item->allow_store_pickup ||
+                                    !$item->allow_cobrar_shipping)
                                 <div class="mt-2">
                                     <!-- Métodos no disponibles -->
                                     @if (!$item->allow_local_shipping)
@@ -312,29 +358,29 @@
                                         </p>
                                     @endif
                                     @if (!$item->allow_cobrar_shipping)
-                                    <p class="text-danger mb-1">
-                                        <i class="bi bi-exclamation-triangle-fill"></i>
-                                        Este producto no está disponible para <strong>Envío por Cobrar</strong>.
-                                    </p>
-                                @endif
-                                
+                                        <p class="text-danger mb-1">
+                                            <i class="bi bi-exclamation-triangle-fill"></i>
+                                            Este producto no está disponible para <strong>Envío por Cobrar</strong>.
+                                        </p>
+                                    @endif
+
                                     <!-- Métodos disponibles -->
                                     @php
-                                    $allowedMethods = [];
-                                    if ($item->allow_local_shipping) {
-                                        $allowedMethods[] = '<strong>Envío Local</strong>';
-                                    }
-                                    if ($item->allow_paqueteria_shipping) {
-                                        $allowedMethods[] = '<strong>Envío por Paquetería</strong>';
-                                    }
-                                    if ($item->allow_store_pickup) {
-                                        $allowedMethods[] = '<strong>Recoger en Tienda</strong>';
-                                    }
-                                    if ($item->allow_cobrar_shipping) {
-                                        $allowedMethods[] = '<strong>Envío por Cobrar</strong>';
-                                    }
-                                @endphp
-                                
+                                        $allowedMethods = [];
+                                        if ($item->allow_local_shipping) {
+                                            $allowedMethods[] = '<strong>Envío Local</strong>';
+                                        }
+                                        if ($item->allow_paqueteria_shipping) {
+                                            $allowedMethods[] = '<strong>Envío por Paquetería</strong>';
+                                        }
+                                        if ($item->allow_store_pickup) {
+                                            $allowedMethods[] = '<strong>Recoger en Tienda</strong>';
+                                        }
+                                        if ($item->allow_cobrar_shipping) {
+                                            $allowedMethods[] = '<strong>Envío por Cobrar</strong>';
+                                        }
+                                    @endphp
+
                                     @if (!empty($allowedMethods))
                                         <p class="text-success bg-warning mb-1">
                                             <i class="bi bi-check-circle-fill"></i>
@@ -348,34 +394,42 @@
                 @endforeach
             @endif
             @if ($shippmentExists && $shippment->ShipmentMethod === 'EnvioPorCobrar')
-            <div class="unique-cart-item row mb-4 p-4 border-bottom shadow-sm rounded bg-cobrar-envio">
-                <!-- Imagen del envío -->
-                <div class="col-12 col-md-2 text-center mb-3 mb-md-0">
-                    <img src="{{ asset('storage/img/envio_entrega/cobrar.png') }}" class="img-thumbnail cobrar-envio-img" alt="Envío por Cobrar">
-                </div>
-                <!-- Detalles del envío -->
-                <div class="col-12 col-md-10">
-                    <h5 class="text-uppercase text-dark fw-bold">Envío por Cobrar</h5>
-                    <div class="d-flex align-items-center justify-content-between flex-wrap mb-2">
-                        <p class="text-muted"><strong>Cantidad:</strong> 1 Envío</p>
-                        <p class="text-primary fw-bold p-2 bg-light rounded text-center cobrar-envio-costo">
-                            <strong>Costo de Envío:</strong> A pagar al recibir
-                        </p>
-                        <button class="btn btn-danger btn-sm remove-shipping ms-auto">
-                            <i class="bi bi-trash">Eliminar Envío</i> 
-                        </button>
+                <div class="unique-cart-item row mb-4 p-4 border-bottom shadow-sm rounded bg-cobrar-envio">
+                    <!-- Imagen del envío -->
+                    <div class="col-12 col-md-2 text-center mb-3 mb-md-0">
+                        <img src="{{ asset('storage/img/envio_entrega/cobrar.png') }}"
+                            class="img-thumbnail cobrar-envio-img" alt="Envío por Cobrar">
                     </div>
-                    <!-- Información sobre el estado de envío -->
-                    <div class="shipping-info mt-3 p-3 bg-white border-start border-info rounded">
-                        <p class="text-muted mb-1"><i class="bi bi-info-circle me-2"></i><strong>Estado del Envío:</strong> Por Confirmar</p>
-                        <p class="text-dark mb-1"><i class="bi bi-clock me-2"></i><strong>Tiempo de entrega:</strong> 2 a 7 días hábiles</p>
-                        <p class="text-danger mb-1"><i class="bi bi-exclamation-circle me-2"></i><strong>Nota:</strong> El costo de envío aún no a sido determinado y será cobrado al momento de la entrega por la empresa de paquetería.</p>
-                        <p class="text-secondary mt-2"><i class="bi bi-person-check me-2"></i><strong>Aviso:</strong> Asegúrese de que alguien esté disponible para recibir y pagar el envío.</p>
+                    <!-- Detalles del envío -->
+                    <div class="col-12 col-md-10">
+                        <h5 class="text-uppercase text-dark fw-bold">Envío por Cobrar</h5>
+                        <div class="d-flex align-items-center justify-content-between flex-wrap mb-2">
+                            <p class="text-muted"><strong>Cantidad:</strong> 1 Envío</p>
+                            <p class="text-primary fw-bold p-2 bg-light rounded text-center cobrar-envio-costo">
+                                <strong>Costo de Envío:</strong> A pagar al recibir
+                            </p>
+                            <button class="btn btn-danger btn-sm remove-shipping ms-auto">
+                                <i class="bi bi-trash"> Eliminar envío y <br> seleccionar otro método</i>
+                            </button>
+                        </div>
+                        <!-- Información sobre el estado de envío -->
+                        <div class="shipping-info mt-3 p-3 bg-white border-start border-info rounded">
+                            <p class="text-muted mb-1"><i class="bi bi-info-circle me-2"></i><strong>Estado del
+                                    Envío:</strong> Por Confirmar</p>
+                            <p class="text-dark mb-1"><i class="bi bi-clock me-2"></i><strong>Tiempo de
+                                    entrega:</strong> 2 a 7 días hábiles</p>
+                            <p class="text-danger mb-1"><i
+                                    class="bi bi-exclamation-circle me-2"></i><strong>Nota:</strong> El costo de envío
+                                aún no a sido determinado y será cobrado al momento de la entrega por la empresa de
+                                paquetería.</p>
+                            <p class="text-secondary mt-2"><i
+                                    class="bi bi-person-check me-2"></i><strong>Aviso:</strong> Asegúrese de que
+                                alguien esté disponible para recibir y pagar el envío.</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-        @endif
-        
+            @endif
+
             @if ($shippmentExists && $shippment->ShipmentMethod === 'EnvioLocal')
                 @php
                     $shippingCostSinIVA = $shippingCostIVA / 1.16;
@@ -405,7 +459,7 @@
                                 </p>
                                 <div class="unique-item-actions2 ms-auto">
                                     <button class="btn btn-danger btn-sm remove-shipping">
-                                        <i class="bi bi-trash"> Eliminar Envío</i>
+                                        <i class="bi bi-trash"> Eliminar envío y <br> seleccionar otro método</i>
                                     </button>
                                 </div>
                             </div>
@@ -452,7 +506,7 @@
                             </p>
                             <div class="unique-item-actions2 ms-auto">
                                 <button class="btn btn-danger btn-sm remove-shipping">
-                                    <i class="bi bi-trash">Eliminar Envío</i>
+                                    <i class="bi bi-trash"> Eliminar envío y <br> seleccionar otro método</i>
                                 </button>
                             </div>
                         </div>
@@ -509,7 +563,7 @@
                                 </p>
                                 <div class="unique-item-actions2 ms-auto">
                                     <button class="btn btn-danger btn-sm remove-shipping">
-                                        <i class="bi bi-trash"> Eliminar Envío</i>
+                                        <i class="bi bi-trash"> Eliminar envío y <br> seleccionar otro método</i>
                                     </button>
                                 </div>
                             </div>
@@ -535,33 +589,63 @@
             @endif
 
         </div>
+
+        @if ($eligibleCartItems->isEmpty())
+            <div class="alert alert-danger text-center">
+                <h4><i class="bi bi-exclamation-triangle-fill"></i> No hay productos disponibles para el método de
+                    envío seleccionado.</h4>
+                <p>Por favor, elija un método de envío diferente o modifique los productos en su carrito.</p>
+                <button class="btn btn-warning btn-lg remove-shipping ms-auto bigger-button shadow-lg p-3 ">
+                    <i class="bi bi-trash"></i> Eliminar envío y seleccionar otro método de envío disponible.
+                </button>
+            </div>
+        @endif
         <div class="unique-cart-summary p-4 bg-white rounded shadow-sm mt-4 border">
             <h4 class="mb-4 text-primary fw-bold">Resumen de su compra</h4>
             <!-- Sección con columnas a la izquierda y derecha -->
             <div class="row">
-                <!-- Columna izquierda (Subtotal, Descuento, Envío) -->
+                <!-- Columna izquierda (Subtotal, Descuento, Envío, Total sin IVA, IVA, Total) -->
                 <div class="col-md-6">
+                    <!-- Subtotal de productos sin descuento y sin IVA -->
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-muted">Subtotal (sin envío):</span>
-                        <span class="fw-bold text-dark">${{ number_format($subtotalSinIVA, 2, '.', ',') }} MXN</span>
+                        <span class="text-muted">Subtotal de productos(sin IVA):</span>
+                        <span class="fw-bold text-dark">${{ number_format($subtotalProductosSinIVA, 2, '.', ',') }} MXN</span>
                     </div>
-
+                    <!-- Descuento aplicado sin IVA -->
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-muted">Descuento aplicado:</span>
-                        <span class="fw-bold text-success">- ${{ number_format($totalDescuento, 2, '.', ',') }}
-                            MXN</span>
+                        <span class="text-muted">Descuento aplicado(sin IVA):</span>
+                        <span class="fw-bold text-success">- ${{ number_format($totalDescuentoSinIVA, 2, '.', ',') }} MXN</span>
                     </div>
+                    <!-- Costo de Envío sin IVA -->
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-muted">Costo de Envío:</span>
+                        <span class="text-muted">Costo de Envío (sin IVA):</span>
                         @if ($shippmentExists && $shippment->ShipmentMethod === 'EnvioPorCobrar')
-                        <p class="text-danger fw-bold">* El costo de envío aún no a sido calculado y será cobrado al momento de la entrega.</p>
-                    @endif
-                    
-                            <span class="fw-bold text-dark">${{ number_format($shippingCostIVA, 2, '.', ',') }}
-                                MXN</span>
+                            <p class="text-danger fw-bold">* El costo de envío aún no ha sido calculado y será cobrado al momento de la entrega.</p>
+                        @else
+                            <span class="fw-bold text-dark">${{ number_format($shippingCostSinIVA, 2, '.', ',') }} MXN</span>
                         @endif
                     </div>
+                    <!-- Total sin IVA -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted">Total sin IVA:</span>
+                        <span class="fw-bold text-dark">${{ number_format($totalSinIVA, 2, '.', ',') }} MXN</span>
+                    </div>
+                    <!-- IVA total -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted">IVA (16%):</span>
+                        <span class="fw-bold text-dark">${{ number_format($ivaTotal, 2, '.', ',') }} MXN</span>
+                    </div>
+                    <!-- Total final incluyendo IVA -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="mb-0 text-dark fw-bold">Total a pagar:</h4>
+                        <h4 class="mb-0 text-primary fw-bold">${{ number_format($totalFinal, 2, '.', ',') }} MXN</h4>
+                    </div>
                 </div>
+
+
+
+
+
                 <div class="col-md-6">
                     @if (!$shippmentExists)
                         <div id="shipping-alert" class="alert alert-warning alert-shake">
@@ -604,30 +688,31 @@
             </div>
             <hr class="my-4">
             <!-- Sección destacada para el Total a pagar -->
-
-            <div class="total-section p-3 bg-light rounded d-flex justify-content-between align-items-center mb-4"
-                style="background-color: #f8f9fa; border-left: 5px solid #007bff;">
-                <h4 class="mb-0 text-dark fw-bold">Total a pagar:</h4>
-                <h4 class="mb-0 text-primary fw-bold">${{ number_format($totalFinal, 2, '.', ',') }} MXN</h4>
-            </div>
-            @if ($shippmentExists && $shippment->ShipmentMethod === 'EnvioPorCobrar')
-                <p class="text-danger fw-bold">* El costo de envío será cobrado al momento de la entrega.</p>
-            @endif
-
-            @if ($shippmentExists)
-                <div class="d-grid gap-2 mt-4">
-                    <form id="checkoutForm" action="{{ url('/cart/proceed-to-payment') }}" method="POST">
-                        @csrf
-                        <!-- Botón para proceder al pago -->
-                        <button type="button" id="proceedToPaymentBtn"
-                            class="btn btn-lg btn-success shadow-lg btn-block font-weight-bold">
-                            <i class="bi bi-cash-coin me-2"></i> Continuar al Pago
-                        </button>
-                    </form>
+            @if ($eligibleCartItems->isNotEmpty())
+                <div class="total-section p-3 bg-light rounded d-flex justify-content-between align-items-center mb-4"
+                    style="background-color: #f8f9fa; border-left: 5px solid #007bff;">
+                    <h4 class="mb-0 text-dark fw-bold">Total a pagar:</h4>
+                    <h4 class="mb-0 text-primary fw-bold">${{ number_format($totalFinal, 2, '.', ',') }} MXN</h4>
                 </div>
+                @if ($shippmentExists && $shippment->ShipmentMethod === 'EnvioPorCobrar')
+                    <p class="text-danger fw-bold">* El costo de envío será cobrado al momento de la entrega.</p>
+                @endif
+
+                @if ($shippmentExists)
+                    <div class="d-grid gap-2 mt-4">
+                        <form id="checkoutForm" action="{{ url('/cart/proceed-to-payment') }}" method="POST">
+                            @csrf
+                            <!-- Botón para proceder al pago -->
+                            <button type="button" id="proceedToPaymentBtn"
+                                class="btn btn-lg btn-success shadow-lg btn-block font-weight-bold">
+                                <i class="bi bi-cash-coin me-2"></i> Continuar al Pago
+                            </button>
+                        </form>
+                    </div>
+                @endif
             @endif
         </div>
-    
+    @endif
 </div>
 
 <!-- Modal de Términos y Condiciones -->
@@ -650,6 +735,7 @@
         </div>
     </div>
 </div>
+
 <script>
     $(document).ready(function() {
         // Verificar si la alerta está presente en el DOM
@@ -859,6 +945,63 @@
         }
     });
 </script>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.quantity-input').forEach(input => {
+            input.addEventListener('change', function() {
+                const productCode = this.getAttribute('data-product-code');
+                const maxQuantity = parseInt(this.getAttribute('data-max-quantity'), 10);
+                const newQuantity = parseInt(this.value, 10);
+
+                if (newQuantity > maxQuantity) {
+                    this.value = maxQuantity; // Restablece al máximo permitido
+                    showError('La cantidad máxima disponible es ' + maxQuantity);
+                    return;
+                }
+
+                updateQuantity(productCode, newQuantity);
+            });
+        });
+
+        // Función para actualizar la cantidad en el servidor
+        function updateQuantity(productCode, quantity) {
+            $.ajax({
+                type: 'POST',
+                url: '/cart/update-quantity',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    quantity: quantity,
+                    product_code: productCode
+                },
+                success: function(response) {
+                    if (response.success) {
+                        location.reload();
+                    } else if (!response.success && response.maxQuantity) {
+                        showError(response.message);
+                        document.querySelector(`input[data-product-code="${productCode}"]`).value =
+                            response.maxQuantity;
+                    }
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+                    alert('Hubo un error al intentar actualizar la cantidad.');
+                }
+            });
+        }
+
+        // Función para mostrar errores de manera visual
+        function showError(message) {
+            const errorAlert = document.createElement('div');
+            errorAlert.classList.add('alert', 'alert-danger');
+            errorAlert.textContent = message;
+            document.getElementById('unique-cart-container').prepend(errorAlert);
+            setTimeout(() => errorAlert.remove(), 3000);
+        }
+    });
+</script>
+
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -1408,26 +1551,77 @@
     }
 
     .bg-cobrar-envio {
-    background-color: #e0f7fa;
-    border-left: 5px solid #26a69a;
-}
+        background-color: #e0f7fa;
+        border-left: 5px solid #26a69a;
+    }
 
-/* .cobrar-envio-img {
-    object-fit: cover;
-    width: 100%;
-    height: auto;
-}
+    #general-shipping-block {
+        background-color: #f7f9fc;
+        border: 1px solid #ffc107;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
 
-.cobrar-envio-costo {
-    color: #00796b;
-    font-size: 1.1rem;
-    border: 1px solid #00796b;
-}
+    #general-shipping-block h5 {
+        font-weight: 600;
+        color: #007bff;
+    }
 
-.shipping-info {
-    background-color: #f5f5f5;
-    padding: 15px;
-    border-radius: 5px;
-} */
+    .form-group .form-select.custom-select {
+        background-color: #ffffff;
+        border: 2px solid #ced4da;
+        padding: 0.75rem;
+        font-size: 1rem;
+        color: #495057;
+        font-weight: 500;
+        border-radius: 8px;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.05);
+        transition: border-color 0.3s, box-shadow 0.3s;
+        appearance: none;
+        position: relative;
+    }
 
+    .form-group .form-select.custom-select:focus {
+        border-color: #007bff;
+        box-shadow: 0px 0px 8px rgba(0, 123, 255, 0.25);
+        outline: none;
+    }
+
+    .form-group i.custom-chevron {
+        font-size: 1.25rem;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #007bff;
+        pointer-events: none;
+    }
+
+    .mb-4.p-3.bg-white.rounded.shadow-sm {
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0px 6px 16px rgba(0, 0, 0, 0.08);
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    #general-shipping-block div .form-group {
+        margin-bottom: 1rem;
+    }
+
+    #general-shipping-block select.form-select:hover {
+        background-color: #f0f4f8;
+        border-color: #b0b8c2;
+    }
+
+    .bigger-button {
+        font-size: 1rem;
+        /* Ajusta el tamaño de fuente */
+        padding: 0.50rem 1.25rem;
+        /* Más espacio interno */
+        border-radius: 8px;
+        /* Redondeado suave */
+        line-height: 1.2;
+        /* Mejora la alineación del texto */
+    }
 </style>

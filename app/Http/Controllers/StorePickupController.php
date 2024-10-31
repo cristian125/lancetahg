@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 
 class StorePickupController extends ProductController
 {
+
     public function handleStorePickup(Request $request, $userId)
     {
         // Obtener las tiendas desde la base de datos
@@ -28,27 +29,27 @@ class StorePickupController extends ProductController
     {
         $userId = auth()->id();
         $cartId = DB::table('carts')->where('user_id', $userId)->value('id');
-    
+
         if (!$cartId) {
             return redirect()->route('cart.show')->with('error', 'Carrito no encontrado para el usuario actual.');
         }
-    
+
         // Verificar si se seleccionó una tienda, si no, asignar la primera tienda disponible
         $storeId = $request->input('store_id') ?: DB::table('tiendas')->value('id');
-    
+
         if (!$storeId) {
             return redirect()->route('cart.show')->with('error', 'No hay tiendas disponibles.');
         }
-    
+
         // Obtener información de la tienda seleccionada
         $store = DB::table('tiendas')->where('id', $storeId)->first();
         if (!$store) {
             return redirect()->route('cart.show')->with('error', 'La tienda seleccionada no existe.');
         }
-    
+
         $pickupDate = $request->input('pickup_date');
         $pickupTime = $request->input('pickup_time');
-    
+
         // Inserta el método de envío en la tabla cart_shippment
         DB::table('cart_shippment')->insert([
             'cart_id' => $cartId,
@@ -76,10 +77,10 @@ class StorePickupController extends ProductController
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-    
+
         return redirect()->route('cart.show')->with('success', 'Método de envío seleccionado correctamente.');
     }
-    
+
 
     private function verificarExistenciasEnTiendas($productCodes, $tiendas)
     {

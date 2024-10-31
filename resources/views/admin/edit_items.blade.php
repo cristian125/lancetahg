@@ -1,7 +1,8 @@
 @extends('admin.index')
 
 @section('content')
-<script src="https://cdn.tiny.cloud/1/wvaefm1arxme7m88dltt36jyacb4oqanhvybh3pu7972u0ok/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
+    <script src="https://cdn.tiny.cloud/1/wvaefm1arxme7m88dltt36jyacb4oqanhvybh3pu7972u0ok/tinymce/7/tinymce.min.js"
+        referrerpolicy="origin"></script>
     <div class="container-fluid py-5">
         <h2 class="text-center mb-4">Modificar Item</h2>
         <div class="row justify-content-center">
@@ -258,25 +259,31 @@
 
                             </div>
 
- <!-- Opciones de Envío -->
-<h4 class="mt-4 mb-3 text-primary">Opciones de Envío</h4>
-<div class="form-group">
-    <label for="allow_local_shipping" class="form-label fw-bold">Permitir Envío Local</label>
-    <input type="checkbox" id="allow_local_shipping" name="allow_local_shipping" value="1" {{ $item->allow_local_shipping ? 'checked' : '' }}>
-</div>
-<div class="form-group">
-    <label for="allow_paqueteria_shipping" class="form-label fw-bold">Permitir Envío por Paquetería</label>
-    <input type="checkbox" id="allow_paqueteria_shipping" name="allow_paqueteria_shipping" value="1" {{ $item->allow_paqueteria_shipping ? 'checked' : '' }}>
-</div>
-<div class="form-group">
-    <label for="allow_store_pickup" class="form-label fw-bold">Permitir Recoger en Tienda</label>
-    <input type="checkbox" id="allow_store_pickup" name="allow_store_pickup" value="1" {{ $item->allow_store_pickup ? 'checked' : '' }}>
-</div>
-<div class="form-group">
-    <label for="allow_cobrar_shipping" class="form-label fw-bold">Permitir Envío por Cobrar</label>
-    <input type="checkbox" id="allow_cobrar_shipping" name="allow_cobrar_shipping"
-           value="1" {{ $item->allow_cobrar_shipping ? 'checked' : '' }}>
-</div>
+                            <!-- Opciones de Envío -->
+                            <h4 class="mt-4 mb-3 text-primary">Opciones de Envío</h4>
+                            <div class="form-group">
+                                <label for="allow_local_shipping" class="form-label fw-bold">Permitir Envío Local</label>
+                                <input type="checkbox" id="allow_local_shipping" name="allow_local_shipping"
+                                    value="1" {{ $item->allow_local_shipping ? 'checked' : '' }}>
+                            </div>
+                            <div class="form-group">
+                                <label for="allow_paqueteria_shipping" class="form-label fw-bold">Permitir Envío por
+                                    Paquetería</label>
+                                <input type="checkbox" id="allow_paqueteria_shipping" name="allow_paqueteria_shipping"
+                                    value="1" {{ $item->allow_paqueteria_shipping ? 'checked' : '' }}>
+                            </div>
+                            <div class="form-group">
+                                <label for="allow_store_pickup" class="form-label fw-bold">Permitir Recoger en
+                                    Tienda</label>
+                                <input type="checkbox" id="allow_store_pickup" name="allow_store_pickup" value="1"
+                                    {{ $item->allow_store_pickup ? 'checked' : '' }}>
+                            </div>
+                            <div class="form-group">
+                                <label for="allow_cobrar_shipping" class="form-label fw-bold">Permitir Envío por
+                                    Cobrar</label>
+                                <input type="checkbox" id="allow_cobrar_shipping" name="allow_cobrar_shipping"
+                                    value="1" {{ $item->allow_cobrar_shipping ? 'checked' : '' }}>
+                            </div>
 
 
 
@@ -316,7 +323,7 @@
             // Manejar la subida de imágenes al soltar
             dropArea.addEventListener('drop', handleDrop, false);
             dropArea.addEventListener('click', () => inputElement
-        .click()); // Permitir clic para seleccionar archivos
+                .click()); // Permitir clic para seleccionar archivos
 
             function preventDefaults(e) {
                 e.preventDefault();
@@ -718,20 +725,20 @@
             cursor: copy;
         }
     </style>
-        <script>
-    tinymce.init({
-        selector: '#descripcion', // Solo en el campo de descripción
-        language: 'es', // Idioma en español
-        height: 400,
-        plugins: 'lists link image code',
-        toolbar: 'undo redo | formatselect | bold italic | alignleft aligncenter alignright | bullist numlist | link image | code',
-        branding: false,
-        setup: function (editor) {
-            // Asegurarse de que el contenido se guarda aunque esté vacío
-            editor.on('change', function () {
-                tinymce.triggerSave();
-            });
-        }
-    });
-        </script>
+    <script>
+        tinymce.init({
+            selector: '#descripcion', // Solo en el campo de descripción
+            language: 'es', // Idioma en español
+            height: 400,
+            plugins: 'lists link image code',
+            toolbar: 'undo redo | formatselect | bold italic | alignleft aligncenter alignright | bullist numlist | link image | code',
+            branding: false,
+            setup: function(editor) {
+                // Asegurarse de que el contenido se guarda aunque esté vacío
+                editor.on('change', function() {
+                    tinymce.triggerSave();
+                });
+            }
+        });
+    </script>
 @endsection
