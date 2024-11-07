@@ -1,28 +1,28 @@
 <?php
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Redirect;
-use Carbon\Carbon;
 
 class AccountController extends Controller
 {
-    
+
     public function index(Request $request)
     {
-                // Verificar si el sitio está en mantenimiento
-                $mantenimiento = ProductosDestacadosController::checkMaintenance();
-                if ($mantenimiento == 'true') {
-                    return redirect(route('mantenimento'));
-                }
         
-        $sectionToOpen = $request->get('section', null);  // Obtener la sección desde la URL
-    
-        // Obtener los datos necesarios
+        $mantenimiento = ProductosDestacadosController::checkMaintenance();
+        if ($mantenimiento == 'true') {
+            return redirect(route('mantenimento'));
+        }
+
+        $sectionToOpen = $request->get('section', null); 
+
+
         $user = Auth::user();
         $userID = $user->id;
         $direcciones = $this->obtenerDirecciones($userID);
@@ -31,41 +31,35 @@ class AccountController extends Controller
             ->where('facturacion', 1)
             ->first();
         $userData = DB::table('users_data')->where('user_id', $userID)->first();
-    
-        // Archivos de modales y acordeones
+
+
         $files_modal = File::allFiles(resource_path('views/partials/modal/cuenta'));
         $files_accordion = File::allFiles(resource_path('views/partials/accordion/cuenta'));
-    
+
         $modal_files = new \stdClass();
         $accordion_files = new \stdClass();
-    
+
         $i = 0;
-        foreach($files_modal as $file)
-        {
+        foreach ($files_modal as $file) {
             $modal_files->$i = str_replace('.blade.php', '', $file->getRelativePathname());
             $i++;
         }
         $i = 0;
-        foreach($files_accordion as $file)
-        {
+        foreach ($files_accordion as $file) {
             $accordion_files->$i = str_replace('.blade.php', '', $file->getRelativePathname());
             $i++;
         }
 
-        // Pasar los datos a la vista
         return view('cuenta', [
             'direcciones' => $direcciones,
             'direccion_facturacion' => $direccion_facturacion,
             'modal_files' => $modal_files,
             'accordion_files' => $accordion_files,
-            'user' => $user,             
+            'user' => $user,
             'userData' => $userData,
-            'sectionToOpen' => $sectionToOpen // Pasar la sección a la vista
+            'sectionToOpen' => $sectionToOpen, 
         ]);
     }
-    
-    
-    
 
     public function agregarDireccion(Request $request)
     {
@@ -87,15 +81,12 @@ class AccountController extends Controller
 
         $direccion = DB::table('users_address')->where(['user_id' => $userID, 'nombre' => strtoupper(trim($nombre))])->get();
 
-        
         if (count($direccion) > 0) {
             return back()->withErrors([
                 'Nombre' => 'El nombre de la dirección ya está dado de alta. Por favor ingrese otro distinto.',
             ]);
-        } 
-        else 
-        {
-            
+        } else {
+
             DB::table('users_address')->insert([
                 'user_id' => $userID,
                 'nombre' => $nombre,
@@ -157,43 +148,40 @@ class AccountController extends Controller
         $cord_y = $request->cord_y;
         $fecha = Carbon::now();
         $direccion = DB::table('users_address')->where(['id' => $id])->get();
-        
-        if (count($direccion) > 0) 
-        {
+
+        if (count($direccion) > 0) {
             $upd = DB::table('users_address')
-            ->where('id',$id)
-            ->update([
-                'nombre' => $nombre,
-                'calle' => $calle,
-                'no_int' => $no_int,
-                'no_ext' => $no_ext,
-                'entre_calles' => $entre_calles,
-                'colonia' => $colonia,
-                'municipio' => $municipio,
-                'codigo_postal' => $codigo_postal,
-                'estado' => $estado,
-                'pais' => $pais,
-                'referencias' => $referencias,
-                'cord_x' => $cord_x,
-                'cord_y' => $cord_y,
-                'updated_by' => $userID,
-                'updated_at' => $fecha->toDateTimeString()
-            ]);
-            
+                ->where('id', $id)
+                ->update([
+                    'nombre' => $nombre,
+                    'calle' => $calle,
+                    'no_int' => $no_int,
+                    'no_ext' => $no_ext,
+                    'entre_calles' => $entre_calles,
+                    'colonia' => $colonia,
+                    'municipio' => $municipio,
+                    'codigo_postal' => $codigo_postal,
+                    'estado' => $estado,
+                    'pais' => $pais,
+                    'referencias' => $referencias,
+                    'cord_x' => $cord_x,
+                    'cord_y' => $cord_y,
+                    'updated_by' => $userID,
+                    'updated_at' => $fecha->toDateTimeString(),
+                ]);
+
             if ($upd === false) {
-                // En caso de un error con la consulta (fallo de SQL)
+
                 return back()->withErrors(['error' => 'No se pudo guardar la dirección. Intente de nuevo más tarde.']);
             } elseif ($upd === 0) {
-                // Si no se afectó ninguna fila, pero la consulta fue exitosa
+
                 return back()->withErrors(['info' => 'No se realizaron cambios, ya que los datos son los mismos.']);
             }
-        } 
-        else 
-        {
+        } else {
             return back()->withErrors(['error' => 'No se pudo actualizar la dirección.']);
         }
 
-        return redirect()->route('cuenta')->with(['status'=>'Se actualizo correctamente la dirección.']);
+        return redirect()->route('cuenta')->with(['status' => 'Se actualizo correctamente la dirección.']);
     }
 
     public function eliminarDirecciones(Request $request)
@@ -219,94 +207,93 @@ class AccountController extends Controller
     {
         $user = Auth::user();
         $direccionID = $request->direccion_predeterminada;
-    
-        // Marcar todas las direcciones como no predeterminadas
+
+
         DB::table('users_address')
             ->where('user_id', $user->id)
             ->update(['predeterminada' => 0]);
-    
-        // Marcar la dirección seleccionada como predeterminada
-        DB::table('users_address')  
+
+        DB::table('users_address')
             ->where('id', $direccionID)
             ->where('user_id', $user->id)
             ->update(['predeterminada' => 1]);
-    
+
         return response()->json(['message' => 'Dirección predeterminada actualizada correctamente'], 200);
     }
     public function setDireccionFacturacion(Request $request)
-{
-    $user = Auth::user();
-    $direccionID = $request->direccion_facturacion;
+    {
+        $user = Auth::user();
+        $direccionID = $request->direccion_facturacion;
 
-    // Marcar todas las direcciones como no de facturación
-    DB::table('users_address')
-        ->where('user_id', $user->id)
-        ->update(['facturacion' => 0]);
 
-    // Marcar la dirección seleccionada como de facturación
-    DB::table('users_address')  
-        ->where('id', $direccionID)
-        ->where('user_id', $user->id)
-        ->update(['facturacion' => 1]);
+        DB::table('users_address')
+            ->where('user_id', $user->id)
+            ->update(['facturacion' => 0]);
 
-    return response()->json(['message' => 'Dirección de facturación actualizada correctamente'], 200);
-}
 
-public function actualizarDatosFacturacion(Request $request)
-{
-    $user = Auth::user();
-    $userID = $user->id;
+        DB::table('users_address')
+            ->where('id', $direccionID)
+            ->where('user_id', $user->id)
+            ->update(['facturacion' => 1]);
 
-    // Validar los datos de facturación
-    $request->validate([
-        'razon_social' => 'required|string|max:255',
-        'rfc' => 'required|string|max:13',
-        'regimen_fiscal' => 'required|string|max:255',
-        'uso_cfdi' => 'required|string|max:255',
-    ]);
-
-    // Actualizar los datos de facturación en la tabla users_data
-    DB::table('users_data')->updateOrInsert(
-        ['user_id' => $userID],
-        [
-            'razon_social' => $request->razon_social,
-            'rfc' => $request->rfc,
-            'regimen_fiscal' => $request->regimen_fiscal,
-            'uso_cfdi' => $request->uso_cfdi,
-            'updated_at' => Carbon::now()
-        ]
-    );
-
-    return redirect()->route('cuenta')->with('status', 'Datos de facturación actualizados correctamente.');
-}
-
-public function actualizarPromociones(Request $request)
-{
-    $user = Auth::user();
-    $email = $user->email; // Usamos el email del usuario autenticado
-    $ipAddress = $request->ip();
-    $suscripcion = $request->input('recibir_promociones');
-
-    if ($suscripcion == 1) {
-        // Si selecciona "Sí", insertar o activar el registro en 'newsletter_subs'
-        DB::table('newsletter_subs')->updateOrInsert(
-            ['email' => $email],
-            [
-                'ip_address' => $ipAddress,
-                'subscribed_at' => now(),
-                'is_active' => 1
-            ]
-        );
-    } else {
-        // Si selecciona "No", desactivar la suscripción si ya existe
-        $registro = DB::table('newsletter_subs')->where('email', $email)->first();
-
-        if ($registro) {
-            DB::table('newsletter_subs')->where('email', $email)->update(['is_active' => 0]);
-        }
+        return response()->json(['message' => 'Dirección de facturación actualizada correctamente'], 200);
     }
 
-    return redirect()->route('cuenta')->with('status', 'Preferencias de promociones actualizadas correctamente.');
-}
+    public function actualizarDatosFacturacion(Request $request)
+    {
+        $user = Auth::user();
+        $userID = $user->id;
+
+
+        $request->validate([
+            'razon_social' => 'required|string|max:255',
+            'rfc' => 'required|string|max:13',
+            'regimen_fiscal' => 'required|string|max:255',
+            'uso_cfdi' => 'required|string|max:255',
+        ]);
+
+
+        DB::table('users_data')->updateOrInsert(
+            ['user_id' => $userID],
+            [
+                'razon_social' => $request->razon_social,
+                'rfc' => $request->rfc,
+                'regimen_fiscal' => $request->regimen_fiscal,
+                'uso_cfdi' => $request->uso_cfdi,
+                'updated_at' => Carbon::now(),
+            ]
+        );
+
+        return redirect()->route('cuenta')->with('status', 'Datos de facturación actualizados correctamente.');
+    }
+
+    public function actualizarPromociones(Request $request)
+    {
+        $user = Auth::user();
+        $email = $user->email; 
+        $ipAddress = $request->ip();
+        $suscripcion = $request->input('recibir_promociones');
+
+        if ($suscripcion == 1) {
+
+            DB::table('newsletter_subs')->updateOrInsert(
+                ['email' => $email],
+                [
+                    'ip_address' => $ipAddress,
+                    'subscribed_at' => now(),
+                    'is_active' => 1,
+                ]
+            );
+        } else {
+
+            $registro = DB::table('newsletter_subs')->where('email', $email)->first();
+
+            if ($registro) {
+                DB::table('newsletter_subs')->where('email', $email)->update(['is_active' => 0]);
+            }
+        }
+
+        return redirect()->route('cuenta')->with('status', 'Preferencias de promociones actualizadas correctamente.');
+    }
 
 }

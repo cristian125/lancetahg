@@ -8,15 +8,24 @@ use Illuminate\Support\Facades\DB;
 
 class CartController extends ProductController
 {
+    static public function getId()
+    {
+        $userId = auth()->id();
+        $cartId = DB::table('carts')
+            ->where('user_id', $userId)
+            ->where('status',1)
+            ->value('id');
+            return $cartId;
+    }
 
     public function proceedToPayment(Request $request)
     {
-                // Verificar si el sitio está en mantenimiento
-                $mantenimiento = ProductosDestacadosController::checkMaintenance();
-                if ($mantenimiento == 'true') {
-                    return redirect(route('mantenimento'));
-                }
-        
+        // Verificar si el sitio está en mantenimiento
+        $mantenimiento = ProductosDestacadosController::checkMaintenance();
+        if ($mantenimiento == 'true') {
+            return redirect(route('mantenimento'));
+        }
+
         $userId = auth()->id();
 
         if (!$userId) {
@@ -24,9 +33,7 @@ class CartController extends ProductController
         }
         session(['allow_checkout' => true]);
         // Obtener el ID del carrito del usuario
-        $cartId = DB::table('carts')
-            ->where('user_id', $userId)
-            ->value('id');
+        $cartId = $this->getId();
 
         // Obtener los detalles del envío desde `cart_shippment`
         $shippmentDetails = DB::table('cart_shippment')
@@ -53,7 +60,6 @@ class CartController extends ProductController
             )
             ->get();
 
-
         // Verificar el stock de los productos en el carrito
         foreach ($cartItems as $item) {
             if ($item->quantity > $item->cantidad_disponible) {
@@ -77,7 +83,6 @@ class CartController extends ProductController
             }
             return false;
         });
-
 
         // Obtener los productos no elegibles
         $eligibleProductNos = $eligibleCartItems->pluck('no_s')->all();
@@ -148,7 +153,8 @@ class CartController extends ProductController
         }
 
         // Verificar si ya existe un envío previo para el usuario
-        $existingShippment = DB::table('shippments')
+
+        $existingShippment = DB::table('order_shippment')
             ->where('user_id', $userId)
             ->where('status', 'pending')
             ->first();
@@ -159,7 +165,7 @@ class CartController extends ProductController
                 ->where('shippment_id', $existingShippment->id)
                 ->delete();
 
-            DB::table('shippments')
+            DB::table('order_shippment')
                 ->where('id', $existingShippment->id)
                 ->delete();
         }
@@ -168,37 +174,80 @@ class CartController extends ProductController
         $contactName = $request->input('contactName', auth()->user()->name);
         $contactPhone = $request->input('contactPhone', auth()->user()->phone);
 
-        // Crear el nuevo shippment utilizando los datos de `cart_shippment`
-        $shippmentId = DB::table('shippments')->insertGetId([
-            'user_id' => $userId,
-            'cart_id' => $cartId,
-            'store_id' => $storeId,
-            'shipping_method' => $shippmentDetails->ShipmentMethod,
-            'shipping_cost' => $shippmentDetails->unit_price,
-            'shipping_cost_IVA' => $shippingCost,
-            'subtotal_sin_envio' => $totalPrice,
-            'total_con_IVA' => $totalPriceIVA,
-            'shipping_address' => $shippmentDetails->calle . ' ' . $shippmentDetails->no_ext,
-            'no_int' => $shippmentDetails->no_int,
-            'no_ext' => $shippmentDetails->no_ext,
-            'entre_calles' => $shippmentDetails->entre_calles,
-            'colonia' => $shippmentDetails->colonia,
-            'municipio' => $shippmentDetails->municipio,
-            'codigo_postal' => $shippmentDetails->codigo_postal,
-            'pais' => $shippmentDetails->pais,
-            'referencias' => $shippmentDetails->referencias,
-            'cord_x' => $shippmentDetails->cord_x,
-            'cord_y' => $shippmentDetails->cord_y,
-            'nombre_contacto' => $contactName,
-            'telefono_contacto' => $contactPhone,
-            'email_contacto' => $request->user()->email,
-            'pickup_date' => $shippmentDetails->pickup_date ?? null,
-            'pickup_time' => $shippmentDetails->pickup_time ?? null,
-            'status' => 'pending',
-            'created_at' => now(),
-            'updated_at' => now(),
+        $shippmentUpdate = DB::table('cart_shippment')
+            ->where('cart_id', $cartId)
+            ->update(['contactName'=>$contactName,'contactPhone'=>$contactPhone,'contactEmail'=>$request->user()->email]);
 
-        ]);
+
+        // Crear el nuevo shippment utilizando los datos de `cart_shippment`
+        // $shippmentId = DB::table('order_shippment')->insertGetId([
+        //     'order_id'=> $orderId,
+        //     'user_id'=>$userId,
+        //     'cart_id'=>$cartId,
+        //     'store_id'=>$storeId,
+        //     'pickup_date'=>$shippmentDetails->pickup_date ?? null,
+        //     'pickup_time'=>$shippmentDetails->pickup_time ?? null,
+        //     'shipping_method'=>$shippmentDetails->ShipmentMethod,
+        //     'shipping_cost'=>$shippmentDetails->unit_price,
+        //     'shipping_cost_IVA'=>$shippingCost,
+        //     'subtotal_sin_envio'=>$totalPrice,
+        //     'total_con_IVA'=>$totalPriceIVA,
+        //     'shipping_address'=>$shippmentDetails->calle,
+        //     'no_int'=>$shippmentDetails->no_int,
+        //     'no_ext'=>$shippmentDetails->no_ext,
+        //     'entre_calles'=>$shippmentDetails->entre_calles,
+        //     'colonia'=> $shippmentDetails->colonia,
+        //     'municipio'=> $shippmentDetails->municipio,
+        //     'pais'=> $shippmentDetails->pais,
+        //     'referencias'=> $shippmentDetails->referencias,
+        //     'cord_x'=>$shippmentDetails->cord_x,
+        //     'cord_y'=>$shippmentDetails->cord_y,
+        //     'codigo_postal'=>$shippmentDetails->codigo_postal,
+        //     'nombre_contacto'=>$contactName,
+        //     'telefono_contacto'=>$contactPhone,
+        //     'email_contacto'=>$request->user()->email,
+        //     'status'=>'pending',
+        //     'created_at'=> now(),
+        //     'updated_at'=> now()
+        // ]);
+        // $shippmentId = DB::table('order_shippment')->insertGetId([
+        //     'user_id' => $userId,
+        //     'cart_id' => $cartId,
+        //     'store_id' => $storeId,
+        //     'shipping_method' => $shippmentDetails->ShipmentMethod,
+        //     'shipping_cost' => $shippmentDetails->unit_price,
+        //     'shipping_cost_IVA' => $shippingCost,
+        //     'subtotal_sin_envio' => $totalPrice,
+        //     'total_con_IVA' => $totalPriceIVA,
+        //     'shipping_address' => $shippmentDetails->calle,
+        //     'no_int' => $shippmentDetails->no_int,
+        //     'no_ext' => $shippmentDetails->no_ext,
+        //     'entre_calles' => $shippmentDetails->entre_calles,
+        //     'colonia' => $shippmentDetails->colonia,
+        //     'municipio' => $shippmentDetails->municipio,
+        //     'codigo_postal' => $shippmentDetails->codigo_postal,
+        //     'pais' => $shippmentDetails->pais,
+        //     'referencias' => $shippmentDetails->referencias,
+        //     'cord_x' => $shippmentDetails->cord_x,
+        //     'cord_y' => $shippmentDetails->cord_y,
+        //     'nombre_contacto' => $contactName,
+        //     'telefono_contacto' => $contactPhone,
+        //     'email_contacto' => $request->user()->email,
+        //     'pickup_date' => $shippmentDetails->pickup_date ?? null,
+        //     'pickup_time' => $shippmentDetails->pickup_time ?? null,
+        //     'status' => 'pending',
+        //     'created_at' => now(),
+        //     'updated_at' => now(),
+        // ]);
+
+        $shippmentId = $shippmentDetails->id;
+
+        $check = DB::table('shippment_items')->where('shippment_id',$shippmentId)->get();
+
+        if(count($check)>0)
+        {
+            DB::table('shippment_items')->where('shippment_id',$shippmentId)->delete();
+        }
 
         // Insertar los productos elegibles en la tabla `shippment_items`
         foreach ($eligibleCartItems as $item) {
@@ -207,7 +256,6 @@ class CartController extends ProductController
             if (is_null($description)) {
                 $description = 'Descripción no disponible';
             }
-
             DB::table('shippment_items')->insert([
                 'shippment_id' => $shippmentId,
                 'no_s' => $item->no_s,
@@ -233,12 +281,14 @@ class CartController extends ProductController
             $shippingCost = floatval($shippmentDetails->shippingcost_IVA);
         }
 
-
         return redirect('/checkout')->with('success', 'El pedido ha sido validado. Procede al pago.');
     }
 
     public function showCheckout(Request $request)
     {
+
+        $cartId=$this->getID();
+
         // Verificar si se permite el acceso al checkout y eliminar la sesión para prevenir futuros accesos directos
         if (!session()->pull('allow_checkout', false)) {
             return redirect('/carrito')->with('error', 'Debes crear un pedido para proceder al checkout.');
@@ -257,9 +307,8 @@ class CartController extends ProductController
         }
 
         // Obtener el envío pendiente del usuario desde la tabla 'shippments'
-        $shippment = DB::table('shippments')
-            ->where('user_id', $userId)
-            ->where('status', 'pending')
+        $shippment = DB::table('cart_shippment')
+            ->where('cart_id', $cartId)
             ->select(
                 'id',
                 'cart_id',
@@ -268,14 +317,15 @@ class CartController extends ProductController
                 'colonia',
                 'municipio',
                 'pais',
-                'telefono_contacto',
-                'shipping_address',
+                'contactPhone',
+                'calle',
                 'codigo_postal',
-                'nombre_contacto',
-                'shipping_cost_IVA',
-                'shipping_method',
+                'contactName',
+                'contactEmail',
+                'shippingcost_IVA',
+                'ShipmentMethod',
                 'store_id',
-                'shipping_cost',
+                'unit_price',
                 'pickup_date',
                 'pickup_time'
             )
@@ -287,7 +337,7 @@ class CartController extends ProductController
 
         // Obtener detalles de la tienda si el envío es para recoger en tienda
         $storeDetails = null;
-        if ($shippment->shipping_method === 'RecogerEnTienda') {
+        if ($shippment->ShipmentMethod === 'RecogerEnTienda') {
             $storeDetails = DB::table('tiendas')
                 ->where('id', $shippment->store_id)
                 ->first();
@@ -323,7 +373,7 @@ class CartController extends ProductController
         });
 
         // Calcular los totales
-        $shippingCost = $shippment->shipping_cost_IVA;
+        $shippingCost = $shippment->shippingcost_IVA;
 
         $totalPriceItems = $cartItems->sum(function ($item) {
             return $item->final_price * $item->quantity;
@@ -358,7 +408,7 @@ class CartController extends ProductController
             'txndatetime' => now()->format('Y:m:d-H:i:s'),
             'txntype' => 'sale',
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         // Insertar estado 1 (Confirmación de pedido) en order_history
@@ -405,10 +455,9 @@ class CartController extends ProductController
             'totalFinal' => $totalFinal,
             'error' => null,
             'paymentData' => $paymentData,
-            'storeDetails' => $storeDetails
+            'storeDetails' => $storeDetails,
         ]);
     }
-
 
     public function updatePaymentMethod(Request $request)
     {
@@ -461,7 +510,7 @@ class CartController extends ProductController
                 return response()->json(['success' => false, 'message' => 'Debes iniciar sesión para proceder al pedido.']);
             }
 
-            // 2. Buscar el envío pendiente del usuario
+            // 2. Buscar el envío pendiente del usuario cart_shippment
             $shippment = DB::table('shippments')
                 ->where('user_id', $userId)
                 ->where('status', 'pending')
@@ -495,8 +544,11 @@ class CartController extends ProductController
             // 5. Concatenar toda la dirección
             $completeAddress = $this->formatCompleteAddress($shippment);
 
+            $cartId = $this->getId();
+            dd($cartId);
             // 6. Insertar la orden en la tabla `orders` con la dirección completa
             $orderId = DB::table('orders')->insertGetId([
+                'cart_id' => $cartId,
                 'user_id' => $userId,
                 'oid' => uniqid(), // Generar un OID único
                 'total' => $totalConIva,
@@ -508,9 +560,8 @@ class CartController extends ProductController
                 'total_con_iva' => $totalConIva,
                 'created_at' => now(),
                 'updated_at' => now(),
-                'current_state' => 0 // Asegúrate de establecer este campo si es necesario
+                'current_state' => 0, // Asegúrate de establecer este campo si es necesario
             ]);
-
             // 7. Insertar detalles del envío en `order_shippment` con la dirección completa
             DB::table('order_shippment')->insert([
                 'order_id' => $orderId,
@@ -535,12 +586,12 @@ class CartController extends ProductController
                 'cord_x' => $shippment->cord_x,
                 'cord_y' => $shippment->cord_y,
                 'codigo_postal' => $shippment->codigo_postal,
-                'nombre_contacto' => $shippment->nombre_contacto,
-                'telefono_contacto' => $shippment->telefono_contacto,
-                'email_contacto' => $shippment->email_contacto,
+                'nombre_contacto' => $shippment->contactName,
+                'telefono_contacto' => $shippment->contactPhone,
+                'email_contacto' => $shippment->contactEmail,
                 'status' => 'completed',
                 'created_at' => now(),
-                'updated_at' => now()
+                'updated_at' => now(),
             ]);
 
             // 8. Procesar cada producto elegible del envío
@@ -563,7 +614,7 @@ class CartController extends ProductController
                     'width' => $unitDetails->width ?? null,
                     'depth' => $unitDetails->height ?? null,
                     'created_at' => now(),
-                    'updated_at' => now()
+                    'updated_at' => now(),
                 ]);
 
                 // 9. Actualizar inventario
@@ -588,7 +639,7 @@ class CartController extends ProductController
                 'status' => 3, // Estado 'paid' o equivalente
                 'status_2_payment_process_at' => now(),
                 'status_3_paid_at' => now(),
-                'updated_at' => now()
+                'updated_at' => now(),
             ]);
 
             // 13. Insertar el registro de pago en `order_payment` indicando que es COD
@@ -607,7 +658,7 @@ class CartController extends ProductController
                 'fail_reason' => null,
                 'status' => 'COD', // Estado indicando que es COD
                 'created_at' => now(),
-                'updated_at' => now()
+                'updated_at' => now(),
             ]);
 
             // 14. Enviar correo de confirmación de la orden

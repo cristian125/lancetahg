@@ -15,7 +15,7 @@
                     <li class="list-group-item mb-4 {{ $order->is_new ? 'new-order' : '' }}" style="border: 1px solid #e9ecef; border-radius: 8px;">
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="order-info">
-                                <h5 class="mb-2 font-weight-bold" style="color: #007bff;">Pedido ID: {{ $order->id }}</h5>
+                                <h5 class="mb-2 font-weight-bold" style="color: #007bff;">Pedido ID: {{ $order->order_number }}</h5>
                                 <p class="mb-1"><strong>Total:</strong> ${{ number_format($order->total, 2) }}</p>
                                 <p class="mb-1"><strong>Fecha de Creación:</strong> {{ \Carbon\Carbon::parse($order->created_at)->format('d/m/Y') }}</p>
                                 <p class="mb-0"><strong>Método de Envío:</strong> {{ $order->shipment_method ?? 'N/A' }}</p>

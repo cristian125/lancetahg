@@ -29,7 +29,6 @@ class ProductImportController extends Controller
     {
         // Añadir api_key a la request manualmente
         $request->merge(['api_key' => env('EXTERNAL_API_KEY')]);
-
         return $productController->fetchItems($request);
     }
 

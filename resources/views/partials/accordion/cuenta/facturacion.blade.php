@@ -17,7 +17,6 @@
                 <form id="frmFacturacion" action="{{ route('cuenta.facturacion.actualizar') }}" method="POST">
                     @csrf
 
-                    <!-- Dirección de Facturación Seleccionada -->
                     @if($direccion_facturacion)
                         <div class="row mb-3">
                             <div class="col-md-12">
@@ -34,7 +33,7 @@
                         <p class="text-danger">No has seleccionado una dirección de facturación. Por favor selecciona una.</p>
                     @endif
 
-                    <!-- Nombre o Razón Social -->
+
                     <div class="row mb-3">
                         <div class="col-md-12">
                             <label for="razon_social" class="form-label fw-bold">Nombre o Razón Social:</label>

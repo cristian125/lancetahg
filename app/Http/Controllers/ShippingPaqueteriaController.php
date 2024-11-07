@@ -56,25 +56,6 @@ class ShippingPaqueteriaController extends Controller
         ];
     }
 
-    // public function actualizarEnvioPaqueteria1(Request $request)
-    // {
-    //     $direccionId = $request->direccion;
-    //     $totalPrice = $request->totalCart;
-
-    //     // Obtener la dirección seleccionada
-    //     $direccion = DB::table('users_address')->find($direccionId);
-
-    //     $codigoPostal = $direccion->codigo_postal;
-
-    //     // Asumimos que todos los códigos postales son válidos para paquetería
-    //     $costoEnvio = $totalPrice >= 2000 ? 0 : 500; // Envío gratuito si supera el mínimo
-
-    //     // Retornar los datos relevantes en formato JSON
-    //     return response()->json([
-    //         'costoEnvio' => $costoEnvio,
-    //         'totalCart' => $totalPrice,
-    //     ]);
-    // }
 
     public function actualizarEnvioPaqueteria(Request $request)
     {

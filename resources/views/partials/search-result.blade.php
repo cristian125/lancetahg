@@ -1,5 +1,4 @@
 <div class="container">
-    <!-- Contenedor con borde y sombra -->
     <div class="result-container shadow-lg p-4 mb-5 bg-white rounded">
         <h2 class="text-primary font-weight-bold mb-4">Resultados para:</h2>
         <p class="criteria-text mb-3">
@@ -14,19 +13,15 @@
                     @endif
                 @endforeach
             @else
-                <span class="badge p-2 m-1 text-dark bg-info"
-                    style="letter-spacing: 0.5px;">
+                <span class="badge p-2 m-1 text-dark bg-info" style="letter-spacing: 0.5px;">
                     {{ $criterioBusqueda }}
                 </span>
             @endif
 
-            {{-- <span class="badge bg-primary text-white p-2" style="font-size: 1.2em; letter-spacing: 0.5px;">
-                {{ $criterioBusqueda }}
-            </span> --}}
+
         </p>
         <hr class="my-4">
 
-        <!-- Contenedor de paginación y texto -->
         <div class="pagination-container mb-3">
             <div class="pagination-links">
                 {{ $productos->links() }}
@@ -36,9 +31,9 @@
             </div>
         </div>
 
-        <!-- Botones para cambiar la vista y ordenar -->
+
         <div class="d-flex justify-content-end align-items-center mb-3">
-            <!-- Botones de ordenamiento por precio -->
+
             <div class="btn-group me-2">
                 <button class="btn btn-light sort-price-btn {{ request('sort_price') == 'asc' ? 'active' : '' }}"
                     data-sort-price="asc" title="Ordenar por precio: menor a mayor">
@@ -49,7 +44,7 @@
                     <i class="bi bi-sort-numeric-down-alt"></i>
                 </button>
             </div>
-            <!-- Botones de ordenamiento alfabético -->
+
             <div class="btn-group me-2">
                 <button class="btn btn-light sort-name-btn {{ request('sort_name') == 'asc' ? 'active' : '' }}"
                     data-sort-name="asc" title="Ordenar alfabéticamente: A-Z">
@@ -60,18 +55,7 @@
                     <i class="bi bi-sort-alpha-down-alt"></i>
                 </button>
             </div>
-            {{-- <!-- Botones de ordenamiento por productos en oferta -->
-            <div class="btn-group me-2">
-                <button class="btn btn-light sort-offer-btn {{ request('sort_offer') == 'desc' ? 'active' : '' }}"
-                    data-sort-offer="desc" title="Mostrar primero productos en oferta">
-                    <i class="bi bi-tags-fill"></i>
-                </button>
-                <button class="btn btn-light sort-offer-btn {{ request('sort_offer') == 'asc' ? 'active' : '' }}"
-                    data-sort-offer="asc" title="Mostrar primero productos sin oferta">
-                    <i class="bi bi-tags"></i>
-                </button>
-            </div> --}}
-            <!-- Botón para restablecer el ordenamiento -->
+
             <div class="btn-group me-2">
                 <button
                     class="btn {{ request('sort_price') || request('sort_name') || request('sort_offer') ? 'btn-warning' : 'btn-secondary' }}"
@@ -80,7 +64,7 @@
                 </button>
             </div>
 
-            <!-- Botones para cambiar la vista -->
+
             <div class="btn-group">
                 <button id="gridViewBtn"
                     class="btn btn-light {{ session('preferredView') == 'grid' ? 'active' : '' }}">
@@ -94,11 +78,10 @@
         </div>
 
         <div class="row">
-            <!-- Barra lateral -->
+
             <div class="col-md-2">
                 <div class="sidebars p-3 shadow-sm rounded bg-light">
                     <h4 class="mb-4">Filtros</h4>
-                    <!-- Formulario para aplicar filtros -->
                     @if (isset($division))
                         @if (isset($grupo) && isset($categoria))
                             <form action="{{ url('/categorias/' . $division . '/' . $grupo . '/' . $categoria) }}"
@@ -167,85 +150,96 @@
                 </div>
             </div>
 
-            <!-- Contenedor para las vistas -->
             <div class="col-md-10">
                 <div id="productViewContainer" class="animate__animated">
-<!-- Vista Cuadrícula (inicialmente oculta) -->
-<div class="grid-view d-none">
-    <div class="row">
-        @foreach ($productos as $producto)
-            <div class="col-md-3 mb-4">
-                <div class="card h-100 shadow-sm">
-                    <a href="{{ url('/producto/' . $producto->id) }}">
-                        <img src="{{ $producto->imagen_principal }}" class="card-img-top"
-                             alt="{{ $producto->nombre }}" style="max-height: 180px; object-fit: cover;">
-                    </a>
-                    <div class="card-body d-flex flex-column">
-                        <a href="{{ url('/producto/' . $producto->id) }}" class="text-decoration-none text-dark">
-                            <h5 class="card-title text-truncate">{{ $producto->nombre }}</h5>
-                        </a>
-                        <!-- Limitar la descripción a dos líneas -->
-                        <p class="card-text product-description">
-                            {!! \Illuminate\Support\Str::limit(strip_tags($producto->descripcion), 100) !!}
-                        </p>
-                        <div class="mt-auto">
-                            @if (isset($producto->descuento) && $producto->descuento > 0)
-                                <p class="precio-original">
-                                    <del>${{ number_format($producto->precio_unitario_IVAinc, 2, '.', ',') }} MXN</del>
-                                </p>
-                                <p class="precio-con-descuento">
-                                    <strong>${{ number_format($producto->precio_con_descuento, 2, '.', ',') }} MXN</strong>
-                                </p>
-                                <span class="badge bg-danger">¡Oferta!</span>
-                            @else
-                                <p class="precio-normal">
-                                    <strong>${{ number_format($producto->precio_unitario_IVAinc, 2, '.', ',') }} MXN</strong>
-                                </p>
-                            @endif
+                    <div class="grid-view d-none">
+                        <div class="row">
+                            @foreach ($productos as $producto)
+                                <div class="col-md-3 mb-4">
+                                    <div class="card h-100 shadow-sm">
+                                        <a href="{{ url('/producto/' . $producto->id) }}">
+                                            <img src="{{ $producto->imagen_principal }}" class="card-img-top"
+                                                alt="{{ $producto->nombre }}"
+                                                style="max-height: 180px; object-fit: cover;">
+                                        </a>
+                                        <div class="card-body d-flex flex-column">
+                                            <a href="{{ url('/producto/' . $producto->id) }}"
+                                                class="text-decoration-none text-dark">
+                                                <h5 class="card-title text-truncate">{{ $producto->nombre }}</h5>
+                                            </a>
+                                            <p class="card-text product-description">
+                                                {!! \Illuminate\Support\Str::limit(strip_tags($producto->descripcion), 100) !!}
+                                            </p>
+                                            <div class="mt-auto">
+                                                @if (isset($producto->descuento) && $producto->descuento > 0)
+                                                    <p class="precio-original">
+                                                        <del>${{ number_format($producto->precio_unitario_IVAinc, 2, '.', ',') }}
+                                                            MXN</del>
+                                                    </p>
+                                                    <p class="precio-con-descuento">
+                                                        <strong>${{ number_format($producto->precio_con_descuento, 2, '.', ',') }}
+                                                            MXN</strong>
+                                                    </p>
+                                                    <span class="badge bg-danger">¡Oferta!</span>
+                                                @else
+                                                    <p class="precio-normal">
+                                                        <strong>${{ number_format($producto->precio_unitario_IVAinc, 2, '.', ',') }}
+                                                            MXN</strong>
+                                                    </p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <!-- Vista Lista (visible inicialmente) -->
+                    <div class="list-view">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <tbody>
+                                    @foreach ($productos as $producto)
+                                        <tr class="product-item"
+                                            onclick="window.location='{{ url('/producto/' . $producto->id) }}';"
+                                            style="cursor: pointer;">
+                                            <td class="image">
+                                                <img src="{{ $producto->imagen_principal }}"
+                                                    alt="{{ $producto->nombre }}"
+                                                    style="max-width: 100px; max-height: 100px; object-fit: cover;">
+                                            </td>
+                                            <td class="product">
+                                                <strong>{{ $producto->nombre }}</strong><br>
+                                                <p class="product-description">
+                                                    {{ \Illuminate\Support\Str::limit(strip_tags($producto->descripcion), 150) }}
+                                                </p>
+                                            </td>
+                                            <td class="price text-right">
+                                                @if (isset($producto->descuento) && $producto->descuento > 0)
+                                                    <span class="precio-original">
+                                                        <del>${{ number_format($producto->precio_unitario_IVAinc, 2, '.', ',') }}
+                                                            MXN</del>
+                                                    </span><br>
+                                                    <span
+                                                        class="precio-con-descuento">${{ number_format($producto->precio_con_descuento, 2, '.', ',') }}
+                                                        MXN</span><br>
+                                                    <span class="badge bg-danger">¡Oferta!</span>
+                                                @else
+                                                    <span
+                                                        class="precio-normal">${{ number_format($producto->precio_unitario_IVAinc, 2, '.', ',') }}
+                                                        MXN</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
-        @endforeach
-    </div>
-</div>
-
-<!-- Vista Lista (visible inicialmente) -->
-<div class="list-view">
-    <div class="table-responsive">
-        <table class="table table-hover">
-            <tbody>
-                @foreach ($productos as $producto)
-                    <tr class="product-item" onclick="window.location='{{ url('/producto/' . $producto->id) }}';" style="cursor: pointer;">
-                        <td class="image">
-                            <img src="{{ $producto->imagen_principal }}" alt="{{ $producto->nombre }}" style="max-width: 100px; max-height: 100px; object-fit: cover;">
-                        </td>
-                        <td class="product">
-                            <strong>{{ $producto->nombre }}</strong><br>
-                            <p class="product-description">{{ \Illuminate\Support\Str::limit(strip_tags($producto->descripcion), 150) }}</p>
-                        </td>
-                        <td class="price text-right">
-                            @if (isset($producto->descuento) && $producto->descuento > 0)
-                                <span class="precio-original">
-                                    <del>${{ number_format($producto->precio_unitario_IVAinc, 2, '.', ',') }} MXN</del>
-                                </span><br>
-                                <span class="precio-con-descuento">${{ number_format($producto->precio_con_descuento, 2, '.', ',') }} MXN</span><br>
-                                <span class="badge bg-danger">¡Oferta!</span>
-                            @else
-                                <span class="precio-normal">${{ number_format($producto->precio_unitario_IVAinc, 2, '.', ',') }} MXN</span>
-                            @endif
-                        </td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
-    </div>
-</div>
-
-                </div>
-            </div>
         </div>
-        <!-- Paginación al final -->
         <div class="pagination-container mt-4">
             <div class="pagination-links">
                 {{ $productos->links() }}
@@ -259,25 +253,21 @@
 
 <script>
     $(document).ready(function() {
-        // Variables para los botones de vista
         const gridViewBtn = $('#gridViewBtn');
         const listViewBtn = $('#listViewBtn');
         const listView = $('.list-view');
         const gridView = $('.grid-view');
         const container = $('#productViewContainer');
-
-        // Variables para los controles de rango de precio
         const minPriceRangeInput = $('#minPriceRange');
         const maxPriceRangeInput = $('#maxPriceRange');
         const minPriceDisplay = $('#minPriceDisplay');
         const maxPriceDisplay = $('#maxPriceDisplay');
 
-        // Función para actualizar la visualización del precio
         function updatePriceDisplay() {
             let minPrice = parseInt(minPriceRangeInput.val());
             let maxPrice = parseInt(maxPriceRangeInput.val());
 
-            // Asegura que el minPrice no sea mayor que el maxPrice
+
             if (minPrice > maxPrice) {
                 minPriceRangeInput.val(maxPrice);
                 minPrice = maxPrice;
@@ -287,28 +277,21 @@
             maxPriceDisplay.text(`Máximo: $${maxPrice.toLocaleString()} MXN`);
         }
 
-        // Ajustar la sensibilidad del deslizador según el rango de precio
         function adjustSliderSensitivity() {
             const minPrice = parseInt(minPriceRangeInput.val());
             const maxPrice = parseInt(maxPriceRangeInput.val());
-
-            // Ajustar la sensibilidad del deslizador en función del valor actual
-            const stepMin = minPrice <= 5000 ? 50 : 1000; // Mayor precisión para precios bajos
-            const stepMax = maxPrice <= 5000 ? 50 : 1000; // Mayor precisión para precios bajos
-
+            const stepMin = minPrice <= 5000 ? 50 : 1000;
+            const stepMax = maxPrice <= 5000 ? 50 : 1000;
             minPriceRangeInput.attr('step', stepMin);
             maxPriceRangeInput.attr('step', stepMax);
-
             updatePriceDisplay();
         }
 
-        // Eventos para mover las barras y ajustar la sensibilidad
         minPriceRangeInput.on('input', adjustSliderSensitivity);
         maxPriceRangeInput.on('input', adjustSliderSensitivity);
 
-        updatePriceDisplay(); // Inicializa la visualización
+        updatePriceDisplay();
 
-        // Función para aplicar la vista seleccionada
         function applyView(view) {
             if (view === 'grid') {
                 listView.addClass('d-none');
@@ -323,22 +306,21 @@
             }
         }
 
-        // Verificar si hay una preferencia de vista guardada en localStorage
         const savedView = localStorage.getItem('preferredView');
         if (savedView) {
             applyView(savedView);
         } else {
-            applyView('list'); // Por defecto, vista de lista
+            applyView('list');
         }
 
-        // Eventos para cambiar la vista
+
         gridViewBtn.on('click', function() {
             if (gridView.hasClass('d-none')) {
                 container.addClass('animate__fadeOut');
                 setTimeout(() => {
                     applyView('grid');
                     localStorage.setItem('preferredView',
-                        'grid'); // Guardar preferencia en localStorage
+                        'grid');
                     container.removeClass('animate__fadeOut').addClass('animate__fadeIn');
                 }, 500);
             }
@@ -350,13 +332,13 @@
                 setTimeout(() => {
                     applyView('list');
                     localStorage.setItem('preferredView',
-                        'list'); // Guardar preferencia en localStorage
+                        'list');
                     container.removeClass('animate__fadeOut').addClass('animate__fadeIn');
                 }, 500);
             }
         });
 
-        // Eventos para los botones de ordenamiento por precio
+
         $('.sort-price-btn').on('click', function() {
             var sortPrice = $(this).data('sort-price');
             var sortName = getUrlParameter('sort_name');
@@ -364,7 +346,7 @@
             updateSorting(sortPrice, sortName, sortOffer);
         });
 
-        // Eventos para los botones de ordenamiento por nombre
+
         $('.sort-name-btn').on('click', function() {
             var sortName = $(this).data('sort-name');
             var sortPrice = getUrlParameter('sort_price');
@@ -372,7 +354,7 @@
             updateSorting(sortPrice, sortName, sortOffer);
         });
 
-        // Eventos para los botones de ordenamiento por oferta
+
         $('.sort-offer-btn').on('click', function() {
             var sortOffer = $(this).data('sort-offer');
             var sortPrice = getUrlParameter('sort_price');
@@ -380,7 +362,6 @@
             updateSorting(sortPrice, sortName, sortOffer);
         });
 
-        // Función para actualizar la URL con los nuevos parámetros de ordenamiento
         function updateSorting(sortPrice, sortName, sortOffer) {
             var url = new URL(window.location.href);
             var params = url.searchParams;
@@ -403,30 +384,28 @@
                 params.delete('sort_offer');
             }
 
-            // Actualizar la URL y recargar la página
             window.location.href = url.toString();
         }
 
-        // Evento para el botón "Restablecer Orden"
+
         $('#resetSortingBtn').on('click', function() {
             resetSortingFilters();
         });
 
-        // Función para eliminar los parámetros de ordenamiento de la URL
+
         function resetSortingFilters() {
             var url = new URL(window.location.href);
             var params = url.searchParams;
 
-            // Eliminar los parámetros de ordenamiento
+
             params.delete('sort_price');
             params.delete('sort_name');
             params.delete('sort_offer');
 
-            // Actualizar la URL y recargar la página
             window.location.href = url.toString();
         }
 
-        // Función para actualizar la apariencia del botón al cargar la página
+
         function updateResetButtonAppearance() {
             var sortPrice = getUrlParameter('sort_price');
             var sortName = getUrlParameter('sort_name');
@@ -439,10 +418,8 @@
             }
         }
 
-        // Llamar a la función al cargar la página
         updateResetButtonAppearance();
 
-        // Función para obtener un parámetro de la URL
         function getUrlParameter(name) {
             var url = new URL(window.location.href);
             return url.searchParams.get(name);

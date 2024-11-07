@@ -29,7 +29,7 @@ class AdminAuthController extends Controller
     
 
         if (Auth::guard('admin')->attempt($credentials)) {
-            // Si la autenticación es exitosa, redirigir al dashboard
+
             return redirect()->route('admin.dashboard');
         }
     

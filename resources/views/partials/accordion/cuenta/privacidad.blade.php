@@ -10,8 +10,6 @@
         <div class="accordion-body">
             <form id="promoEmailForm" action="{{ route('cuenta.promociones.actualizar') }}" method="POST">
                 @csrf
-
-                <!-- Pregunta para recibir promociones -->
                 <div class="row mb-3">
                     <div class="col-md-12">
                         <label for="recibir_promociones" class="form-label fw-bold">¿Deseas recibir anuncios y promociones en su correo electrónico?</label>
@@ -30,7 +28,6 @@
                     </div>
                 </div>
 
-                <!-- Botón Guardar -->
                 <div class="row mt-4">
                     <div class="col-md-12">
                         <button type="submit" class="btn btn-primary w-100">

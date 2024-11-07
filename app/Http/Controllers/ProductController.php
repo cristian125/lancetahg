@@ -3,42 +3,36 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\ProductosDestacadosController;
+use App\Http\Controllers\ShippingCobrarController;
 use App\Http\Controllers\ShippingLocalController;
 use App\Http\Controllers\ShippingPaqueteriaController;
-use App\Http\Controllers\ShippingCobrarController;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str; // Importa Str aquí
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Exception;
+use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\CartController;
 
 class ProductController extends Controller
 {
     public function show($id, $slug = null, Request $request)
     {
 
-        // Verificar si el sitio está en mantenimiento
         $mantenimiento = ProductosDestacadosController::checkMaintenance();
         if ($mantenimiento == 'true') {
             return redirect(route('mantenimento'));
         }
 
-        // Obtener el producto por ID desde `itemsdb`, con `activo` igual a 1 o 2
         $producto = DB::table('itemsdb')->where('id', $id)->whereIn('activo', [1, 2])->first();
-
 
         if (!$producto) {
             abort(404, 'Producto no encontrado');
         }
-        // Obtener el nombre del proveedor del producto
+
         $nombreProveedor = $producto->proveedor_nombre ?? ' ';
-        // Llamar al método `removeShipping` cuando se visualice el producto
+
         $this->removeShipping($request);
 
-        // Obtener la cantidad disponible del inventario
         $inventario = DB::table('inventario')->where('no_s', $producto->no_s)->first();
         $cantidadDisponible = $inventario ? $inventario->cantidad_disponible : 0;
 
@@ -51,11 +45,9 @@ class ProductController extends Controller
 
         $cantidadDisponible -= $cantidadEnCarrito;
 
-        // Configuración para la imagen principal del producto
         $codigoProducto = str_pad($producto->no_s, 6, "0", STR_PAD_LEFT);
         $imagenPrincipal = asset("storage/itemsview/default.jpg");
 
-        // Inicializar el array de imágenes secundarias
         $imagenesSecundarias = [];
         $carpetaSecundarias = "itemsview/{$codigoProducto}";
         if (Storage::disk('public')->exists($carpetaSecundarias)) {
@@ -77,7 +69,6 @@ class ProductController extends Controller
         $claseStock = $cantidadDisponible > 0 ? 'text-success' : 'text-danger';
         $botonDeshabilitado = $cantidadDisponible > 0 ? '' : 'disabled';
 
-        // Obtener la división, categoría y grupo minorista
         $division = DB::table('divisiones')->where('codigo_division', $producto->cod_division)->first();
         $division = $division ? $division->descripcion : 'N/A';
 
@@ -87,7 +78,6 @@ class ProductController extends Controller
         $grupoMinorista = DB::table('grupos_minorista')->where('codigo_de_producto_minorista', $producto->codigo_de_producto_minorista)->first();
         $codigoMinorista = $grupoMinorista ? $grupoMinorista->numeros_serie : 'N/A';
 
-        // Obtener productos relacionados que están en el combobox (sin importar el atributo como color o tamaño)
         $productosRelacionados = DB::table('itemsdb')
             ->where('codigo_de_producto_minorista', $producto->codigo_de_producto_minorista)
             ->where('id', '!=', $producto->id)
@@ -105,7 +95,6 @@ class ProductController extends Controller
             }
         }
 
-        // Obtener los atributos del producto actual
         $atributosProducto = DB::table('producto_atributo')
             ->join('atributos', 'producto_atributo.atributo_id', '=', 'atributos.id')
             ->join('grupos', 'atributos.grupo_id', '=', 'grupos.id')
@@ -118,28 +107,26 @@ class ProductController extends Controller
             )
             ->get();
 
-        // Si el producto actual no tiene descripción, buscar en cualquier producto del combobox
         if (empty($producto->descripcion)) {
             $productosRelacionadosAtributos = DB::table('producto_atributo')
                 ->join('itemsdb', 'producto_atributo.producto_id', '=', 'itemsdb.id')
                 ->join('atributos', 'producto_atributo.atributo_id', '=', 'atributos.id')
-                ->where('producto_atributo.producto_id', '!=', $producto->id)  // Excluir el producto actual
-                ->whereIn('itemsdb.id', $productosRelacionados->pluck('id')) // Filtrar por productos en el combobox
+                ->where('producto_atributo.producto_id', '!=', $producto->id)
+                ->whereIn('itemsdb.id', $productosRelacionados->pluck('id'))
+                ->where('itemsdb.activo', '!=', 0)
                 ->whereNotNull('itemsdb.descripcion')
                 ->select('itemsdb.descripcion', 'itemsdb.id')
                 ->first();
 
-            // Si existe un producto relacionado con descripción, actualizar el producto actual
             if ($productosRelacionadosAtributos) {
                 $producto->descripcion = $productosRelacionadosAtributos->descripcion;
                 DB::table('itemsdb')->where('id', $producto->id)->update(['descripcion' => $producto->descripcion]);
             } else {
-                // Si no hay descripción disponible, agregar un mensaje genérico
+
                 $producto->descripcion = 'Descripción no disponible';
             }
         }
 
-        // Obtener otros productos que comparten los mismos grupos de atributos
         $groupedProducts = [];
         foreach ($atributosProducto as $atributo) {
             $productosRelacionadosAtributos = DB::table('producto_atributo')
@@ -147,6 +134,7 @@ class ProductController extends Controller
                 ->join('atributos', 'producto_atributo.atributo_id', '=', 'atributos.id')
                 ->where('atributos.grupo_id', $atributo->grupo_id)
                 ->where('itemsdb.id', '!=', $producto->id)
+                ->where('itemsdb.activo', '!=', 0)
                 ->select('itemsdb.id', 'itemsdb.descripcion', 'atributos.nombre as atributo_nombre', 'atributos.grupo_id')
                 ->distinct()
                 ->get();
@@ -154,7 +142,6 @@ class ProductController extends Controller
             $groupedProducts[$atributo->grupo_descripcion] = $productosRelacionadosAtributos;
         }
 
-        // Retornar la vista con los datos calculados
         return view('index2', compact(
             'producto',
             'imagenPrincipal',
@@ -174,23 +161,19 @@ class ProductController extends Controller
         ));
     }
 
-
-
     public function getDivisiones()
     {
-        // Obtener las divisiones desde la base de datos
+
         $divisiones = DB::table('divisiones')->select('id', 'descripcion')->get();
 
-        // Retornar los datos como un JSON
         return response()->json($divisiones);
     }
 
     public function getCategorias(Request $request, $cat)
     {
-        // Obtener las divisiones desde la base de datos
+
         $categorias = DB::table('categorias')->select('id', 'descripcion')->get();
 
-        // Retornar los datos como un JSON
         return response()->json($categorias);
     }
 
@@ -201,24 +184,22 @@ class ProductController extends Controller
             ->where('cod_division', $division)
             ->where('cod_categoria_producto', $grupo)
             ->where('codigo_de_producto_minorista', $categoria)
-            ->where('activo', 1) // Mostrar solo productos activos
+            ->where('activo', 1)
             ->get();
-
-        // Aquí no usas `numeros_serie` para nada, solo el código minorista
 
         return view('search-result-view', compact('productos'));
     }
 
     public function getCartItems()
     {
-        $userId = auth()->id(); // Obtener el ID del usuario autenticado
+        $userId = auth()->id();
 
-        // Obtener los items del carrito del usuario
         $cartItems = DB::table('cart_items')
             ->join('carts', 'cart_items.cart_id', '=', 'carts.id')
             ->join('itemsdb', 'cart_items.no_s', '=', 'itemsdb.no_s')
             ->where('carts.user_id', $userId)
-            ->where('itemsdb.activo', 1) // Mostrar solo productos activos
+            ->where('carts.status',1)
+            ->where('itemsdb.activo', 1)
             ->select(
                 'cart_items.no_s',
                 'cart_items.description',
@@ -242,6 +223,15 @@ class ProductController extends Controller
         $resultado = [];
 
         foreach ($divisiones as $division) {
+            $tieneItemsActivosDivision = DB::table('itemsdb')
+                ->where('cod_division', $division->codigo_division)
+                ->where('activo', 1)
+                ->exists();
+
+            if (!$tieneItemsActivosDivision) {
+                continue;
+            }
+
             $resultado[$division->codigo_division] = [
                 'nombre' => $division->descripcion,
                 'subcategorias' => [],
@@ -250,6 +240,17 @@ class ProductController extends Controller
             $categorias = $categoriasDivisiones->where('cod_division', $division->codigo_division);
 
             foreach ($categorias as $categoria) {
+
+                $tieneItemsActivosCategoria = DB::table('itemsdb')
+                    ->where('cod_division', $division->codigo_division)
+                    ->where('cod_categoria_producto', $categoria->cod_categoria_producto)
+                    ->where('activo', 1)
+                    ->exists();
+
+                if (!$tieneItemsActivosCategoria) {
+                    continue;
+                }
+
                 $resultado[$division->codigo_division]['subcategorias'][$categoria->cod_categoria_producto] = [
                     'nombre' => $categoria->descripcion,
                     'subsubcategorias' => [],
@@ -258,34 +259,52 @@ class ProductController extends Controller
                 $subcategorias = $gruposMinorista->where('cod_categoria_producto', $categoria->cod_categoria_producto);
 
                 foreach ($subcategorias as $subcategoria) {
+
+                    $tieneItemsActivosSubcategoria = DB::table('itemsdb')
+                        ->where('cod_division', $division->codigo_division)
+                        ->where('cod_categoria_producto', $categoria->cod_categoria_producto)
+                        ->where('codigo_de_producto_minorista', $subcategoria->codigo_de_producto_minorista)
+                        ->where('activo', 1)
+                        ->exists();
+
+                    if (!$tieneItemsActivosSubcategoria) {
+                        continue;
+                    }
+
                     $resultado[$division->codigo_division]['subcategorias'][$categoria->cod_categoria_producto]['subsubcategorias'][] = [
                         'texto' => $subcategoria->numeros_serie,
                         'codigo' => $subcategoria->codigo_de_producto_minorista,
                     ];
                 }
+
+                if (empty($resultado[$division->codigo_division]['subcategorias'][$categoria->cod_categoria_producto]['subsubcategorias'])) {
+                    unset($resultado[$division->codigo_division]['subcategorias'][$categoria->cod_categoria_producto]);
+                }
+            }
+
+            if (empty($resultado[$division->codigo_division]['subcategorias'])) {
+                unset($resultado[$division->codigo_division]);
             }
         }
 
         return response()->json($resultado);
     }
+
     public function removeFromCart(Request $request)
     {
         $userId = auth()->id();
         $no_s = $request->input('no_s');
 
-        // Obtener el carrito del usuario
-        $cart = DB::table('carts')->where('user_id', $userId)->first();
+        $cart = DB::table('carts')->where('user_id', $userId)->where('status',1)->orderBy('id','asc')->first();
         if (!$cart) {
             return response()->json(['error' => 'No se encontró un carrito para el usuario.'], 404);
         }
 
-        // Eliminar el producto del carrito
         DB::table('cart_items')
             ->where('cart_id', $cart->id)
             ->where('no_s', $no_s)
             ->delete();
 
-        // Eliminar el método de envío **siempre** que se elimine un ítem del carrito
         DB::table('cart_shippment')->where('cart_id', $cart->id)->delete();
 
         return response()->json(['message' => 'Producto eliminado y método de envío eliminado.']);
@@ -294,10 +313,9 @@ class ProductController extends Controller
     public function addToCart(Request $request)
     {
         $userId = auth()->id();
-        $requestedQuantity = $request->input('quantity', 1); // Recibir la cantidad solicitada o establecerla en 1 por defecto
+        $requestedQuantity = $request->input('quantity', 1);
 
-        // Obtener el carrito del usuario o crear uno nuevo si no existe
-        $cart = DB::table('carts')->where('user_id', $userId)->first();
+        $cart = DB::table('carts')->where('user_id', $userId)->where('status',1)->first();
         if (!$cart) {
             $cartId = DB::table('carts')->insertGetId([
                 'user_id' => $userId,
@@ -308,11 +326,9 @@ class ProductController extends Controller
             $cartId = $cart->id;
         }
 
-        // Obtener el producto y su inventario
         $producto = DB::table('itemsdb')->where('id', $request->id)->first();
         $inventario = DB::table('inventario')->where('no_s', $producto->no_s)->first();
 
-        // Verificar disponibilidad del producto y su cantidad en inventario
         if (!$producto || !$inventario || $inventario->cantidad_disponible <= 0) {
             return response()->json(['error' => 'Producto no disponible o stock agotado'], 400);
         }
@@ -320,27 +336,31 @@ class ProductController extends Controller
         if ($requestedQuantity > $inventario->cantidad_disponible) {
             return response()->json([
                 'error' => 'Inventario insuficiente',
-                'suggested_quantity' => $inventario->cantidad_disponible
+                'suggested_quantity' => $inventario->cantidad_disponible,
             ], 400);
         }
 
-        // Verificar si el producto ya está en el carrito
         $cartItem = DB::table('cart_items')
             ->where('cart_id', $cartId)
             ->where('no_s', $producto->no_s)
             ->first();
 
-        // Calcular el precio con descuento
         $descuento = $producto->descuento ?? 0;
         $precioConDescuento = $producto->precio_unitario_IVAinc - ($producto->precio_unitario_IVAinc * ($descuento / 100));
 
+        $tasa_iva = 0;
+
+        if ($producto->grupo_iva == 'IVA16') {
+            $tasa_iva = 0.16;
+        }
+
         if ($cartItem) {
-            // Incrementar cantidad en carrito asegurando el límite de inventario
+
             $newQuantity = $cartItem->quantity + $requestedQuantity;
             if ($newQuantity > $inventario->cantidad_disponible) {
                 return response()->json([
                     'error' => 'Inventario insuficiente',
-                    'suggested_quantity' => $inventario->cantidad_disponible - $cartItem->quantity
+                    'suggested_quantity' => $inventario->cantidad_disponible - $cartItem->quantity,
                 ], 400);
             }
             DB::table('cart_items')
@@ -348,7 +368,7 @@ class ProductController extends Controller
                 ->where('no_s', $producto->no_s)
                 ->update(['quantity' => $newQuantity]);
         } else {
-            // Agregar el producto al carrito con la cantidad solicitada
+
             DB::table('cart_items')->insert([
                 'cart_id' => $cartId,
                 'no_s' => $producto->no_s,
@@ -357,17 +377,16 @@ class ProductController extends Controller
                 'final_price' => $precioConDescuento,
                 'discount' => $descuento,
                 'quantity' => $requestedQuantity,
+                'vat'=>$tasa_iva,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
         }
 
-        // Eliminar el método de envío cada vez que se añade un producto
         DB::table('cart_shippment')->where('cart_id', $cartId)->delete();
 
         return response()->json(['message' => 'Producto añadido al carrito con descuento y método de envío eliminado.']);
     }
-
 
     public function addMultipleToCart(Request $request)
     {
@@ -376,8 +395,7 @@ class ProductController extends Controller
             $no_s = $request->input('no_s');
             $quantity = $request->input('quantity');
 
-            // Verificar si el usuario tiene un carrito existente
-            $cart = DB::table('carts')->where('user_id', $userId)->first();
+            $cart = DB::table('carts')->where('user_id', $userId)->where('status',1)->first();
 
             if (!$cart) {
                 $cartId = DB::table('carts')->insertGetId([
@@ -388,42 +406,40 @@ class ProductController extends Controller
             } else {
                 $cartId = $cart->id;
             }
-
-            // Verificar si el producto ya está en el carrito
             $cartItem = DB::table('cart_items')
                 ->where('cart_id', $cartId)
                 ->where('no_s', $no_s)
                 ->first();
 
-            // Obtener detalles del producto desde la tabla itemsdb
             $producto = DB::table('itemsdb')->where('no_s', $no_s)->first();
             if (!$producto) {
                 return response()->json(['error' => 'Producto no encontrado'], 404);
             }
 
-            // Obtener la cantidad disponible en inventario
             $inventario = DB::table('inventario')->where('no_s', $producto->no_s)->first();
             $cantidadDisponible = $inventario ? $inventario->cantidad_disponible : 0;
 
-            // Obtener la cantidad ya en el carrito
             $cantidadEnCarrito = DB::table('cart_items')
                 ->where('cart_id', $cartId)
                 ->where('no_s', $no_s)
                 ->sum('quantity');
+            $cantidadRequerida = $cantidadEnCarrito + $quantity;
 
-            // Verificar si se puede añadir la cantidad deseada al carrito
-            if (($cantidadEnCarrito + $quantity) > $cantidadDisponible) {
+            if ($cantidadDisponible < $cantidadRequerida) {
                 return response()->json(['error' => 'No puedes añadir más de este producto. Stock insuficiente.'], 400);
+            }
+            $tasa_iva = 0;
+
+            if ($producto->grupo_iva == 'IVA16') {
+                $tasa_iva = 0.16;
             }
 
             if ($cartItem) {
-                // Incrementar la cantidad del producto si ya está en el carrito
                 DB::table('cart_items')
                     ->where('cart_id', $cartId)
                     ->where('no_s', $no_s)
                     ->increment('quantity', $quantity);
             } else {
-                // Insertar un nuevo producto en el carrito
                 DB::table('cart_items')->insert([
                     'cart_id' => $cartId,
                     'no_s' => $no_s,
@@ -432,12 +448,12 @@ class ProductController extends Controller
                     'discount' => $producto->descuento,
                     'final_price' => $producto->descuento > 0 ? $producto->precio_con_descuento : $producto->precio_unitario_IVAinc,
                     'quantity' => $quantity,
+                    'vat' => $tasa_iva,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
             }
 
-            // Calcular la cantidad restante de stock
             $cantidadRestante = $cantidadDisponible - ($cantidadEnCarrito + $quantity);
 
             return response()->json([
@@ -446,7 +462,7 @@ class ProductController extends Controller
             ], 200);
         } catch (\Exception $e) {
             Log::error($e->getMessage());
-            return response()->json(['error' => 'Ocurrió un error al añadir el producto al carrito'], 500);
+            return response()->json(['error' => 'Ocurrió un error al añadir el producto al carrito. ' . $e->getMessage()], 500);
         }
     }
     public function updateQuantity(Request $request)
@@ -455,10 +471,9 @@ class ProductController extends Controller
         $productCode = $request->input('product_code');
         $newQuantity = (int) $request->input('quantity');
 
-        // Obtener el carrito del usuario
-        $cartId = DB::table('carts')->where('user_id', $userId)->value('id');
+        $cart = DB::table('carts')->where('user_id', $userId)->where('status',1)->orderBy('id','asc')->first();
+        $cartId = $cart->id;
 
-        // Consulta para encontrar el ítem en el carrito
         $cartItem = DB::table('cart_items')
             ->where('cart_id', $cartId)
             ->where('no_s', $productCode)
@@ -485,7 +500,6 @@ class ProductController extends Controller
                 ->where('id', $cartItem->id)
                 ->update(['quantity' => $newQuantity]);
 
-            // Eliminar el método de envío si es necesario
             DB::table('cart_shippment')->where('cart_id', $cartId)->delete();
 
             return response()->json([
@@ -504,19 +518,13 @@ class ProductController extends Controller
     public function search(Request $request, $division = null, $grupo = null, $categoria = null)
     {
 
-        // Verificar si el sitio está en mantenimiento
         $mantenimiento = ProductosDestacadosController::checkMaintenance();
         if ($mantenimiento == 'true') {
             return redirect(route('mantenimento'));
         }
 
-        // Obtener el precio máximo de la base de datos
         $maxPriceInDatabase = DB::table('itemsdb')->max('precio_unitario_IVAinc');
-
-        // Definir la expresión para el precio final
         $precioFinalExpression = DB::raw('CASE WHEN descuento > 0 THEN precio_con_descuento ELSE precio_unitario_IVAinc END');
-
-        // Iniciar la consulta base para los productos
         $query = DB::table('itemsdb')
             ->select(
                 'id',
@@ -528,18 +536,23 @@ class ProductController extends Controller
                 'no_s',
                 DB::raw('CASE WHEN descuento > 0 THEN precio_con_descuento ELSE precio_unitario_IVAinc END AS precio_final')
             )
-            ->where('activo', 1); // Mostrar solo productos activos
+            ->where('activo', 1);
 
-        // Aplicar filtro por término de búsqueda si está presente
         if ($request->has('search') && trim($request->input('search')) !== '') {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
-                $q->where('nombre', 'like', $search . '%') // Filtrar por nombres que comiencen con el término de búsqueda
-                    ->orWhere('no_s', 'like', $search . '%');
-            });
+                $q->where('nombre', 'like', $search . '%')
+                    ->orWhere('nombre', 'like', '%' . $search . '%')
+                    ->orWhere('no_s', 'like', $search . '%')
+                    ->orWhere('no_s', 'like', '%' . $search . '%');
+            })
+                ->orderByRaw("(CASE
+                    WHEN nombre LIKE ? THEN 1
+                    WHEN nombre LIKE ? THEN 2
+                    ELSE 3
+                END)", [$search . '%', '%' . $search . '%']);
         }
 
-        // Aplicar filtros por división, grupo y categoría si se han proporcionado
         if ($division) {
             $query->where('cod_division', $division);
 
@@ -551,12 +564,9 @@ class ProductController extends Controller
                 $query->where('codigo_de_producto_minorista', $categoria);
             }
 
-            // Obtener descripciones detalladas para mostrar en la vista
             $divisionDesc = DB::table('divisiones')->where('codigo_division', $division)->value('descripcion');
             $grupoDesc = $grupo ? DB::table('categorias_divisiones')->where('cod_categoria_producto', $grupo)->value('descripcion') : null;
             $categoriaDesc = $categoria ? strtoupper(DB::table('grupos_minorista')->where('codigo_de_producto_minorista', $categoria)->value('numeros_serie')) : null;
-
-            // Formar el criterio de búsqueda con descripciones detalladas
             $criterioBusqueda = strtoupper($divisionDesc);
             $criteriosBusqueda[] = $divisionDesc;
             if ($grupoDesc) {
@@ -573,14 +583,12 @@ class ProductController extends Controller
             $criterioBusqueda = $request->input('search', "Término de búsqueda no especificado");
         }
 
-        // Aplicar filtro de precio si está presente en la solicitud
         if ($request->has('min_price') || $request->has('max_price')) {
             $minPrice = $request->input('min_price', 0);
             $maxPrice = $request->input('max_price', $maxPriceInDatabase);
             $query->whereBetween($precioFinalExpression, [$minPrice, $maxPrice]);
         }
 
-        // Aplicar ordenamiento según los parámetros 'sort_offer', 'sort_price' y 'sort_name'
         $sortOffer = $request->input('sort_offer');
         $sortPrice = $request->input('sort_price');
         $sortName = $request->input('sort_name');
@@ -604,7 +612,6 @@ class ProductController extends Controller
 
         $productos = $query->paginate(16)->appends($request->all());
 
-        // Procesar los productos para añadir las imágenes y utilizar 'precio_final'
         foreach ($productos as $producto) {
             $codigoProducto = str_pad($producto->no_s, 6, "0", STR_PAD_LEFT);
             $carpetaProducto = "itemsview/{$codigoProducto}";
@@ -618,7 +625,6 @@ class ProductController extends Controller
             }
         }
 
-        // Retornar la vista con los productos encontrados
         return view('search-result-view', [
             'productos' => $productos,
             'criterioBusqueda' => $criterioBusqueda,
@@ -635,16 +641,16 @@ class ProductController extends Controller
         $search = $request->input('search');
         $query = DB::table('itemsdb')
             ->select('id', 'nombre', 'descripcion', 'precio_unitario_IVAinc', 'precio_con_descuento', 'descuento', 'no_s', 'unidad_medida_venta')
-            ->where('activo', 1); // Usar 'nombre' en lugar de 'descripcion' para el nombre real
+            ->where('activo', 1);
 
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
-                $q->where('nombre', 'like', '%' . $search . '%') // Usar 'nombre' en lugar de 'descripcion' para la búsqueda
+                $q->where('nombre', 'like', '%' . $search . '%')
                     ->orWhere('no_s', 'like', '%' . $search . '%');
             });
         }
 
-        $productos = $query->take(10)->get(); // Limita a 10 resultados para la búsqueda en tiempo real
+        $productos = $query->take(10)->get();
 
         foreach ($productos as $producto) {
             $codigoProducto = str_pad($producto->no_s, 6, "0", STR_PAD_LEFT);
@@ -658,7 +664,6 @@ class ProductController extends Controller
                 $producto->imagen_principal = asset($defaultImagePath);
             }
 
-            // Verificar si el producto tiene descuento y calcular el precio final
             if (isset($producto->descuento) && $producto->descuento > 0) {
                 $producto->precio_final = $producto->precio_con_descuento;
             } else {
@@ -669,11 +674,8 @@ class ProductController extends Controller
         return response()->json($productos);
     }
 
-
     public function showCart(Request $request)
     {
-
-
 
         $mantenimiento = ProductosDestacadosController::checkMaintenance();
         if ($mantenimiento == 'true') {
@@ -688,33 +690,24 @@ class ProductController extends Controller
 
         $user = auth()->user();
         $userData = DB::table('users_data')->where('user_id', $userId)->first();
-
-        // Verificar si el usuario tiene direcciones
         $direcciones = DB::table('users_address')->where('user_id', $userId)->get();
-        $tieneDirecciones = $direcciones->isNotEmpty(); // Verifica si tiene al menos una dirección
-
-        // Combinar el nombre y apellidos para el contacto
+        $tieneDirecciones = $direcciones->isNotEmpty();
         $contactName = $user->name;
         if ($userData) {
             $contactName = $userData->nombre . ' ' . $userData->apellido_paterno . ' ' . $userData->apellido_materno;
         }
 
-        // Obtener el ID del carrito del usuario
-        $cartId = DB::table('carts')
-            ->where('user_id', $userId)
-            ->value('id');
+        $cartId = CartController::getId();
 
-        // Si no existe un carrito, redirigir al inicio
         if (!$cartId) {
             return redirect()->route('home');
         }
 
-        // Consultar los elementos del carrito junto con las restricciones de envío y la cantidad disponible
         $cartItems = DB::table('cart_items')
             ->join('itemsdb', 'cart_items.no_s', '=', 'itemsdb.no_s')
             ->join('inventario', 'cart_items.no_s', '=', 'inventario.no_s')
             ->where('cart_items.cart_id', $cartId)
-            ->where('itemsdb.activo', 1) // Mostrar solo productos activos
+            ->where('itemsdb.activo', 1)
             ->select(
                 'itemsdb.id',
                 'itemsdb.unidad_medida_venta as unidad',
@@ -729,12 +722,11 @@ class ProductController extends Controller
                 'itemsdb.allow_local_shipping',
                 'itemsdb.allow_paqueteria_shipping',
                 'itemsdb.allow_store_pickup',
-                'itemsdb.allow_cobrar_shipping', // Nueva columna
+                'itemsdb.allow_cobrar_shipping',
                 'itemsdb.grupo_iva'
             )
             ->get();
 
-        // Asignar las rutas de las imágenes de los productos
         foreach ($cartItems as $item) {
             $codigoProducto = str_pad($item->product_code, 6, "0", STR_PAD_LEFT);
             $imagePath = "storage/itemsview/{$codigoProducto}/{$codigoProducto}.jpg";
@@ -746,19 +738,14 @@ class ProductController extends Controller
             }
         }
 
-        // Obtener detalles del envío si existen
         $shippment = DB::table('cart_shippment')
             ->leftJoin('tiendas', 'cart_shippment.store_id', '=', 'tiendas.id')
             ->where('cart_id', $cartId)
             ->select('cart_shippment.*', 'tiendas.nombre as store_name', 'tiendas.direccion as store_address')
             ->first();
 
-        // Verificar si existe un método de envío
         $shippmentExists = $shippment !== null;
-
-        // Obtener el tipo de envío seleccionado desde la tabla cart_shippment
         $tipoEnvioSeleccionado = $shippment ? $shippment->ShipmentMethod : null;
-
         if ($tipoEnvioSeleccionado) {
             $eligibleCartItems = $cartItems->filter(function ($item) use ($tipoEnvioSeleccionado) {
                 if ($tipoEnvioSeleccionado === 'EnvioLocal') {
@@ -774,61 +761,42 @@ class ProductController extends Controller
                 return true;
             });
 
-
-
-
-            // Obtener los códigos de producto de los artículos elegibles
             $eligibleProductCodes = $eligibleCartItems->pluck('product_code')->all();
-
-            // Filtrar los productos no elegibles
             $nonEligibleItems = $cartItems->reject(function ($item) use ($eligibleProductCodes) {
                 return in_array($item->product_code, $eligibleProductCodes);
             });
         } else {
-            // No hay método de envío seleccionado, incluir todos los productos
+
             $eligibleCartItems = $cartItems;
-            $nonEligibleItems = collect(); // Colección vacía
+            $nonEligibleItems = collect();
         }
 
-        // Calcular el precio total del carrito incluyendo IVA (descuento ya aplicado en final_price)
         $totalPrice = $eligibleCartItems->sum(function ($item) {
             return $item->final_price * $item->quantity;
         });
 
-        // Calcular el subtotal sin IVA
         $subtotalSinIVA = $totalPrice / 1.16;
-
-        // Calcular el total del descuento aplicado
         $totalDescuento = $eligibleCartItems->sum(function ($item) {
             return $item->unit_price * $item->quantity * ($item->discount / 100);
         });
 
-        // Calcular el IVA sobre el subtotal sin IVA
         $iva = $subtotalSinIVA * 0.16;
-
-        // Obtener el costo de envío con IVA
         $shippingCostIVA = $shippment->shippingcost_IVA ?? 0.00;
 
-        // Ajustar el costo de envío si el método es 'EnvioPorCobrar'
         if ($shippmentExists && $shippment->ShipmentMethod === 'EnvioPorCobrar') {
             $shippingCostIVA = 0.00;
         }
 
-        // Calcular el total final incluyendo IVA y el envío
         $totalFinal = $subtotalSinIVA + $iva + $shippingCostIVA;
-
-        // Obtener los métodos de envío activos desde la base de datos
         $activeShippingMethods = DB::table('shipping_methods')
             ->where('is_active', 1)
             ->get();
 
-        // Definir los tipos de envío disponibles según las restricciones y los métodos activos
         $envios = [];
 
         foreach ($activeShippingMethods as $method) {
-            $price = 0.00; // Precio por defecto
+            $price = 0.00;
 
-            // Asignar el precio y otros detalles según el método de envío
             if ($method->name === 'EnvioLocal') {
                 $price = 250.00;
             } elseif ($method->name === 'EnvioPorPaqueteria') {
@@ -836,7 +804,7 @@ class ProductController extends Controller
             } elseif ($method->name === 'RecogerEnTienda') {
                 $price = 0.00;
             } elseif ($method->name === 'EnvioPorCobrar') {
-                $price = 0.00; // El cliente paga al recibir
+                $price = 0.00;
             }
 
             $envios[] = [
@@ -846,25 +814,16 @@ class ProductController extends Controller
             ];
         }
 
-        // Si no hay métodos de envío disponibles, mostrar un mensaje de error
         $noShippingMethodsAvailable = empty($envios);
-
-        // Obtener datos para cada método de envío
         $shippingLocalController = new ShippingLocalController();
         $localShippingData = $shippingLocalController->handleLocalShipping($request, $userId, $totalPrice);
-
         $shippingPaqueteriaController = new ShippingPaqueteriaController();
         $paqueteriaShippingData = $shippingPaqueteriaController->handlePaqueteriaShipping($request, $userId, $totalPrice);
-
         $storePickupController = new StorePickupController();
-
         $storePickupData = $storePickupController->handleStorePickup($request, $userId);
-
-        // Instanciar el controlador de Envío por Cobrar
         $shippingCobrarController = new ShippingCobrarController();
         $cobrarShippingData = $shippingCobrarController->handleCobrarShipping($request, $userId, $totalPrice);
 
-        // Filtrar productos no elegibles para ciertos tipos de envío (para mostrar alertas al usuario)
         $nonEligibleLocalShipping = $cartItems->filter(function ($item) {
             return empty($item->allow_local_shipping);
         });
@@ -878,36 +837,26 @@ class ProductController extends Controller
             return empty($item->allow_cobrar_shipping);
         });
 
-    // Subtotal de los productos sin descuento y sin IVA
-    $subtotalProductosSinIVA = $eligibleCartItems->sum(function ($item) {
-        $unitPriceSinIVA = $item->unit_price / 1.16; // Asumiendo que unit_price incluye IVA
-        return $unitPriceSinIVA * $item->quantity;
-    });
+        $subtotalProductosSinIVA = $eligibleCartItems->sum(function ($item) {
+            $unitPriceSinIVA = $item->unit_price / 1.16;
+            return $unitPriceSinIVA * $item->quantity;
+        });
 
-    // Total del descuento aplicado sin IVA
-    $totalDescuentoSinIVA = $eligibleCartItems->sum(function ($item) {
-        $unitPriceSinIVA = $item->unit_price / 1.16;
-        $discountAmount = $unitPriceSinIVA * ($item->discount / 100) * $item->quantity;
-        return $discountAmount;
-    });
+        $totalDescuentoSinIVA = $eligibleCartItems->sum(function ($item) {
+            $unitPriceSinIVA = $item->unit_price / 1.16;
+            $discountAmount = $unitPriceSinIVA * ($item->discount / 100) * $item->quantity;
+            return $discountAmount;
+        });
 
-    // Costo de envío sin IVA
-    $shippingCostSinIVA = $shippingCostIVA / 1.16;
+        $shippingCostSinIVA = $shippingCostIVA / 1.16;
+        $totalSinIVA = $subtotalProductosSinIVA - $totalDescuentoSinIVA + $shippingCostSinIVA;
+        $ivaTotal = $totalSinIVA * 0.16;
+        $totalFinal = $totalSinIVA + $ivaTotal;
 
-    // Total sin IVA
-    $totalSinIVA = $subtotalProductosSinIVA - $totalDescuentoSinIVA + $shippingCostSinIVA;
-
-    // IVA total
-    $ivaTotal = $totalSinIVA * 0.16;
-
-    // Total final incluyendo IVA
-    $totalFinal = $totalSinIVA + $ivaTotal;
-
-        // Pasar todos los datos necesarios a la vista
         return view('carrito', [
-            'cartItems' => $cartItems, // Todos los productos en el carrito
-            'eligibleCartItems' => $eligibleCartItems, // Productos elegibles para el método de envío seleccionado
-            'nonEligibleItems' => $nonEligibleItems, // Productos no elegibles
+            'cartItems' => $cartItems,
+            'eligibleCartItems' => $eligibleCartItems,
+            'nonEligibleItems' => $nonEligibleItems,
             'totalPrice' => $totalPrice,
             'subtotalSinIVA' => $subtotalSinIVA,
             'totalDescuento' => $totalDescuento,
@@ -921,14 +870,14 @@ class ProductController extends Controller
             'storePickupData' => $storePickupData,
             'cobrarShippingData' => $cobrarShippingData,
             'cartId' => $cartId,
-            'shippment' => $shippment, // Pasamos el objeto $shippment
+            'shippment' => $shippment,
             'shippmentExists' => $shippmentExists,
             'nonEligibleLocalShipping' => $nonEligibleLocalShipping,
             'nonEligiblePaqueteriaShipping' => $nonEligiblePaqueteriaShipping,
             'nonEligibleStorePickup' => $nonEligibleStorePickup,
             'nonEligibleCobrarShipping' => $nonEligibleCobrarShipping,
             'noShippingMethodsAvailable' => $noShippingMethodsAvailable,
-            'contactName' => $contactName, // Pasar el nombre de contacto
+            'contactName' => $contactName,
             'tieneDirecciones' => $tieneDirecciones,
             'subtotalProductosSinIVA' => $subtotalProductosSinIVA,
             'totalDescuentoSinIVA' => $totalDescuentoSinIVA,
@@ -943,70 +892,16 @@ class ProductController extends Controller
     {
         $userId = auth()->id();
 
-        // Obtener el ID del carrito del usuario
         $cartId = DB::table('carts')
             ->where('user_id', $userId)
             ->value('id');
 
-        // Eliminar el registro de envío asociado al carrito
         DB::table('cart_shippment')
             ->where('cart_id', $cartId)
             ->delete();
 
         return response()->json(['success' => true]);
     }
-
-    // public function updateQuantity(Request $request)
-    // {
-    //     $userId = auth()->id();
-    //     $productCode = $request->input('product_code');
-    //     $newQuantity = (int) $request->input('quantity');
-
-    //     Consulta para encontrar el ítem en el carrito
-    //     $cartItem = DB::table('cart_items')
-    //         ->where('cart_items.cart_id', function ($query) use ($userId) {
-    //             $query->select('id')
-    //                 ->from('carts')
-    //                 ->where('user_id', $userId)
-    //                 ->limit(1);
-    //         })
-    //         ->where('no_s', $productCode)
-    //         ->first();
-
-    //     $availableQuantity = DB::table('inventario')
-    //         ->where('no_s', $productCode)
-    //         ->value('cantidad_disponible');
-
-    //     if ($cartItem) {
-    //         if ($newQuantity > $availableQuantity) {
-    //             return response()->json([
-    //                 'success' => false,
-    //                 'message' => 'No hay suficiente stock disponible. La cantidad máxima es ' . $availableQuantity . '.',
-    //                 'currentQuantity' => $cartItem->quantity
-    //             ]);
-    //         }
-
-    //         if ($newQuantity < 1) {
-    //             $newQuantity = 1;
-    //         }
-
-    //         DB::table('cart_items')
-    //             ->where('id', $cartItem->id)
-    //             ->update(['quantity' => $newQuantity]);
-
-    //         return response()->json([
-    //             'success' => true,
-    //             'message' => 'Cantidad actualizada exitosamente.'
-    //         ]);
-    //     } else {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Producto no encontrado en el carrito.',
-    //             'currentQuantity' => 0
-    //         ]);
-    //     }
-    // }
-
 
     public function getImage(Request $request)
     {

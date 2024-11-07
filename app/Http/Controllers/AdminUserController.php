@@ -10,12 +10,10 @@ class AdminUserController extends Controller
     // Método para listar usuarios con búsqueda y paginación
     public function index(Request $request)
     {
-        // Iniciar la consulta con JOIN a users_data
         $query = DB::table('users')
             ->leftJoin('users_data', 'users.id', '=', 'users_data.user_id')
             ->select('users.*', 'users_data.nombre', 'users_data.apellido_paterno', 'users_data.apellido_materno', 'users_data.telefono');
 
-        // Aplicar filtros de búsqueda
         if ($request->has('id') && !empty($request->id)) {
             $query->where('users.id', $request->id);
         }
@@ -35,13 +33,10 @@ class AdminUserController extends Controller
             $query->where('users_data.telefono', 'LIKE', '%' . $request->telefono . '%');
         }
 
-        // Aplicar paginación
-        $usuarios = $query->orderBy('users.id', 'desc')->paginate(10);
 
-        // Añadir los parámetros de búsqueda a los enlaces de paginación
+        $usuarios = $query->orderBy('users.id', 'desc')->paginate(10);
         $usuarios->appends($request->all());
 
-        // Verificar si la solicitud es AJAX
         if ($request->ajax()) {
             return view('admin.users_table', compact('usuarios'))->render();
         }
@@ -50,16 +45,13 @@ class AdminUserController extends Controller
     }
     public function show($id)
     {
-        // Obtener datos del usuario de la tabla 'users'
         $usuario = DB::select('SELECT * FROM users WHERE id = ?', [$id]);
-        
+    
         if (!$usuario) {
             return redirect()->route('admin.users')->withErrors('Usuario no encontrado.');
         }
     
-        $usuario = $usuario[0]; // Tomamos el primer elemento
-    
-        // Obtener datos adicionales del usuario de la tabla 'users_data'
+        $usuario = $usuario[0]; 
         $usuario_data = DB::select('SELECT * FROM users_data WHERE user_id = ?', [$id]);
     
         if ($usuario_data) {
@@ -72,22 +64,15 @@ class AdminUserController extends Controller
             $usuario->correo = $usuario_data->correo;
         }
     
-        // Obtener direcciones del usuario de la tabla 'users_address'
         $direcciones = DB::select('SELECT * FROM users_address WHERE user_id = ?', [$id]);
-    
-        // Obtener carrito(s) del usuario de la tabla 'carts'
         $carts = DB::select('SELECT * FROM carts WHERE user_id = ?', [$id]);
-    
         $cart_items = [];
         foreach ($carts as $cart) {
             $items = DB::select('SELECT * FROM cart_items WHERE cart_id = ?', [$cart->id]);
             $cart_items[$cart->id] = $items;
         }
     
-        // Obtener envíos desde la tabla 'cart_shippment'
         $envios = DB::select('SELECT * FROM cart_shippment WHERE cart_id IN (SELECT id FROM carts WHERE user_id = ?)', [$id]);
-    
-        // Obtener órdenes del usuario incluyendo todos los detalles adicionales
         $orders = DB::select('
             SELECT o.*, 
                    cs.ShipmentMethod, 
@@ -106,18 +91,12 @@ class AdminUserController extends Controller
     
         $order_items = [];
         foreach ($orders as $order) {
-            // Modificación para obtener también el descuento por cada producto en las órdenes
             $items = DB::select('SELECT * FROM order_items WHERE order_id = ?', [$order->id]);
             $order_items[$order->id] = $items;
         }
     
-        // Pasar los datos a la vista
         return view('admin.showusers', compact('usuario', 'direcciones', 'carts', 'cart_items', 'envios', 'orders', 'order_items'));
     }
-    
-    
-    
-    
     
     public function changePassword(Request $request, $id)
     {

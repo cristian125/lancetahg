@@ -29,7 +29,7 @@ class ProductosDestacadosController extends Controller
                 'itemsdb.no_s',
                 'itemsdb.nombre',
                 'itemsdb.descripcion',
-                'itemsdb.cod_categoria_producto as marca',
+                'itemsdb.proveedor_nombre as marca',  // Cambia aquí
                 'itemsdb.precio_unitario_IVAinc',
                 'itemsdb.precio_con_descuento',
                 'itemsdb.descuento',
@@ -37,6 +37,9 @@ class ProductosDestacadosController extends Controller
             )
             ->get();
     
+
+
+            
         // Si hay menos de 20 productos seleccionados, completamos con productos aleatorios
         if ($productosDestacados->count() < 20) {
             $productosAleatorios = DB::table('itemsdb')

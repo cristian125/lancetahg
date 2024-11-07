@@ -182,34 +182,34 @@
             e.preventDefault();
 
             $.ajax({
-                url: '/newsletter/subscribe', // Ruta a tu controlador
+                url: '/newsletter/subscribe', 
                 method: 'POST',
                 data: {
                     email: $('#email-newsletter').val(),
-                    ip_address: '{{ request()->ip() }}', // Captura la IP del usuario
-                    _token: '{{ csrf_token() }}' // Token CSRF para la seguridad
+                    ip_address: '{{ request()->ip() }}',
+                    _token: '{{ csrf_token() }}' 
                 },
                 success: function(response) {
                     $('#message').html(
                         '<div class="alert alert-success">¡Gracias por suscribirse!</div>'
                     );
-                    $('#message').show(); // Mostrar el mensaje
+                    $('#message').show(); 
 
                     setTimeout(function() {
                         $('#message')
-                            .fadeOut(); // Ocultar el mensaje después de 2 segundos
-                    }, 2000); // 2000 milisegundos = 2 segundos
+                            .fadeOut(); 
+                    }, 2000); 
                 },
                 error: function(response) {
                     $('#message').html(
                         '<div class="alert alert-danger">Hubo un error, intenta nuevamente.</div>'
                     );
-                    $('#message').show(); // Mostrar el mensaje
+                    $('#message').show(); 
 
                     setTimeout(function() {
                         $('#message')
-                            .fadeOut(); // Ocultar el mensaje después de 2 segundos
-                    }, 2000); // 2000 milisegundos = 2 segundos
+                            .fadeOut(); 
+                    }, 2000); 
                 }
             });
         });

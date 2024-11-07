@@ -42,7 +42,7 @@
             padding-bottom: 5px;
             text-transform: uppercase;
         }
-        .order-info, .product-info, .customer-info {
+        .order-info, .product-info, .customer-info, .shipping-info {
             width: 100%;
             margin-bottom: 10px;
             padding: 5px;
@@ -68,12 +68,6 @@
         .summary-table th, .summary-table td {
             width: 50%;
         }
-        .product-info th, .product-info td {
-            text-align: center;
-        }
-        .no-border {
-            border: none;
-        }
     </style>
 </head>
 <body>
@@ -81,7 +75,7 @@
         <div class="header">
             <p class="company-name">LANCETA HG</p>
             <h1>Detalles del Pedido</h1>
-            <p><strong>ID de la Orden:</strong> {{ $orden->order_id }}</p>
+            <p><strong>Número de Pedido:</strong> {{ $orden->order_number }}</p>
         </div>
 
         <div class="customer-info">
@@ -132,14 +126,29 @@
             </table>
         </div>
 
+        <div class="shipping-info">
+            <h3 class="section-title">Información de Envío</h3>
+            <table>
+                <tr>
+                    <th>Dirección de Envío</th>
+                    <td>{{ $orden->shipping_address }}</td>
+                </tr>
+                <tr>
+                    <th>Método de Envío</th>
+                    <td>{{ $orden->shipment_method }}</td>
+                </tr>
+            </table>
+        </div>
+
         <div class="product-info">
             <h3 class="section-title">Detalles de los Productos</h3>
             <table>
                 <thead>
                     <tr>
                         <th>ID del Producto</th>
+                        <th>Descripción</th>
                         <th>Cantidad</th>
-                        <th>Precio Unitario</th>
+                        <th>Precio Unitario Con IVA</th>
                         <th>Total</th>
                         <th>Descuento</th>
                     </tr>
@@ -148,6 +157,7 @@
                     @foreach($items as $item)
                         <tr>
                             <td>{{ $item->product_id }}</td>
+                            <td>{{ $item->description }}</td>
                             <td>{{ $item->quantity }}</td>
                             <td>${{ number_format($item->unit_price, 2) }}</td>
                             <td>${{ number_format($item->total_price, 2) }}</td>

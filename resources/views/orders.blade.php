@@ -8,7 +8,7 @@
     @else
         @foreach($orders as $order)
             <div class="card shadow p-4 mb-4">
-                <h5>Pedido ID: {{ $order->id }} - Total: ${{ number_format($order->total, 2) }}</h5>
+                <h5>Pedido ID: {{ $order->order_number }} - Total: ${{ number_format($order->total, 2) }}</h5>
                 <p><strong>Dirección de Envío:</strong> {{ $order->shipping_address }}</p>
                 <p><strong>Método de Envío:</strong> {{ $order->shipment_method }}</p>
                 <p><strong>Costo de Envío:</strong> ${{ number_format($order->shipping_cost, 2) }}</p>

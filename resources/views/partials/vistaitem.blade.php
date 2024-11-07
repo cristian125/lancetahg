@@ -34,16 +34,12 @@
             <main class="col-lg-6">
                 <div class="ps-lg-3">
                     <div class="product-header">
-                        <!-- Mostrar el nombre del producto correctamente -->
                         <h4 class="product-title text-dark mb-3">{{ $producto->no_s }} - {{ $producto->nombre }}</h4>
-
-                        <!-- Información adicional en filas alineadas -->
                         <div class="product-details">
                             <div class="row mb-2">
                                 <div class="col-3 fw-bold text-secondary">Marca:</div>
                                 <div class=>{{ $nombreProveedor }}</div>
                             </div>
-
                             <div class="row">
                                 <div class="col-9">
                                     @if ($cantidadDisponible > 0)
@@ -72,21 +68,18 @@
                                         </p>
                                     @endif
                                 </div>
-                                
                             </div>
-                            
                         </div>
 
                         <div class="mb-3">
                             @if ($producto->descuento > 0)
                                 <span
                                     class="h5 text-muted text-decoration-line-through">${{ number_format($producto->precio_unitario_IVAinc, 2, '.', ',') }}
-                                    MXN</span>
+                                    MXN</span><br>
                                 <span
                                     class="h4 text-danger">${{ number_format($producto->precio_con_descuento, 2, '.', ',') }}
                                     MXN</span>
-                                <span class="badge bg-success ms-2">Oferta: {{ $producto->descuento }}% de
-                                    descuento</span>
+                                    <span class="badge bg-success ms-2">{{ number_format($producto->descuento, 0) }}% de descuento</span>
                             @else
                                 <span
                                     class="h5"><br>${{ number_format($producto->precio_unitario_IVAinc, 2, '.', ',') }}
@@ -108,15 +101,12 @@
                         @foreach ($groupedProducts as $grupoDescripcion => $productos)
                             <div class="mb-3">
                                 <label for="product-variants-{{ $loop->index }}">{{ $grupoDescripcion }}:</label>
-                                <!-- Mostrar la descripción del grupo -->
                                 <select id="product-variants-{{ $loop->index }}"
                                     class="form-select product-variant-select">
-                                    <!-- Producto Actual -->
                                     @foreach ($atributosProducto->where('grupo_descripcion', $grupoDescripcion) as $atributoActual)
                                         <option value="{{ $producto->id }}" selected>
                                             {{ $atributoActual->atributo_nombre }} (Actual)</option>
                                     @endforeach
-                                    <!-- Otras opciones -->
                                     @foreach ($productos as $prod)
                                         <option value="{{ $prod->id }}">{{ $prod->atributo_nombre }}</option>
                                     @endforeach
@@ -173,14 +163,9 @@
                         @else
                             <p class="text-danger"></p>
                         @endif
-
-
-
                         <hr />
                         <div class="row">
                             <p class="fw-bold">Descripción: </p>
-
-                            <!-- Mostrar la descripción del producto -->
                             <p>{!! $producto->descripcion !!}</p>
                         </div>
                         <hr />
@@ -226,7 +211,6 @@
         </div>
     </div>
 
-    <!-- Modal -->
     <div class="modal fade" id="enviosModal" tabindex="-1" aria-labelledby="enviosModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -235,7 +219,6 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <!-- Aquí se incluirá la página de envíos -->
                     <iframe src="{{ route('envios') }}?m=0"
                         style="width: 100%; height: 500px; border: none;"></iframe>
                 </div>
@@ -248,7 +231,6 @@
     <div class="container mt-5">
         <h4 class="mb-4 text-center">Otros usuarios también se interesaron en estos productos similares:</h4>
         <div id="related-products-slider" class="owl-carousel owl-theme unique-carousel">
-
             @foreach ($productosRelacionados as $recomendado)
                 <div class="item">
                     <div class="product-card2 bg-white rounded">
@@ -265,7 +247,6 @@
                                 @endif
                             </div>
                             <div class="product-info1 mt-3 text-center">
-                                <!-- Mostrar nombre y descripción de productos relacionados -->
                                 <h6 class="fw-bold">{{ $recomendado->nombre }}</h6>
                                 <p class="text-muted mb-0">
                                     @if (isset($recomendado->descuento) && $recomendado->descuento > 0)
@@ -296,24 +277,19 @@
         const removeButton = document.getElementById('btnremoveqty');
         const addToCartButton = document.getElementById('add-to-cart');
         const maxQty = parseInt(qtyInput.getAttribute('max'));
-
-        // Inicializar Toast de Bootstrap
         const stockAlertToast = new bootstrap.Toast(document.getElementById('stockAlertToast'));
 
-        // Función para actualizar el estado del botón "Añadir al carrito"
         function updateAddToCartButton() {
             const currentQty = parseInt(qtyInput.value) || 0;
             addToCartButton.disabled = currentQty < 1 || isNaN(currentQty);
         }
 
-        // Aumentar la cantidad, respetando el límite de stock
         addButton.addEventListener('click', () => {
             let currentQty = parseInt(qtyInput.value) || 1;
             if (currentQty < maxQty) {
                 qtyInput.value = currentQty + 1;
-                stockAlertToast.hide(); // Ocultar el mensaje de stock si es necesario
+                stockAlertToast.hide(); 
             } else if (currentQty === maxQty) {
-                // Si la cantidad actual ya es igual al máximo, no mostrar el mensaje
                 qtyInput.value = maxQty;
                 stockAlertToast.hide();
             } else {
@@ -323,19 +299,17 @@
         });
 
 
-        // Reducir la cantidad, respetando el mínimo de 1
         removeButton.addEventListener('click', () => {
             let currentQty = parseInt(qtyInput.value) || 1;
             if (currentQty > 1) {
                 qtyInput.value = currentQty - 1;
                 stockAlertToast.hide();
             } else {
-                qtyInput.value = 1; // No permite cantidades menores a 1
+                qtyInput.value = 1; 
             }
             updateAddToCartButton();
         });
 
-        // Validación al ingresar manualmente la cantidad
         qtyInput.addEventListener('input', () => {
             let currentQty = parseInt(qtyInput.value);
             if (currentQty > maxQty) {
@@ -346,8 +320,6 @@
             }
             updateAddToCartButton();
         });
-
-        // Inicialización de estado del botón de añadir al carrito
         updateAddToCartButton();
     });
 </script>
@@ -359,16 +331,16 @@
         var itemsCount = $("#related-products-slider .item").length;
 
         if (itemsCount >= 5) {
-            // Inicializa Owl Carousel solo si hay 5 o más productos
+
             $("#related-products-slider").owlCarousel({
-                loop: true, // Activa el bucle para permitir movimiento continuo
+                loop: true, 
                 margin: 10,
-                nav: true, // Activa los controles de navegación
-                dots: true, // Muestra los puntos de navegación
-                autoplay: true, // Activa la reproducción automática
-                autoplayTimeout: 3000, // Tiempo entre desplazamientos automáticos (en milisegundos)
-                autoplayHoverPause: true, // Pausa el desplazamiento automático al pasar el cursor por encima
-                items: 5, // Número máximo de elementos visibles
+                nav: true, 
+                dots: true, 
+                autoplay: true, 
+                autoplayTimeout: 3000, 
+                autoplayHoverPause: true, 
+                items: 5,
                 responsive: {
                     0: {
                         items: 1
@@ -382,24 +354,19 @@
                 }
             });
         } else {
-            // Si hay menos de 5 productos, centrarlos manualmente
+
             $("#related-products-slider").addClass("center-items");
             if (itemsCount === 1) {
-                // Centra un solo elemento
                 $("#related-products-slider .item").css("margin", "0 auto");
             } else if (itemsCount === 2) {
-                // Distribuye dos elementos
                 $("#related-products-slider .item").css({ "margin-left": "10%", "margin-right": "10%" });
             } else if (itemsCount === 3) {
-                // Distribuye tres elementos
                 $("#related-products-slider .item").css({ "margin-left": "5%", "margin-right": "5%" });
             } else if (itemsCount === 4) {
-                // Distribuye cuatro elementos
                 $("#related-products-slider .item").css({ "margin-left": "2.5%", "margin-right": "2.5%" });
             }
         }
 
-        // Cambio de variante de producto
         document.querySelectorAll('.product-variant-select').forEach(function(select) {
             select.addEventListener('change', function() {
                 var selectedProductId = this.value;
@@ -410,20 +377,16 @@
 </script>
 
 <style>
-    /* Estilo para centrar los elementos manualmente */
     .center-items {
         display: flex;
         justify-content: center;
         align-items: center;
-        gap: 20px; /* Ajuste de espacio entre elementos */
+        gap: 20px; 
     }
 </style>
 
 
 <style>
-/* Estilos específicos para el carrusel de productos relacionados */
-
-
 .custom-alert {
     display: flex;
     align-items: center;
@@ -490,6 +453,4 @@
 .stock-message {
     font-size: 16px;
 }
-
-
 </style>

@@ -1,7 +1,6 @@
 @if (!empty($cobrarShippingData['direcciones']))
     <div class="container my-5">
         <div class="row">
-            <!-- Columna izquierda: Seleccione su dirección -->
             <div class="col-md-6">
                 <div id="direccion-container" class="mb-4 p-4 bg-white rounded shadow-sm border">
                     <h5 class="mb-4 text-primary"><i class="bi bi-geo-alt-fill me-2"></i>Seleccione su dirección</h5>
@@ -28,7 +27,6 @@
                 </div>
             </div>
 
-            <!-- Columna derecha: Información de Envío -->
             <div id="envio-info" class="col-md-6">
                 <div id="envio-info-bloque" class="mb-4 p-4 bg-white rounded shadow-sm border">
                     <h5 class="mb-4 text-primary"><i class="bi bi-info-circle-fill me-2"></i>Información de Envío</h5>
@@ -38,7 +36,7 @@
                     <p class="fw-bold"><strong>Total del carrito:</strong>
                         ${{ number_format($cobrarShippingData['totalCart'], 2, '.', ',') }} MXN</p>
                 </div>
-                <!-- Aquí se agregará el botón al seleccionar una dirección -->
+
             </div>
         </div>
     </div>
@@ -51,26 +49,18 @@
 
 <script>
     $(document).ready(function() {
-        // Evento al seleccionar una dirección válida
+
         $('#direccion-container input[name="direccionEnvio"]').on('change', function() {
-            // Actualizar el texto de información de envío
+
             $('#envio-info-texto').html('El envío se realizará a la dirección seleccionada.');
-
-            // Eliminar el botón de confirmación anterior si existe
             $('#confirm-envio-button-container').remove();
-
-            // Agregar el botón de Confirmar Método de Envío solo cuando se selecciona una dirección válida
             let buttonContainer = '<div id="confirm-envio-button-container" class="mt-4">' +
                                   '<button id="confirmarEnvioButton" class="btn btn-primary"><i class="fa fa-check-circle"></i> Confirmar Método de Envío</button>' +
                                   '</div>';
             $('#envio-info').append(buttonContainer);
-
-            // Configurar el evento de clic en el botón para confirmar el método de envío
             $('#confirmarEnvioButton').on('click', function() {
                 var cartId = "{{ $cartId }}";
                 var direccionId = $('input[name="direccionEnvio"]:checked').val();
-
-                // Realizar la solicitud AJAX al hacer clic en el botón
                 $.ajax({
                     type: "POST",
                     url: "{{ route('cart.updateMethod') }}",

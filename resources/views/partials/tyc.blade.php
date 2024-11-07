@@ -6,7 +6,6 @@
 		T&eacute;rminos y condiciones
 	</h1>
 	<div id="termsAccordion" class="accordion">
-		<!-- Sección 1: Declaraciones -->
 		<div class="accordion-item">
 			<h2 id="headingOne" class="accordion-header">
 				<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
@@ -40,7 +39,7 @@
 				</div>
 			</div>
 		</div>
-		<!-- Sección 2: Uso del sitio -->
+
 		<div class="accordion-item">
 			<h2 id="headingTwo" class="accordion-header">
 				<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
@@ -66,7 +65,7 @@
 				</div>
 			</div>
 		</div>
-		<!-- Sección 3: Información de producto -->
+
 		<div class="accordion-item">
 			<h2 id="headingThree" class="accordion-header">
 				<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="true" aria-controls="collapseThree">
@@ -123,7 +122,7 @@
 				</div>
 			</div>
 		</div>
-		<!-- Sección 4: Pedidos -->
+
 		<div class="accordion-item">
 			<h2 id="headingFour" class="accordion-header">
 				<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="true" aria-controls="collapseFour">
@@ -150,7 +149,7 @@
 				</div>
 			</div>
 		</div>
-		<!-- Sección 5: Políticas Generales de Pago -->
+
 		<div class="accordion-item">
 			<h2 id="headingFive" class="accordion-header">
 				<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="true" aria-controls="collapseFive">
@@ -179,7 +178,7 @@
 				</div>
 			</div>
 		</div>
-		<!-- Sección 6: Políticas Generales de Entrega -->
+
 		<div class="accordion-item">
 			<h2 id="headingSix" class="accordion-header">
 				<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSix" aria-expanded="true" aria-controls="collapseSix">
@@ -256,7 +255,7 @@
 				</div>
 			</div>
 		</div>
-		<!-- Sección 7: Facturación -->
+
 		<div class="accordion-item">
 			<h2 id="headingSeven" class="accordion-header">
 				<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSeven" aria-expanded="true" aria-controls="collapseSeven">

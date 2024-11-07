@@ -18,13 +18,12 @@
 
 @if (Auth::check())
     @php
-        // Obtener los datos del usuario desde la tabla users_data y la tabla de direcciones
         $userData = DB::table('users_data')->where('user_id', Auth::id())->first();
         $userAddress = DB::table('users_address')->where('user_id', Auth::id())->first();
     @endphp
 
     <div id="profile-steps" class="container">
-        <!-- Paso 1: Verificar si faltan datos personales -->
+
         @if (!$userData || empty($userData->nombre) || empty($userData->apellido_paterno) || empty($userData->telefono))
             <div id="profile-step-1" class="alert alert-warning alert-dismissible fade show mb-3" role="alert">
                 <strong>¡Atención!</strong> Completa tu <a
@@ -33,7 +32,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @else
-            <!-- Paso 2: Verificar si faltan direcciones, solo si los datos personales están completos -->
+
             @if (!$userAddress)
                 <div id="profile-step-2" class="alert alert-info alert-dismissible fade show mb-3" role="alert">
                     <strong>¡Falta un paso más!</strong> Agregue su <a
@@ -50,20 +49,18 @@
             let step1 = $('#profile-step-1');
             let step2 = $('#profile-step-2');
 
-            // Mostrar el paso 1 (datos personales) primero si falta
             if (step1.length) {
                 step1.fadeIn('slow', function() {
                     setTimeout(function() {
                         step1.fadeOut('slow', function() {
-                            // Si falta la dirección, mostrar el paso 2 después de completar los datos personales
+
                             if (step2.length) {
                                 step2.fadeIn('slow');
                             }
                         });
-                    }, 8000); // Mostrar por 8 segundos
+                    }, 8000); /
                 });
             } else if (step2.length) {
-                // Si los datos personales ya están completos pero falta la dirección, mostrar el paso 2
                 step2.fadeIn('slow');
             }
         });
@@ -116,7 +113,7 @@
                 </div>
             </div>
         @endif
-        <!-- Grid de Imágenes -->
+
         <div class="col-12 order-2 order-md-1 col-md-5">
             <div class="row">
                 @foreach ($gridImages as $gridImage)
@@ -168,7 +165,8 @@
                             </div>
                         @endif
 
-                        <a href="{{ url('/producto/' . $producto->id.'-'. $producto->nombre) }}" class="text-decoration-none">
+                        <a href="{{ url('/producto/' . $producto->id . '-' . urlencode($producto->nombre)) }}" class="text-decoration-none">
+
                             <div>
                             <img src="{{ $producto->imagen_principal }}" alt="{{ $producto->nombre }}">
                             </div>
@@ -186,10 +184,10 @@
                         </div>
                         <div class="overlay-info">
                             <p>{{ $producto->no_s }}</p>
-                            <p>{{ $producto->nombre }}<br>{{ $producto->marca }}</p>
+                            <p>{{ $producto->nombre }}<br><span class="marca">{{ $producto->marca }}</span></p>
                         </div>
                         <div class="product-info1">
-                            <span>{{ ucwords(strtolower($producto->nombre)) }}<br />{{ ucwords(strtolower($producto->marca)) }}</span>
+                            <span class="nprod">{{ ucwords(strtolower($producto->nombre)) }}<br /><span class="marca">{{ ucwords(strtolower($producto->marca)) }}</span></span>
                             <span class="product-price">${{ number_format($producto->precio_final, 2, '.', ',') }} MXN</span>
                         </div>
 
@@ -229,9 +227,13 @@
         }
     }
 
-    /* Estilos para las imágenes del grid */
     .offer-container img {
         width: 100%;
     }
-
+    .marca {
+        color: #838383; 
+    }
+    .nprod {
+        color: #252525; 
+    }
 </style>

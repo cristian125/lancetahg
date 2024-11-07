@@ -158,7 +158,7 @@
                                                 <td><strong>Costo de Envío</strong></td>
                                                 <td></td>
                                                 <td></td>
-                                                @if ($shippment->shipping_method === 'EnvioPorCobrar')
+                                                @if ($shippment->ShipmentMethod === 'EnvioPorCobrar')
                                                     <td class="bg-warning text-dark text-center p-3 rounded shadow-sm">
                                                         <i class="bi bi-exclamation-circle-fill text-danger me-2"></i>
                                                         <strong>El costo de envío aún no a sido calculado y deberá ser
@@ -178,7 +178,7 @@
                                                 <td><strong>Importe Total (con IVA)</strong></td>
                                                 <td></td>
                                                 <td></td>
-                                                @if ($shippment->shipping_method === 'EnvioPorCobrar')
+                                                @if ($shippment->ShipmentMethod === 'EnvioPorCobrar')
                                                     <td class="text-danger">
                                                         <strong>${{ number_format($totalFinal - $shippingCost, 2, '.', ',') }}
                                                             MXN</strong>
@@ -204,7 +204,7 @@
                             </div>
                             <div class="card-body">
                                 <ul class="list-group list-group-flush">
-                                    @if ($shippment->shipping_method === 'RecogerEnTienda')
+                                    @if ($shippment->ShipmentMethod === 'RecogerEnTienda')
                                         <!-- Mostrar los detalles de la tienda para recoger -->
                                         <li class="list-group-item">
                                             <strong>Este pedido es para recoger en tienda:</strong>
@@ -236,7 +236,7 @@
                                     @else
                                         <!-- Mostrar los detalles de envío a domicilio -->
                                         <li class="list-group-item"><strong>Dirección:</strong>
-                                            {{ $shippment->shipping_address }} {{ $shippment->no_ext }}</li>
+                                            {{ $shippment->calle }} {{ $shippment->no_ext }}</li>
                                         @if (!empty($shippment->no_int))
                                             <li class="list-group-item"><strong>Número Interior:</strong>
                                                 {{ $shippment->no_int }}</li>
@@ -252,10 +252,10 @@
                                             {{ $shippment->codigo_postal }}</li>
                                         <li class="list-group-item"><strong>País:</strong> {{ $shippment->pais }}</li>
                                         <li class="list-group-item"><strong>Nombre de Contacto:</strong>
-                                            {{ $shippment->nombre_contacto }}</li>
+                                            {{ $shippment->contactName }}</li>
                                         <li class="list-group-item"><strong>Teléfono de Contacto:</strong>
-                                            {{ $shippment->telefono_contacto }}</li>
-                                        @if ($shippment->shipping_method === 'EnvioPorCobrar')
+                                            {{ $shippment->contactPhone }}</li>
+                                        @if ($shippment->ShipmentMethod === 'EnvioPorCobrar')
                                             <li class="list-group-item bg-warning text-dark rounded shadow-sm">
                                                 <i class="bi bi-exclamation-circle-fill text-danger me-2"></i>
                                                 <strong>Nota Importante:</strong> El costo de envío será calculado y cobrado
@@ -273,13 +273,13 @@
                 <!-- Botón para Proceder al Pago -->
                 <div class="row">
                     <div class="col-12 text-center">
-                        <button id="proceedToPaymentBtn" class="btn btn-primary btn-xl fw-normal shadow-lg py-3 px-5 my-4" 
-                                style="font-size: 1.5rem; border-radius: 8px;" 
+                        <button id="proceedToPaymentBtn" class="btn btn-primary btn-xl fw-normal shadow-lg py-3 px-5 my-4"
+                                style="font-size: 1.5rem; border-radius: 8px;"
                                 data-bs-toggle="modal" data-bs-target="#paymentMethodModal">
                             <i class="bi bi-credit-card me-2"></i> Proceder al Pago
                         </button>
                     </div>
-                    
+
                 </div>
             </div>
         @endif
@@ -331,9 +331,11 @@
                     style="border:none;"></iframe>
                 <form id="paymentForm" method="POST" action="{{ env('PAYMENT_URL') }}" target="paymentFrame">
                     @csrf
+                    @isset($paymentData)
                     @foreach ($paymentData as $key => $value)
                         <input type="hidden" name="{{ $key }}" value="{{ $value }}" />
                     @endforeach
+                    @endisset
                 </form>
             </div>
         </div>
