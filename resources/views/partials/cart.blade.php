@@ -287,7 +287,7 @@
                                 <div class="col-12 col-md-4">
                                     <p class="mb-0 unique-product-total-price1 bg-light p-2 rounded text-md-center">
                                         <strong>Total:</strong>
-                                        ${{ number_format($item->final_price * $item->quantity, 2, '.', ',') }} MXN
+                                        ${{ number_format($precioDescontado * $item->quantity, 2, '.', ',') }} MXN
                                     </p>
                                 </div>
                             </div>
@@ -522,7 +522,7 @@
                                 <p class="mb-2 mb-md-0 unique-product-total-price bg-light p-2 rounded text-primary flex-grow-1"
                                     style="font-weight: 600;">
                                     <strong>Total con IVA:</strong>
-                                    ${{ number_format($shippment->shippingcost_IVA, 2, '.', ',') }} MXN
+                                    ${{ number_format($shippment->final_price, 2, '.', ',') }} MXN
                                 </p>
                                 <div class="unique-item-actions2 ms-auto">
                                     <button class="btn btn-danger btn-sm remove-shipping">

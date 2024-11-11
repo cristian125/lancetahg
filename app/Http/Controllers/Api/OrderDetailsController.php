@@ -151,6 +151,8 @@ class OrderDetailsController extends Controller
             $tax->addChild('id');
         }
 
+
+
         // Convertir el XML a una respuesta con formato y saltos de línea
         $dom = new \DOMDocument('1.0');
         $dom->preserveWhiteSpace = false;
@@ -159,7 +161,4 @@ class OrderDetailsController extends Controller
 
         return response($dom->saveXML(), 200)->header('Content-Type', 'application/xml');
     }
-
-
-    
 }

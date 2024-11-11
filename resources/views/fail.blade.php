@@ -1,6 +1,9 @@
 @extends('template')
 
 @section('body')
+@php
+    // dd($responseData);
+@endphp
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function() {
@@ -28,7 +31,10 @@
                         @if (session('error'))
                             <p>{{ session('error') }}</p>
                         @else
-                            <p>Su pago fue rechazado. Verifique con su banco y vuelva a intentarlo más tarde.</p>
+                            <p class="lead">Su pago fue rechazado.</p>
+                            <p class="lead">{{$responseData['fail_reason'] }}</p>
+                            <p class="lead">Por favor, inténtelo de nuevo.</p>
+                            <p class="lead">Si el problema persiste, por favor, contacte con nosotros.</p>
                         @endif
 
                         @if (session('debug_info'))

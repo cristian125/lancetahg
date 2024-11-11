@@ -189,7 +189,7 @@
                                             <td class="text-end">${{ number_format($total, 2) }}</td>
                                         </tr>
                                     @endforeach
-                                    <tr>
+                                    {{-- <tr>
                                         <td></td>
                                         <td>ENVIO</td>
                                         <td class="text-center">1</td>
@@ -198,7 +198,7 @@
                                         <td class="text-end">${{ number_format($envio_pedido, 2) }}</td>
                                         <td class="text-end">${{ number_format($envio_iva_pedido, 2) }}</td>
                                         <td class="text-end">${{ number_format($order->shipping_cost, 2) }}</td>
-                                    </tr>
+                                    </tr> --}}
                                 </tbody>
                             </table>
                         </div>

@@ -33,6 +33,7 @@ use App\Http\Controllers\UserDataController;
 use App\Http\Controllers\UserOrderController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\GuiasController;
 
 /*
 |--------------------------------------------------------------------------
@@ -168,6 +169,14 @@ Route::group(['middleware' => ['auth', 'web']], function () {
     Route::get('/checkout', [CartController::class, 'showCheckout'])->name('checkout');
     Route::post('/update-payment-method', [CartController::class, 'updatePaymentMethod'])->name('update.payment.method');
     Route::post('/cart/process-cod', [CartController::class, 'processCod'])->name('process.cod');
+
+
+
+
+
+Route::get('/regimenes/{tipo_persona}', [AccountController::class, 'getRegimenesPorTipoPersona']);
+Route::get('/usos-cfdi/{regimen_fiscal_id}', [AccountController::class, 'getUsosCfdiPorRegimen']);
+
 });
 
 Route::group(['middleware' => ['auth', 'web']], function () {
@@ -184,9 +193,7 @@ Route::group(['middleware' => ['auth', 'web']], function () {
 Route::match(['get', 'post'], '/payment/callback/success', [PaymentController::class, 'handleSuccess'])->name('payment.callback.success');
 Route::match(['get', 'post'], '/payment/callback/fail', [PaymentController::class, 'handleFail'])->name('payment.callback.fail');
 Route::view('/payment/success', 'success')->name('payment.success');
-Route::get('/payment/fail', function () {
-    return view('fail');
-})->name('payment.fail');
+// Route::any('/payment/fail', 'fail')->name('payment.fail');
 Route::post('/process-order', [PaymentController::class, 'processOrder'])->name('process.order');
 
 /***
@@ -221,6 +228,7 @@ Route::prefix('adminlanz')->middleware('adminsession')->group(function () {
             Route::post('/users/{id}/delete-shipments', [AdminUserController::class, 'deleteShipments'])->name('admin.users.deleteShipments');
             Route::get('/admin/cliente-distinguido', [ClienteDistinguidoController::class, 'show'])->name('cliente.distinguido.show');
             Route::get('ordenes', [AdminOrderController::class, 'index'])->name('admin.orders.index');
+            Route::get('ordenes/{orderId}', [AdminOrderController::class, 'show'])->name('admin.orders.show');
             Route::get('/admin/pedido/{orderId}/pdf', [AdminOrderController::class, 'downloadOrderPdf'])->name('admin.order.pdf');
             Route::get('/newsletter', [NewsletterController::class, 'show'])->name('newsletter.show');
             Route::post('/newsletter/toggle/{id}', [NewsletterController::class, 'toggleSubscription'])->name('newsletter.toggle');
@@ -266,6 +274,8 @@ Route::prefix('adminlanz')->middleware('adminsession')->group(function () {
             Route::get('/payment-logs/{id}', [PaymentLogController::class, 'show'])->name('admin.payment_logs.show');
             Route::get('/items-data', [ProductImportController::class, 'showItemsData'])->name('admin.itemsData');
             Route::get('/fetch-items', [ProductImportController::class, 'fetchItemsManually'])->name('admin.fetchItems');
+            Route::get('/fetch-guias', [GuiasController::class, 'guiasearch'])->name('admin.fetchGuias');
+
         });
     });
 });

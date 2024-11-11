@@ -539,7 +539,7 @@ class ProductController extends Controller
             ->where('activo', 1);
 
         if ($request->has('search') && trim($request->input('search')) !== '') {
-            $search = $request->input('search');
+            $search = str_replace(' ','%',$request->input('search'));
             $query->where(function ($q) use ($search) {
                 $q->where('nombre', 'like', $search . '%')
                     ->orWhere('nombre', 'like', '%' . $search . '%')
@@ -638,7 +638,7 @@ class ProductController extends Controller
 
     public function ajaxSearch(Request $request)
     {
-        $search = $request->input('search');
+        $search = str_replace(' ','%',$request->input('search'));
         $query = DB::table('itemsdb')
             ->select('id', 'nombre', 'descripcion', 'precio_unitario_IVAinc', 'precio_con_descuento', 'descuento', 'no_s', 'unidad_medida_venta')
             ->where('activo', 1);
@@ -781,8 +781,8 @@ class ProductController extends Controller
         });
 
         $iva = $subtotalSinIVA * 0.16;
-        $shippingCostIVA = $shippment->shippingcost_IVA ?? 0.00;
-
+        $shippingCostIVA = $shippment->final_price ?? 0.00;
+        
         if ($shippmentExists && $shippment->ShipmentMethod === 'EnvioPorCobrar') {
             $shippingCostIVA = 0.00;
         }
@@ -836,21 +836,29 @@ class ProductController extends Controller
         $nonEligibleCobrarShipping = $cartItems->filter(function ($item) {
             return empty($item->allow_cobrar_shipping);
         });
-
+        
         $subtotalProductosSinIVA = $eligibleCartItems->sum(function ($item) {
-            $unitPriceSinIVA = $item->unit_price / 1.16;
+            $unitPriceSinIVA = $item->final_price / 1.16;
+
             return $unitPriceSinIVA * $item->quantity;
         });
+    
 
         $totalDescuentoSinIVA = $eligibleCartItems->sum(function ($item) {
-            $unitPriceSinIVA = $item->unit_price / 1.16;
+            $unitPriceSinIVA = ($item->final_price / 1.16)*($item->quantity);
+   
             $discountAmount = $unitPriceSinIVA * ($item->discount / 100) * $item->quantity;
+   
             return $discountAmount;
+            
         });
+
 
         $shippingCostSinIVA = $shippingCostIVA / 1.16;
         $totalSinIVA = $subtotalProductosSinIVA - $totalDescuentoSinIVA + $shippingCostSinIVA;
+        
         $ivaTotal = $totalSinIVA * 0.16;
+
         $totalFinal = $totalSinIVA + $ivaTotal;
 
         return view('carrito', [
@@ -894,6 +902,7 @@ class ProductController extends Controller
 
         $cartId = DB::table('carts')
             ->where('user_id', $userId)
+            ->where('status', 1)
             ->value('id');
 
         DB::table('cart_shippment')

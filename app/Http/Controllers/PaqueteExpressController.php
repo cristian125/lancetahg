@@ -16,7 +16,6 @@ class PaqueteExpressController extends ProductController
     private $CostoEnvio = 0;
     private $CodigoPostalOrigen = '';
     private $ColoniaOrigen = '';
-
     private $peso_pedido = 0;
     private $volumen_pedido = 0;
     private $pesovolumetrico_pedido = 0;
@@ -63,7 +62,18 @@ class PaqueteExpressController extends ProductController
 
     private function getDimensions()
     {
-
+        // Obtener el carrito activo del usuario autenticado (status = 1)
+        $cart = DB::table('carts')
+            ->where('user_id', auth()->id())
+            ->where('status', 1)
+            ->first();
+    
+        if (!$cart) {
+            // Si no hay un carrito activo, termina la función.
+            return;
+        }
+    
+        // Obtener las dimensiones de los artículos en el carrito activo
         $dimensions = DB::table('cart_items')
             ->join('items_unidades', 'cart_items.no_s', '=', 'items_unidades.item_no')
             ->select(
@@ -73,7 +83,7 @@ class PaqueteExpressController extends ProductController
                 'items_unidades.weight',
                 DB::raw('sum(cart_items.quantity) as quantity')
             )
-            ->where('cart_items.cart_id', $this->id)
+            ->where('cart_items.cart_id', $cart->id)
             ->groupBy(
                 'items_unidades.length',
                 'items_unidades.width',
@@ -81,14 +91,14 @@ class PaqueteExpressController extends ProductController
                 'items_unidades.weight'
             )
             ->get();
-
+    
         $totalLength = 0; // Largo total en cm
         $maxWidth = 0; // Ancho máximo en cm
         $maxHeight = 0; // Alto máximo en cm
         $totalWeight = 0; // Peso total en KG
         $totalVolume = 0; // Volumen total en m³
         $pesoVolumetrico = 0; // Peso volumétrico en m³
-
+    
         foreach ($dimensions as $dimension) {
             // Dimensiones en cm
             $length = floatval($dimension->length);
@@ -96,36 +106,37 @@ class PaqueteExpressController extends ProductController
             $height = floatval($dimension->height);
             $weight = floatval($dimension->weight); // Peso del item
             $quantity = floatval($dimension->quantity);
-
-            //Acumula el peso total sumando el peso de cada item multiplicado por su cantidad
+    
+            // Acumula el peso total sumando el peso de cada item multiplicado por su cantidad
             $totalWeight += $weight * $quantity;
-
+    
             // Acumular el largo total sumando el largo de cada item multiplicado por su cantidad
             $totalLength += $length * $quantity;
-
+    
             // Tomar el máximo ancho y alto (ya que no se suman como el largo)
             $maxWidth = max($maxWidth, $width);
             $maxHeight = max($maxHeight, $height);
-
+    
             // Calcular volumen de este item en metros cúbicos (dimensiones en metros)
             $volumenItem = ($length / 100) * ($width / 100) * ($height / 100) * $quantity;
-
+    
             // Sumar al volumen total
             $totalVolume += $volumenItem;
         }
-
+    
         // Calcular el peso volumétrico (dividiendo el volumen total entre 5000)
         $pesoVolumetrico = $totalVolume / 5000;
-
+    
+        // Asignar los valores calculados a las propiedades
         $this->peso_pedido = $totalWeight;
         $this->volumen_pedido = $totalVolume;
         $this->peso_volumetrico = $pesoVolumetrico;
-
+    
         $this->largo_pedido = $totalLength;
         $this->ancho_pedido = $maxWidth;
         $this->alto_pedido = $maxHeight;
     }
-
+    
     private function getRequestCotizador($id, $address_id = null)
     {
         $this->id = $id;

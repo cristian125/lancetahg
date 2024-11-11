@@ -134,10 +134,10 @@ class ShippingPaqueteriaController extends Controller
                 'ShipmentMethod' => 'EnvioPorPaqueteria',
                 'no_s' => '999999', // Código de producto especial para el envío por paquetería
                 'description' => "Envio por Paquetería",
-                'unit_price' => $totalProductosConIVA, // Precio total de los productos con IVA, pero sin envío
+                'unit_price' => round($shippingCostWithIVA/1.16,2), // Precio total de los productos con IVA, pero sin envío
                 'discount' => 0, // Puedes cambiar este valor si aplicas algún descuento
-                'final_price' => $totalProductosConIVA, // Precio final sin incluir envío
-                'shippingcost_IVA' => $shippingCostWithIVA, // Guardar el costo con IVA del envío
+                'final_price' => $shippingCostWithIVA, // Precio final sin incluir envío
+                'shippingcost_IVA' => $shippingCostWithIVA-round($shippingCostWithIVA/1.16,2), // Guardar el costo con IVA del envío
                 'quantity' => 1,
                 'nombre' => $direccion->nombre,
                 'calle' => $direccion->calle,

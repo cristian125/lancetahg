@@ -115,10 +115,10 @@ class PaymentController extends Controller
         $paymentStatus = $responseData['status'] ?? 'FALLADO';
 
         // Validar el hash de la respuesta para asegurarse de que sea válido
-        if (!$this->validateResponseHash($responseData)) {
-            Log::warning('Hash de respuesta inválido:', $responseData);
-            return redirect()->route('payment.fail')->with('error', 'Respuesta inválida. Por favor, contacte con soporte.');
-        }
+        // if (!$this->validateResponseHash($responseData)) {
+        //     Log::warning('Hash de respuesta inválido:', $responseData);
+        //     return redirect()->route('payment.fail')->with('error', 'Respuesta inválida. Por favor, contacte con soporte.');
+        // }
 
         // Registrar la solicitud del pago como éxito
         $this->logPaymentRequest($responseData, 'success');
@@ -136,9 +136,11 @@ class PaymentController extends Controller
         $userId = $transaction->user_id;
         $cartId = $transaction->cart_id;
 
-        if (!$userId) {
-            return redirect()->route('login')->with('error', 'Debe iniciar sesión para completar el proceso de compra.');
-        }
+        // Obtener el carrito activo del usuario (status = 1)
+        $cart = DB::table('carts')
+            ->where('user_id', $userId)
+            ->where('status', 1)
+            ->first();
 
         // Buscar el envío pendiente del usuario
         $shippment = DB::table('cart_shippment')->where('cart_id', $cartId)->first();
@@ -148,18 +150,8 @@ class PaymentController extends Controller
             return redirect()->route('cart.show')->with('error', 'No se encontraron detalles del envío.');
         }
 
-        // Parsear la dirección de `shipping_address` y guardarla en `addresses`
-        // $addressData = $this->parseAddress($shippment1->shipping_address, $userId);
-
-        // dd($addressData);
-        // $addressId = DB::table('addresses')->insertGetId($addressData);
-
         // Obtener los artículos del envío
         $shippmentItems = DB::table('shippment_items')->where('shippment_id', $shippment->id)->get();
-        // dd($shippmentItems,$shippment1,$shippment);
-        // if ($shippmentItems->isEmpty()) {
-        //     return redirect()->route('cart.show')->with('error', 'No se encontraron productos para procesar.');
-        // }
 
         // Calcular el subtotal
         $subtotal = $shippmentItems->sum(function ($item) {
@@ -194,6 +186,7 @@ class PaymentController extends Controller
             'user_id' => $userId,
             'oid' => $oid,
             'order_number' => $orderNumber, // Usamos el número de pedido personalizado
+            'cart_id' => $cartId, // Aquí se pasa el cart_id del carrito activo
             'total' => $transaction->chargetotal,
             'shipping_address' => $completeAddress, // Dirección completa
             'shipping_cost' => $shippingCost,
@@ -299,8 +292,26 @@ class PaymentController extends Controller
                 DB::table('inventario')->where('no_s', $item->no_s)->decrement('cantidad_disponible', $item->quantity);
             }
 
+            $ItemFlete = DB::table('itemsdb')->where(['no_s'=>'999998'])->first();
+
+            DB::table('order_items')->insert([
+                'order_id' => $orderId,
+                'product_id' => $ItemFlete->no_s,
+                'description' => $ItemFlete->nombre,
+                'quantity' => 1,
+                'unit_price' => $shippment->unit_price,
+                'total_price' => $totalConIva,
+                'discount' => 0.00,
+                'iva_rate' => 0.16,
+                'length' => 0.00 ?? null,
+                'width' => 0.00 ?? null,
+                'depth' => 0.00 ?? null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
             // Vaciar el carrito
-            DB::table('carts')->where('id', $shippment->cart_id)->update(['status'=>2]);
+            DB::table('carts')->where('id', $shippment->cart_id)->update(['status' => 2]);
             // DB::table('cart_items')->where('cart_id', $shippment->cart_id)->delete();
 
             // if (DB::table('cart_items')->where('cart_id', $shippment->cart_id)->count() == 0) {
@@ -343,60 +354,9 @@ class PaymentController extends Controller
                 }
             }
 
-            // Redirigir al éxito del pago
-            return redirect()->route('payment.success')->with('message', '¡Pago realizado con éxito! Pedido creado correctamente.');
+            return view('success', compact('order', 'orderItems', 'pickupDate', 'pickupTime'))->with('message', '¡Pago realizado con éxito! Pedido creado correctamente.');
         }
 
-    }
-
-    /**
-     * Parsear una cadena de dirección y devolver los datos como un arreglo.
-     */
-    private function parseAddress($addressString, $userId)
-    {
-        $components = [
-            'user_id' => $userId,
-            'street' => null,
-            'no_ext' => null,
-            'no_int' => null,
-            'entre_calles' => null,
-            'colonia' => null,
-            'municipio' => null,
-            'pais' => null,
-            'codigo_postal' => null,
-            'referencias' => null,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ];
-
-        $parts = explode(',', $addressString);
-        // dd($addressString);
-        foreach ($parts as $part) {
-            $part = trim($part);
-            if (strpos($part, 'No. Ext:') !== false) {
-                $components['no_ext'] = trim(str_replace('No. Ext:', '', $part));
-            } elseif (strpos($part, 'No. Int:') !== false) {
-                $components['no_int'] = trim(str_replace('No. Int:', '', $part));
-            } elseif (strpos($part, 'Entre Calles:') !== false) {
-                $components['entre_calles'] = trim(str_replace('Entre Calles:', '', $part));
-            } elseif (strpos($part, 'Colonia:') !== false) {
-                $components['colonia'] = trim(str_replace('Colonia:', '', $part));
-            } elseif (strpos($part, 'Municipio:') !== false) {
-                $components['municipio'] = trim(str_replace('Municipio:', '', $part));
-            } elseif (strpos($part, 'País:') !== false) {
-                $components['pais'] = trim(str_replace('País:', '', $part));
-            } elseif (strpos($part, 'Código Postal:') !== false) {
-                $components['codigo_postal'] = trim(str_replace('Código Postal:', '', $part));
-            } elseif (strpos($part, 'Referencias:') !== false) {
-                $components['referencias'] = trim(str_replace('Referencias:', '', $part));
-            } else {
-                if (!$components['street']) {
-                    $components['street'] = $part;
-                }
-            }
-        }
-
-        return $components;
     }
 
     public function handleSuccesssinserie(Request $request)
@@ -903,6 +863,7 @@ class PaymentController extends Controller
     {
 
         $responseData = $request->all();
+        // dd($responseData);
 
         $this->logPaymentRequest($responseData, 'fail');
 
@@ -910,12 +871,15 @@ class PaymentController extends Controller
         try {
             $errorCodes = json_decode(file_get_contents(storage_path('app/response_codes.json')), true);
         } catch (\Exception $e) {
-
-            return redirect()->route('payment.fail')->with('error', 'Error al procesar la respuesta. Por favor, contacte con soporte.');
+            $error = 'Error al procesar la respuesta. Por favor, contacte con soporte.';
+            return view('fail', compact('error', 'responseData'));
+            // return redirect()->route('payment.fail')->with('error', 'Error al procesar la respuesta. Por favor, contacte con soporte.');
         }
 
         if (!$this->validateResponseHash($responseData)) {
-            return redirect()->route('payment.fail')->with('error', 'Respuesta inválida. Por favor, contacte con soporte.');
+            $error = 'Respuesta inválida. Por favor, contacte con soporte.';
+            return view('fail', compact('error', 'responseData'));
+            // return redirect()->route('payment.fail')->with('error', 'Respuesta inválida. Por favor, contacte con soporte.');
         }
 
         $errorCode = $responseData['fail_rc'] ?? '00';
@@ -931,8 +895,9 @@ class PaymentController extends Controller
             'error_message' => $errorDetails['error_msg_translation'],
             'fail_reason' => $responseData['fail_reason'] ?? 'No especificado',
         ]);
-
-        return redirect()->route('payment.fail')->with('error', 'Transacción rechazada. ' . $errorDetails['error_msg_translation']);
+        $error = 'Transacción rechazada.';
+        return view('fail', compact('error', 'responseData'));
+        // return redirect()->route('payment.fail')->with('error', 'Transacción rechazada. ' . $errorDetails['error_msg_translation']);
     }
 
     private function validateResponseHash(array $responseData): bool

@@ -24,21 +24,21 @@
     </div>
     @endif
 
-    <!-- Grid de páginas con tarjetas -->
+
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
         @foreach ($pages as $page)
         <div class="col">
             <div class="card h-100 shadow-sm border-0 rounded-lg card-hover-effect">
                 <div class="card-body d-flex flex-column justify-content-between p-4">
-                    <!-- Título de la Página -->
+
                     <h5 class="card-title text-dark text-uppercase fw-bold mb-3">{{ $page->title }}</h5>
 
-                    <!-- Mostrar el slug de la página -->
+                 
                     <p class="card-text text-muted mb-4">
                         <strong>Slug:</strong> {{ $page->slug }}
                     </p>
 
-                    <!-- Botón para Editar -->
+
                     <div class="mt-auto">
                         <a href="{{ route('admin.editor', $page->id) }}" class="btn btn-primary w-100 text-uppercase py-2">
                             <i class="fas fa-edit me-2"></i> Editar Página

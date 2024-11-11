@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Hash;
 class ProductosDestacadosController extends Controller
 {
 
-    
+
     public function index(Request $request)
     {
         if($this->checkMaintenance()==true)
@@ -36,10 +36,10 @@ class ProductosDestacadosController extends Controller
                 'itemsdb.codigo_de_producto_minorista as codigo'
             )
             ->get();
-    
 
 
-            
+
+
         // Si hay menos de 20 productos seleccionados, completamos con productos aleatorios
         if ($productosDestacados->count() < 20) {
             $productosAleatorios = DB::table('itemsdb')
@@ -59,12 +59,12 @@ class ProductosDestacadosController extends Controller
                     'codigo_de_producto_minorista as codigo'
                 )
                 ->get();
-    
+
             $destacados = $productosDestacados->merge($productosAleatorios);
         } else {
             $destacados = $productosDestacados->take(20);
         }
-    
+
         // Agregar la imagen principal y secundarias para cada producto
         foreach ($destacados as $producto) {
             // Seleccionar el precio a mostrar
@@ -73,23 +73,23 @@ class ProductosDestacadosController extends Controller
             } else {
                 $producto->precio_final = $producto->precio_unitario_IVAinc;
             }
-    
+
             // Usar 'no_s' como identificador del producto
             $codigoProducto = str_pad($producto->no_s, 6, "0", STR_PAD_LEFT);
             $imagenPrincipal = asset("storage/itemsview/default.jpg"); // Imagen por defecto
             $imagenesSecundarias = [];
-    
+
             // Verificar si existe una carpeta con imágenes para el producto
             $carpetaImagenes = "itemsview/{$codigoProducto}";
-    
+
             if (Storage::disk('public')->exists($carpetaImagenes)) {
                 // Obtener todas las imágenes dentro de la carpeta
                 $imagenesEnCarpeta = Storage::disk('public')->files($carpetaImagenes);
-    
+
                 // Procesar las imágenes encontradas
                 foreach ($imagenesEnCarpeta as $imagen) {
                     $nombreImagen = basename($imagen);
-    
+
                     // Verificar si es la imagen principal
                     if ($nombreImagen === "{$codigoProducto}.jpg") {
                         $imagenPrincipal = asset("storage/{$imagen}");
@@ -101,7 +101,7 @@ class ProductosDestacadosController extends Controller
                     }
                 }
             }
-    
+
             // Añadir la imagen principal y secundarias al objeto producto
             $producto->imagen_principal = $imagenPrincipal;
             $producto->imagenes_secundarias = $imagenesSecundarias;
@@ -110,26 +110,26 @@ class ProductosDestacadosController extends Controller
         ->where('active', 1)
         ->orderBy('order')
         ->get();
-    
+
         $gridImages = DB::table('grid_images')->where('active', 1)->get();
         $bannerImage = DB::table('banner_images')->where('active', 1)->first();
 
             // Obtener la configuración del modal desde la tabla `modal_config`
             $modalConfig = DB::table('modal_config')->first();
-        
+
             // Verificar que el modalConfig no sea nulo y que tenga el campo 'is_active' correctamente definido
             $modalActivo = isset($modalConfig->is_active) ? $modalConfig->is_active : false;
-        
+
             // Obtener la imagen del modal
             $modalImagen = isset($modalConfig->image_url) ? $modalConfig->image_url : null;
-        
 
-        
+
+
         // Retornar la vista con los productos destacados
         return view('index', compact('destacados', 'carouselImages', 'gridImages', 'bannerImage','modalActivo', 'modalImagen'));
     }
     /***
-     * Se consulta si esta en mantenimiento 
+     * Se consulta si esta en mantenimiento
      * */
     public static function checkMaintenance()
     {
@@ -271,7 +271,8 @@ class ProductosDestacadosController extends Controller
 
     public function search(Request $request)
     {
-        $search = $request->search;
+        $search = str_replace(' ','%',$request->search);
+        dd($search);
         // Implementa la búsqueda en la tabla `itemsdb`
         $resultados = DB::table('itemsdb')
             ->where('activo', 1)  // Solo productos activos

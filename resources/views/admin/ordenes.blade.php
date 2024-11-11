@@ -4,7 +4,6 @@
 <div class="container">
     <h1 class="mb-4">Órdenes de Pedido</h1>
 
-    <!-- Formulario de búsqueda -->
     <form method="GET" action="{{ route('admin.orders.index') }}" class="mb-4">
         <div class="input-group">
             <input type="text" name="search" class="form-control" placeholder="Buscar por Número de Orden, Usuario o Método de Envío" value="{{ request()->input('search') }}">
@@ -12,7 +11,6 @@
         </div>
     </form>
 
-    <!-- Tabla de órdenes -->
     <table class="table table-striped text-center align-middle">
         <thead>
             <tr>
@@ -36,7 +34,11 @@
             @else
                 @foreach($ordenes as $orden)
                 <tr>
-                    <td>{{ $orden->order_number }}</td>
+                    <td>
+                        <a href="{{ route('admin.orders.show', ['orderId' => $orden->order_id]) }}">
+                            {{ $orden->order_number }}
+                        </a>
+                    </td>
                     <td>{{ $orden->user_name }}</td>
                     <td>${{ number_format($orden->total, 2) }}</td>
                     <td>${{ number_format($orden->subtotal_sin_envio, 2) }}</td>

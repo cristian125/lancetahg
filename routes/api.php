@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\UserAddressController;
+use App\Http\Controllers\Api\GuiasController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -35,3 +37,8 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 Route::get('/fetch-items', [ProductController::class, 'fetchItems']);
 
 Route::get('/addresses', [UserAddressController::class, 'getAllUserAddresses']);
+
+
+Route::get('/status-update', [GuiasController::class, 'statusUpdate'])->name('status.update');
+
+Route::get('/guias', [GuiasController::class, 'guiasearch']);

@@ -286,27 +286,31 @@ class CartController extends ProductController
 
     public function showCheckout(Request $request)
     {
-
-        $cartId=$this->getID();
-
+ 
+        // Obtener el ID del carrito activo del usuario
+        $cart = DB::table('carts')
+            ->where('user_id', auth()->id())
+            ->where('status', 1)
+            ->first();
+    
+        if (!$cart) {
+            return redirect('/carrito')->with('error', 'No tienes un carrito activo.');
+        }
+    
+        $cartId = $cart->id;
+    
         // Verificar si se permite el acceso al checkout y eliminar la sesión para prevenir futuros accesos directos
         if (!session()->pull('allow_checkout', false)) {
             return redirect('/carrito')->with('error', 'Debes crear un pedido para proceder al checkout.');
         }
-
+    
         // Verificación de mantenimiento
         $mantenimiento = ProductosDestacadosController::checkMaintenance();
         if ($mantenimiento == 'true') {
             return redirect(route('mantenimiento'));
         }
-
-        $userId = auth()->id();
-
-        if (!$userId) {
-            return redirect()->route('login');
-        }
-
-        // Obtener el envío pendiente del usuario desde la tabla 'shippments'
+    
+        // Obtener el envío pendiente del usuario desde la tabla 'cart_shippment'
         $shippment = DB::table('cart_shippment')
             ->where('cart_id', $cartId)
             ->select(
@@ -334,7 +338,7 @@ class CartController extends ProductController
         if (!$shippment) {
             return view('checkout', ['error' => 'No se han encontrado detalles del envío.']);
         }
-
+    
         // Obtener detalles de la tienda si el envío es para recoger en tienda
         $storeDetails = null;
         if ($shippment->ShipmentMethod === 'RecogerEnTienda') {
@@ -342,18 +346,18 @@ class CartController extends ProductController
                 ->where('id', $shippment->store_id)
                 ->first();
         }
-
-        // Obtener los items del carrito, incluyendo el campo grupo_iva
-        $cartItems = DB::table('shippment_items')
-            ->join('itemsdb', 'shippment_items.no_s', '=', 'itemsdb.no_s')
-            ->where('shippment_id', $shippment->id)
+    
+        // Obtener los items del carrito activo, incluyendo el campo grupo_iva
+        $cartItems = DB::table('cart_items')
+            ->join('itemsdb', 'cart_items.no_s', '=', 'itemsdb.no_s')
+            ->where('cart_items.cart_id', $cartId)
             ->select(
-                'shippment_items.no_s',
-                'shippment_items.description',
-                'shippment_items.quantity',
-                'shippment_items.unit_price',
-                'shippment_items.final_price',
-                'shippment_items.discount',
+                'cart_items.no_s',
+                'cart_items.description',
+                'cart_items.quantity',
+                'cart_items.unit_price',
+                'cart_items.final_price',
+                'cart_items.discount',
                 'itemsdb.unidad_medida_venta as unidad',
                 'itemsdb.grupo_iva' // Incluir el campo grupo_iva
             )
@@ -365,36 +369,35 @@ class CartController extends ProductController
         })->sum(function ($item) {
             return $item->final_price * $item->quantity;
         });
-
+    
         $totalSinIVA = $cartItems->filter(function ($item) {
             return $item->grupo_iva === 'IVA0';
         })->sum(function ($item) {
             return $item->final_price * $item->quantity;
         });
-
+    
         // Calcular los totales
         $shippingCost = $shippment->shippingcost_IVA;
-
         $totalPriceItems = $cartItems->sum(function ($item) {
             return $item->final_price * $item->quantity;
         });
-
+    
         // Calcular subtotal sin IVA
         $subtotalSinIVA = $totalPriceItems / 1.16;
-
+    
         // Calcular el IVA total (16%)
         $ivaTotal = $subtotalSinIVA * 0.16;
-
+    
         // Calcular el total final con IVA y envío
         $totalFinal = $totalPriceItems + $shippingCost;
-
+    
         // Generar un 'oid' único
         $oid = uniqid('C-', true);
-
+    
         // Guardar la transacción de pago
         DB::table('payment_transactions')->insert([
-            'user_id' => $userId,
-            'cart_id' => $shippment->cart_id,
+            'user_id' => auth()->id(),
+            'cart_id' => $cartId,
             'oid' => $oid,
             'chargetotal' => number_format($totalFinal, 2, '.', ''),
             'checkoutoption' => 'combinedpage',
@@ -410,7 +413,7 @@ class CartController extends ProductController
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-
+    
         // Insertar estado 1 (Confirmación de pedido) en order_history
         DB::table('order_history')->insert([
             'order_id' => $oid,
@@ -419,7 +422,7 @@ class CartController extends ProductController
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-
+    
         // Generar hash y preparar datos del formulario de pago
         $paymentData = [
             'oid' => $oid,
@@ -436,12 +439,13 @@ class CartController extends ProductController
             'txntype' => 'sale',
         ];
 
+    
         ksort($paymentData);
         $secretKey = env('PAYMENT_SECRET_KEY');
         $hashString = implode('|', $paymentData);
         $hash = base64_encode(hash_hmac('sha256', $hashString, $secretKey, true));
         $paymentData['hashExtended'] = $hash;
-
+    
         // Retornar la vista con las variables calculadas
         return view('checkout', [
             'shippment' => $shippment,
@@ -458,6 +462,7 @@ class CartController extends ProductController
             'storeDetails' => $storeDetails,
         ]);
     }
+    
 
     public function updatePaymentMethod(Request $request)
     {

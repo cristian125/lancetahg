@@ -14,14 +14,13 @@ class AccountController extends Controller
 
     public function index(Request $request)
     {
-        
+        // Verificación de mantenimiento
         $mantenimiento = ProductosDestacadosController::checkMaintenance();
         if ($mantenimiento == 'true') {
             return redirect(route('mantenimento'));
         }
 
-        $sectionToOpen = $request->get('section', null); 
-
+        $sectionToOpen = $request->get('section', null);
 
         $user = Auth::user();
         $userID = $user->id;
@@ -32,7 +31,24 @@ class AccountController extends Controller
             ->first();
         $userData = DB::table('users_data')->where('user_id', $userID)->first();
 
+        // // Obtener los regímenes fiscales
+        // $regimenes_fiscales_fisica = DB::table('regimenes_fiscales')->where('fisica', 'Si')->get();
+        // $regimenes_fiscales_moral = DB::table('regimenes_fiscales')->where('moral', 'Si')->get();
 
+        // // Obtener todos los usos de CFDI relacionados con cada régimen fiscal
+        // $usosCfdiPorRegimen = [];
+        // $regimenes = DB::table('regimenes_fiscales')->get();
+
+        // foreach ($regimenes as $regimen) {
+        //     $usosCfdi = DB::table('usos_cfdi')
+        //         ->join('regimen_fiscal_uso_cfdi', 'usos_cfdi.id', '=', 'regimen_fiscal_uso_cfdi.uso_cfdi_id')
+        //         ->where('regimen_fiscal_uso_cfdi.regimen_fiscal_id', $regimen->id)
+        //         ->select('usos_cfdi.codigo', 'usos_cfdi.descripcion')
+        //         ->get();
+        //     $usosCfdiPorRegimen[$regimen->codigo] = $usosCfdi; // Agrupamos por código de régimen fiscal
+        // }
+
+        // Obtener los archivos modales y acordeones
         $files_modal = File::allFiles(resource_path('views/partials/modal/cuenta'));
         $files_accordion = File::allFiles(resource_path('views/partials/accordion/cuenta'));
 
@@ -49,7 +65,9 @@ class AccountController extends Controller
             $accordion_files->$i = str_replace('.blade.php', '', $file->getRelativePathname());
             $i++;
         }
-
+        $regimen_fiscal_seleccionado = DB::table('regimenes_fiscales')->where(['codigo'=>$userData->regimen_fiscal])->first();
+        $uso_de_cfdi_seleccionado = DB::table('usos_cfdi')->where(['codigo'=>$userData->uso_cfdi])->first();
+        // dd($regimen_seleccionado, $uso_de_cfdi_seleccionado);
         return view('cuenta', [
             'direcciones' => $direcciones,
             'direccion_facturacion' => $direccion_facturacion,
@@ -57,7 +75,12 @@ class AccountController extends Controller
             'accordion_files' => $accordion_files,
             'user' => $user,
             'userData' => $userData,
-            'sectionToOpen' => $sectionToOpen, 
+            'sectionToOpen' => $sectionToOpen,
+            'regimen_fiscal_seleccionado'=>$regimen_fiscal_seleccionado,
+            'uso_de_cfdi_seleccionado'=>$uso_de_cfdi_seleccionado
+            // 'regimenes_fiscales_fisica' => $regimenes_fiscales_fisica,
+            // 'regimenes_fiscales_moral' => $regimenes_fiscales_moral,
+            // 'usosCfdiPorRegimen' => $usosCfdiPorRegimen, // Pasamos el array a la vista
         ]);
     }
 
@@ -208,7 +231,6 @@ class AccountController extends Controller
         $user = Auth::user();
         $direccionID = $request->direccion_predeterminada;
 
-
         DB::table('users_address')
             ->where('user_id', $user->id)
             ->update(['predeterminada' => 0]);
@@ -225,11 +247,9 @@ class AccountController extends Controller
         $user = Auth::user();
         $direccionID = $request->direccion_facturacion;
 
-
         DB::table('users_address')
             ->where('user_id', $user->id)
             ->update(['facturacion' => 0]);
-
 
         DB::table('users_address')
             ->where('id', $direccionID)
@@ -244,14 +264,14 @@ class AccountController extends Controller
         $user = Auth::user();
         $userID = $user->id;
 
-
         $request->validate([
             'razon_social' => 'required|string|max:255',
             'rfc' => 'required|string|max:13',
             'regimen_fiscal' => 'required|string|max:255',
             'uso_cfdi' => 'required|string|max:255',
-        ]);
+            'tipo_persona' => 'required|in:fisica,moral', // Validación para tipo de persona
 
+        ]);
 
         DB::table('users_data')->updateOrInsert(
             ['user_id' => $userID],
@@ -260,6 +280,7 @@ class AccountController extends Controller
                 'rfc' => $request->rfc,
                 'regimen_fiscal' => $request->regimen_fiscal,
                 'uso_cfdi' => $request->uso_cfdi,
+                'tipo_persona' => $request->tipo_persona, // Guardar el tipo de persona
                 'updated_at' => Carbon::now(),
             ]
         );
@@ -270,7 +291,7 @@ class AccountController extends Controller
     public function actualizarPromociones(Request $request)
     {
         $user = Auth::user();
-        $email = $user->email; 
+        $email = $user->email;
         $ipAddress = $request->ip();
         $suscripcion = $request->input('recibir_promociones');
 
@@ -296,4 +317,33 @@ class AccountController extends Controller
         return redirect()->route('cuenta')->with('status', 'Preferencias de promociones actualizadas correctamente.');
     }
 
+    // Método para obtener los regímenes fiscales por tipo de persona
+    public function getRegimenesPorTipoPersona(Request $request)
+    {
+        $tipoPersona = $request->tipo_persona;
+
+        if ($tipoPersona === 'fisica') {
+            $regimenes = DB::table('regimenes_fiscales')->where('fisica', 'Si')->get();
+        } elseif ($tipoPersona === 'moral') {
+            $regimenes = DB::table('regimenes_fiscales')->where('moral', 'Si')->get();
+        } else {
+            return response()->json(['error' => 'Tipo de persona inválido'], 400);
+        }
+
+        return response()->json($regimenes);
+    }
+    // Método para obtener los usos de CFDI por régimen fiscal
+    public function getUsosCfdiPorRegimen(Request $request)
+    {
+        $regimenFiscalId = $request->regimen_fiscal_id;
+
+        $usosCfdi = DB::table('usos_cfdi')
+            ->join('regimen_fiscal_uso_cfdi', 'usos_cfdi.id', '=', 'regimen_fiscal_uso_cfdi.uso_cfdi_id')
+            ->join('regimenes_fiscales','regimenes_fiscales.id','regimen_fiscal_uso_cfdi.regimen_fiscal_id')
+            ->where('regimenes_fiscales.codigo', $regimenFiscalId)
+            ->select('usos_cfdi.codigo', 'usos_cfdi.descripcion')
+            ->get();
+
+        return response()->json($usosCfdi);
+    }
 }

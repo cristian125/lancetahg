@@ -17,8 +17,6 @@
                     {{ $criterioBusqueda }}
                 </span>
             @endif
-
-
         </p>
         <hr class="my-4">
 
@@ -157,13 +155,13 @@
                             @foreach ($productos as $producto)
                                 <div class="col-md-3 mb-4">
                                     <div class="card h-100 shadow-sm">
-                                        <a href="{{ url('/producto/' . $producto->id) }}">
+                                        <a href="{{ url('/producto/' . $producto->id . '-' . urlencode($producto->nombre)) }}">
                                             <img src="{{ $producto->imagen_principal }}" class="card-img-top"
                                                 alt="{{ $producto->nombre }}"
                                                 style="max-height: 180px; object-fit: cover;">
                                         </a>
                                         <div class="card-body d-flex flex-column">
-                                            <a href="{{ url('/producto/' . $producto->id) }}"
+                                            <a href="{{ url('/producto/' . $producto->id . '-' . urlencode($producto->nombre)) }}"
                                                 class="text-decoration-none text-dark">
                                                 <h5 class="card-title text-truncate">{{ $producto->nombre }}</h5>
                                             </a>
@@ -202,7 +200,7 @@
                                 <tbody>
                                     @foreach ($productos as $producto)
                                         <tr class="product-item"
-                                            onclick="window.location='{{ url('/producto/' . $producto->id) }}';"
+                                            onclick="window.location='{{ url('/producto/' . $producto->id . '-' . urlencode($producto->nombre)) }}';"
                                             style="cursor: pointer;">
                                             <td class="image">
                                                 <img src="{{ $producto->imagen_principal }}"
