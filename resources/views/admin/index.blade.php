@@ -23,7 +23,7 @@
                     <span>Dashboard</span>
                 </a>
             </li>
-            @if(Auth::guard('admin')->user() && in_array(Auth::guard('admin')->user()->role, ['superusuario', 'editor']))
+            @if (Auth::guard('admin')->user() && in_array(Auth::guard('admin')->user()->role, ['superusuario', 'editor']))
                 <li class="nav-item">
                     <a href="{{ route('admin.items.index') }}"
                         class="nav-link {{ request()->is('admin/items') ? 'active' : '' }}">
@@ -31,11 +31,8 @@
                         <span>Items</span>
                     </a>
                 </li>
-
-                
-                            
             @endif
-            @if(Auth::guard('admin')->user() && Auth::guard('admin')->user()->role === 'superusuario')
+            @if (Auth::guard('admin')->user() && Auth::guard('admin')->user()->role === 'superusuario')
                 <li class="nav-item">
                     <a href="{{ route('admin.manage.admins') }}"
                         class="nav-link {{ request()->is('admin/manage-admins') ? 'active' : '' }}">
@@ -67,49 +64,48 @@
         </ul>
     </nav>
 
-<!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
-        <!-- Botón para colapsar/expandir el sidebar -->
-        <button class="btn btn-outline-light me-2" id="sidebarCollapse">
-            <i class="fas fa-bars"></i>
-        </button>
-        <a class="navbar-brand" href="#">Panel</a>
-        <!-- Botón de colapso para la navegación en dispositivos móviles -->
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-            data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false"
-            aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <!-- Enlaces de navegación -->
-        <div class="collapse navbar-collapse justify-content-end" id="navbarNavDropdown">
-            <ul class="navbar-nav">
-                @if (auth()->check())
-
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <!-- Botón para colapsar/expandir el sidebar -->
+            <button class="btn btn-outline-light me-2" id="sidebarCollapse">
+                <i class="fas fa-bars"></i>
+            </button>
+            <a class="navbar-brand" href="#">Panel</a>
+            <!-- Botón de colapso para la navegación en dispositivos móviles -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
+                aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <!-- Enlaces de navegación -->
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNavDropdown">
+                <ul class="navbar-nav">
+                    @if (auth()->check())
+                        <li class="nav-item">
+                            <a class="nav-link" href="#"><i class="fas fa-user-circle"></i>
+                                {{ auth()->user()->name }}</a>
+                        </li>
+                    @else
+                        <li class="nav-item">
+                            <a class="nav-link" href="#"><i class="fas fa-user-circle"></i> Invitado</a>
+                        </li>
+                    @endif
                     <li class="nav-item">
-                        <a class="nav-link" href="#"><i class="fas fa-user-circle"></i> {{ auth()->user()->name }}</a>
+                        <a class="nav-link" href="#"><i class="fas fa-cogs"></i> Configuración</a>
                     </li>
-                @else
                     <li class="nav-item">
-                        <a class="nav-link" href="#"><i class="fas fa-user-circle"></i> Invitado</a>
+                        <a class="nav-link" href="#"
+                            onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                        </a>
+                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                            @csrf
+                        </form>
                     </li>
-                @endif
-                <li class="nav-item">
-                    <a class="nav-link" href="#"><i class="fas fa-cogs"></i> Configuración</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#"
-                        onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
-                    </a>
-                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                        @csrf
-                    </form>
-                </li>
-            </ul>
+                </ul>
+            </div>
         </div>
-    </div>
-</nav>
+    </nav>
 
 
 
@@ -142,5 +138,4 @@
             }
         });
     </script>
-
 @endsection

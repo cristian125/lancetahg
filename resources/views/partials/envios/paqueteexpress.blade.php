@@ -46,8 +46,8 @@
                     <p id="shipping-info-text-paqueteria" class="mb-3 text-muted">
                         Por favor seleccione una dirección.
                     </p>
-                    <p class="fw-bold"><strong>Total del carrito:</strong>
-                        ${{ number_format($paqueteriaShippingData['totalCart'], 2) }} MXN</p>
+                    {{-- <p class="fw-bold"><strong>Total del carrito:</strong>
+                        ${{ number_format($paqueteriaShippingData['totalCart'], 2) }} MXN</p> --}}
                 </div>
 
             </div>

@@ -64,6 +64,9 @@
                             </div>
                         </div>
                     </div>
+
+
+
                     <!-- Tipo de Persona -->
                     <div class="row mb-3">
                         <div class="col-md-12">
@@ -92,24 +95,9 @@
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fa fa-file-contract"></i></span>
                                 <select id="regimen_fiscal" name="regimen_fiscal" class="form-control" required>
+                                    @isset( $regimen_fiscal_seleccionado->codigo)
                                     <option value="{{ $regimen_fiscal_seleccionado->codigo }}">{{ $regimen_fiscal_seleccionado->codigo }} - {{ $regimen_fiscal_seleccionado->descripcion }}</option>
-                                    {{-- <option value="">Selecciona un régimen</option> --}}
-                                    <!-- Opciones para Persona Física -->
-                                    {{-- @foreach ($regimenes_fiscales_fisica as $regimen)
-                                        <option class="fisica-option" value="{{ $regimen->codigo }}"
-                                            
-                                            {{ old('regimen_fiscal', $userData->regimen_fiscal ?? '') == $regimen->codigo ? 'selected' : '' }}>
-                                            {{ $regimen->codigo }} - {{ $regimen->descripcion }}
-                                        </option>
-                                    @endforeach --}}
-                                    <!-- Opciones para Persona Moral -->
-                                    {{-- @foreach ($regimenes_fiscales_moral as $regimen)
-                                        <option class="moral-option" value="{{ $regimen->codigo }}"
-                                            
-                                            {{ old('regimen_fiscal', $userData->regimen_fiscal ?? '') == $regimen->codigo ? 'selected' : '' }}>
-                                            {{ $regimen->codigo }} - {{ $regimen->descripcion }}
-                                        </option>
-                                    @endforeach --}}
+                                    @endisset
                                 </select>
                             </div>
                         </div>
@@ -121,7 +109,9 @@
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fa fa-file-alt"></i></span>
                                 <select id="uso_cfdi" name="uso_cfdi" class="form-control" required>
+                                    @isset($uso_de_cfdi_seleccionado->codigo)
                                     <option value="{{ $uso_de_cfdi_seleccionado->codigo }}">{{ $uso_de_cfdi_seleccionado->codigo }} - {{ $uso_de_cfdi_seleccionado->descripcion }}</option>
+                                    @endisset
                                     {{-- <option value="">Selecciona un uso de CFDI</option> --}}
                                 </select>
                             </div>

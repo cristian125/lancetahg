@@ -1,158 +1,160 @@
 @extends('admin.template')
 
 @section('content')
-<div class="container">
-    <h1 class="mb-4">Órdenes de Pedido</h1>
+    <div class="container">
+        <h1 class="mb-4">Órdenes de Pedido</h1>
 
-    <form method="GET" action="{{ route('admin.orders.index') }}" class="mb-4">
-        <div class="input-group">
-            <input type="text" name="search" class="form-control" placeholder="Buscar por Número de Orden, Usuario o Método de Envío" value="{{ request()->input('search') }}">
-            <button type="submit" class="btn btn-primary">Buscar</button>
+        <!-- Formulario de búsqueda -->
+        <form method="GET" action="{{ route('admin.orders.index') }}" class="mb-4">
+            <div class="input-group">
+                <input type="text" name="search" class="form-control shadow-sm"
+                    placeholder="Buscar por Número de Orden, Usuario o Método de Envío"
+                    value="{{ request()->input('search') }}">
+                <button type="submit" class="btn btn-primary shadow-sm">Buscar</button>
+            </div>
+        </form>
+
+        <!-- Tabla de órdenes -->
+        <table class="table table-hover text-center align-middle shadow-sm rounded">
+            <thead class="table-primary">
+                <tr>
+                    <th>Número de Orden</th>
+                    <th>Usuario</th>
+                    <th>Total</th>
+                    <th>Subtotal (sin envío)</th>
+                    <th>Costo de Envío</th>
+                    <th>Descuento aplicado</th>
+                    {{-- <th>Total con IVA</th> --}}
+                    <th>Método de Envío</th>
+                    <th>Fecha de Creación</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if ($ordenes->isEmpty())
+                    <tr>
+                        <td colspan="10" class="text-center text-muted">No se encontraron resultados.</td>
+                    </tr>
+                @else
+                    @foreach ($ordenes as $orden)
+                        <tr onclick="location.href='{{ route('admin.orders.show', ['orderId' => $orden->order_id]) }}'"
+                            class="clickable-row bg-light">
+                            <td class="fw-bold text-primary">{{ $orden->order_number }}</td>
+                            <td>{{ $orden->user_name }}</td>
+                            <td class="text-success">${{ number_format($orden->total, 2) }}</td>
+                            <td>${{ number_format($orden->subtotal_sin_envio, 2) }}</td>
+                            <td>${{ number_format($orden->shipping_cost, 2) }}</td>
+                            <td>${{ number_format($orden->discount, 2) }}</td>
+                            {{-- <td>${{ number_format($orden->total_con_iva, 2) }}</td> --}}
+                            <td>{{ $orden->shipment_method }}</td>
+                            <td>{{ $orden->order_created_at }}</td>
+                            <td>
+                                <a href="{{ route('admin.order.pdf', ['orderId' => $orden->order_id]) }}"
+                                    class="btn btn-sm btn-outline-primary no-click shadow-sm">
+                                    Descargar PDF
+                                </a>
+                            </td>
+                        </tr>
+                    @endforeach
+                @endif
+            </tbody>
+        </table>
+
+        <!-- Paginación -->
+        <div class="d-flex justify-content-center">
+            {{ $ordenes->appends(['search' => request()->input('search')])->links() }}
         </div>
-    </form>
-
-    <table class="table table-striped text-center align-middle">
-        <thead>
-            <tr>
-                <th>Número de Orden</th>
-                <th>Usuario</th>
-                <th>Total</th>
-                <th>Subtotal (sin envío)</th>
-                <th>Costo de Envío</th>
-                <th>Descuento aplicado</th>
-                <th>Total con IVA</th>
-                <th>Método de Envío</th>
-                <th>Fecha de Creación</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if($ordenes->isEmpty())
-                <tr>
-                    <td colspan="10" class="text-center">No se encontraron resultados.</td>
-                </tr>
-            @else
-                @foreach($ordenes as $orden)
-                <tr>
-                    <td>
-                        <a href="{{ route('admin.orders.show', ['orderId' => $orden->order_id]) }}">
-                            {{ $orden->order_number }}
-                        </a>
-                    </td>
-                    <td>{{ $orden->user_name }}</td>
-                    <td>${{ number_format($orden->total, 2) }}</td>
-                    <td>${{ number_format($orden->subtotal_sin_envio, 2) }}</td>
-                    <td>${{ number_format($orden->shipping_cost, 2) }}</td>
-                    <td>
-                        @php
-                            $descuentoDinero = ($orden->discount / 100) * $orden->subtotal_sin_envio;
-                        @endphp
-                        ${{ number_format($descuentoDinero, 2) }}
-                    </td>
-                    <td>${{ number_format($orden->total_con_iva, 2) }}</td>
-                    <td>{{ $orden->shipment_method }}</td>
-                    <td>{{ $orden->order_created_at }}</td>
-                    <td>
-                        <!-- Botón de toggle para abrir/cerrar ítems -->
-                        <button class="btn btn-info btn-sm toggle-items" data-target="#orderItems{{ $orden->order_number }}">
-                            Ver Ítems
-                        </button>
-
-                        <!-- Botón para descargar el PDF -->
-                        <a href="{{ route('admin.order.pdf', ['orderId' => $orden->order_id]) }}" class="btn btn-primary btn-sm">
-                            Descargar PDF
-                        </a>
-                    </td>
-                </tr>
-
-                <!-- Detalles de los ítems -->
-                <tr>
-                    <td colspan="10">
-                        <div class="order-items" id="orderItems{{ $orden->order_number }}" style="display: none;">
-                            <table class="table table-bordered mt-3 text-center align-middle">
-                                <thead>
-                                    <tr>
-                                        <th>Miniatura</th>
-                                        <th>ID del Ítem</th>
-                                        <th>ID del Producto</th>
-                                        <th>Cantidad</th>
-                                        <th>Precio Unitario</th>
-                                        <th>Precio Total</th>
-                                        <th>Descuento</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($orden->items as $item)
-                                    <tr>
-                                        <td>
-                                            <!-- Contenedor de imagen con sombra, usamos el product_id para la imagen -->
-                                            <div class="image-container shadow-sm mx-auto" style="width: 60px; height: 60px; border-radius: 8px; overflow: hidden;">
-                                                <a href="{{ route('producto.detalle', ['id' => $item->real_product_id]) }}">
-                                                    <img src="{{ route('producto.imagen', ['id' => $item->product_id]) }}" alt="Imagen del producto" style="width: 100%; height: 100%; object-fit: cover;">
-                                                </a>
-                                            </div>
-                                        </td>
-                                        <td>{{ $item->item_id }}</td>
-                                        <td>{{ $item->product_id }}</td>
-                                        <td>{{ $item->quantity }}</td>
-                                        <td>${{ number_format($item->unit_price, 2) }}</td>
-                                        <td>${{ number_format($item->total_price, 2) }}</td>
-                                        <td>
-                                            @php
-                                                $descuentoItem = ($item->discount / 100) * $item->unit_price * $item->quantity;
-                                            @endphp
-                                            ${{ number_format($descuentoItem, 2) }}
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </td>
-                </tr>
-                @endforeach
-            @endif
-        </tbody>
-    </table>
-
-    <!-- Paginación -->
-    <div class="d-flex justify-content-center">
-        {{ $ordenes->appends(['search' => request()->input('search')])->links() }}
     </div>
-</div>
+    <style>
+        /* Estilo general de la tabla */
+        .table {
+            border-collapse: separate;
+            border-spacing: 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+    
+        .table th,
+        .table td {
+            vertical-align: middle;
+        }
+    
+        .table-primary {
+            background-color: #007bff !important;
+            color: white;
+            font-weight: bold;
+        }
+    
+        .table-hover tbody tr:hover {
+            background-color: #eaf4fc;
+        }
+    
+        .clickable-row {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+    
+        .clickable-row:hover {
+            background-color: #d6ebff;
+            transform: scale(1.01);
+        }
+    
+        /* Botones */
+        .btn-outline-primary {
+            border: 1px solid #007bff;
+            color: #007bff;
+            transition: all 0.3s ease;
+        }
+    
+        .btn-outline-primary:hover {
+            background-color: #007bff;
+            color: white;
+        }
+    
+        /* Input de búsqueda */
+        .form-control {
+            border-radius: 20px;
+        }
+    
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+    </style>
+    
 
-<!-- jQuery para manejar el toggle -->
-<script>
-    $(document).ready(function(){
-        // Manejar el evento de mostrar/ocultar con jQuery
-        $('.toggle-items').click(function(){
-            var button = $(this);
-            var target = $(button.data('target'));
+{{-- 
+    <style>
+        .table td,
+        .table th {
+            vertical-align: middle;
+            /* Centrar verticalmente */
+        }
 
-            // Alternar visibilidad del contenido de los ítems
-            target.toggle();
+        .image-container {
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-            // Cambiar el texto del botón según el estado de visibilidad
-            if (target.is(':visible')) {
-                button.text('Ocultar Ítems');
-            } else {
-                button.text('Ver Ítems');
-            }
-        });
-    });
-</script>
+        .clickable-row {
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
 
-<style>
-    .table td, .table th {
-        vertical-align: middle; /* Asegura que los datos estén centrados verticalmente */
-    }
+        /* Cambia el color al pasar el mouse */
+        .clickable-row:hover {
+            background-color: #f1f3f5;
+            /* Color más claro */
+        }
 
-    .image-container {
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-</style>
+        /* Asegurar que los botones y enlaces no disparen el evento */
+        .no-click {
+            pointer-events: auto !important;
+        }
+    </style> --}}
+
 @endsection

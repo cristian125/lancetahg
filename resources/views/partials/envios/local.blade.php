@@ -64,26 +64,27 @@
 @endif
 
 
-<script>
+
+ <script>
     $(document).ready(function() {
+        // Evento cuando se selecciona una dirección
         $('#direccion-selector-container input[name="direccionEnvio"]').on('change', function() {
             var direccionId = $(this).val();
-            var direccionSeleccionada = $(this).parent().find('strong').html();
-            var calleYColonia = $(this).parent().find('span').html().trim();
-            var totalAmount = "{{ $localShippingData['totalCart'] }}";
-            var cartId =
-            "{{ $cartId }}"; // Verifica que esta variable se esté pasando correctamente a la vista desde el controlador
+            var cartId = "{{ $cartId }}";
+
+            console.log('Dirección seleccionada:', direccionId);
 
             $.ajax({
                 type: "POST",
-                url: "{{ route('cart.actualizarEnvio') }}",
+                url: "{{ route('cart.localShipping.update') }}", // Nueva ruta
                 data: {
                     id: '{{ auth()->id() }}',
-                    'direccion': direccionId,
-                    '_token': "{{ csrf_token() }}",
+                    direccion: direccionId,
+                    _token: "{{ csrf_token() }}",
                 },
                 dataType: "json",
                 success: function(data) {
+                    console.log('Respuesta de actualizarEnvio:', data);
                     var result = '';
 
                     if (data.costoEnvio > 0) {
@@ -94,57 +95,64 @@
                             'El envío es gratuito ya que cumples con el mínimo de compra. <a href="/envio">Más información acerca de esto.</a>';
                     }
 
-
                     $('#shipping-info-text').html(result);
                     $('#shipping-info-text strong').html(
-                        '<strong>Total del carrito:</strong> $' + data.totalCart
-                        .toFixed(2) + ' MXN');
+                        '<strong>Total del carrito:</strong> $' + data.totalCart.toFixed(2) + ' MXN');
 
                     $('#SelectMethod').remove();
                     let div = '';
-                    div +=
-                        '<div id="SelectMethod" class="mb-4 p-3 bg-light rounded shadow-sm">';
-                    div +=
-                        '<button id="addShippmentMethod" class="btn btn-primary form-control"><i class="fa fa-cart-arrow-down"></i> Seleccionar</button>';
+                    div += '<div id="SelectMethod" class="mb-4 p-3 bg-light rounded shadow-sm">';
+                    div += '<button id="addShippmentMethod" class="btn btn-primary form-control"><i class="fa fa-cart-arrow-down"></i> Seleccionar</button>';
                     div += '</div>';
                     $('#shipping-info').append(div);
 
-                    $('#addShippmentMethod').on('click', function() {
-                        $.ajax({
-                            type: "POST",
-                            url: "{{ route('cart.updateMethod') }}",
-                            data: {
-                                cart_id: cartId,
-                                metodo: 'EnvioLocal',
-                                direccion: direccionId,
-                                _token: "{{ csrf_token() }}",
-                            },
-                            dataType: 'json',
-                            success: function(response) {
-                                if (response.success) {
-                                    $('#general-shipping-block')
-                                    .remove();
-                                    location.reload();
-                                } else {
-                                    alert('Error al guardar el método de envío: ' +
-                                        response.error);
-                                }
-                            },
-                            error: function(error) {
-                                alert('Error en la solicitud AJAX.');
-                            }
-                        });
-                    });
+                    console.log('Botón "Seleccionar" agregado al DOM');
                 },
-                error: function(error) {
+                error: function(xhr, status, error) {
+                    console.error('Error en actualizarEnvio:', error);
                     $('#SelectMethod').remove();
+                }
+            });
+        });
+
+        // Delegación de eventos para el botón "Seleccionar"
+        $(document).on('click', '#addShippmentMethod', function() {
+            var direccionId = $('input[name="direccionEnvio"]:checked').val();
+            var cartId = "{{ $cartId }}";
+
+            console.log('Botón "Seleccionar" clickeado');
+            console.log('direccionId:', direccionId, 'cartId:', cartId);
+
+            $.ajax({
+                type: "POST",
+                url: "{{ route('cart.localShipping.add') }}", // Nueva ruta
+                data: {
+                    cart_id: cartId,
+                    metodo: 'EnvioLocal',
+                    direccion: direccionId,
+                    _token: "{{ csrf_token() }}",
+                },
+                dataType: 'json',
+                success: function(response) {
+                    console.log('Respuesta de addShippingMethod:', response);
+                    if (response.success) {
+                        $('#general-shipping-block').remove();
+                        location.reload();
+                    } else {
+                        alert('Error al guardar el método de envío: ' + response.error);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error en addShippingMethod:', error);
+                    alert('Error en la solicitud AJAX.');
                 }
             });
         });
     });
 
 
-    /*
+
+
 
     document.addEventListener('DOMContentLoaded', function() {
         const direccionRadios = document.querySelectorAll('.direccion-radio');
@@ -152,9 +160,6 @@
         const shippingInfoBlock = document.querySelector('#shipping-info-block');
         const totalCartElement = shippingInfoBlock.querySelector('#shipping-info-text');
         const totalCartPrice = shippingInfoBlock.querySelector('strong');
-
-
-        
 
         direccionRadios.forEach(radio => {
             radio.addEventListener('change', function() {
@@ -187,7 +192,7 @@
             });
         });
     });
-    */
+   
 </script>
 
 <style>

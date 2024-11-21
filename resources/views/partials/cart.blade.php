@@ -1,5 +1,7 @@
 <div id="loader" class="loader" style="display: none;"></div>
+@php
 
+@endphp
 <div class="container mt-5" id="unique-cart-container">
     @if ($cartItems->isEmpty())
         <div class="empty-cart text-center" id="unique-empty-cart">
@@ -102,7 +104,7 @@
                             <div class="col-12 col-md-2 text-center mb-3 mb-md-0">
                                 <div class="image-container1">
                                     @if (isset($item->id))
-                                        <a href="{{ url('/producto/' . $item->id) }}">
+                                    <a href="{{ url('/producto/' . $item->id . '-' . preg_replace('/[^a-zA-Z0-9\-]/', '-', strtolower($item->product_name))) }}">
                                             <img src="{{ asset($item->image) }}" class="product-image1"
                                                 alt="{{ $item->description }}">
                                         </a>
@@ -122,15 +124,14 @@
                                 <div class="non-eligible-message" id="unique-non-eligible-message">
                                     <p class="unique-non-eligible-header text-danger mb-1">
                                         <i class="bi bi-exclamation-triangle-fill"></i>
-                                        Este producto no es compatible con el envío seleccionado.
-                                    </p>
-                                    <p class="unique-non-eligible-info text-warning mb-1">
-                                        Solo los productos elegibles se sumarán al total y serán procesados en esta
-                                        orden.
+                                        No se puede enviar el producto con el envío seleccionado.
                                     </p>
                                     <p class="unique-non-eligible-reminder text-success mb-1">
-                                        Este producto permanecerá en su carrito para que pueda comprarlo más adelante
-                                        con el envío adecuado.
+                                        Este producto permanecerá en su carrito para que pueda comprarlo más adelante con otra forma de envio.
+                                    </p>
+                                    <p class="unique-non-eligible-info text-success mb-1">
+                                        Solo los productos elegibles se sumarán al total y serán procesados en esta
+                                        orden.
                                     </p>
                                 </div>
                                 <style>
@@ -211,11 +212,14 @@
                 <h3>Los productos de su carrito:</h3>
                 @foreach ($eligibleCartItems as $item)
                     <div class="unique-cart-item row mb-4 p-3 border-bottom shadow-sm">
-
                         <div class="col-12 col-md-2 text-center mb-3 mb-md-0">
                             <div class="image-container1 border border-info">
                                 @if (isset($item->id))
-                                    <a href="{{ url('/producto/' . $item->id) }}">
+                                {{-- @php
+                                    dd($item);
+                                @endphp --}}
+                                <a href="{{ url('/producto/' . $item->id . '-' . preg_replace('/[^a-zA-Z0-9\-]/', '-', strtolower($item->product_name))) }}">
+
                                         <img src="{{ asset($item->image) }}" class="product-image1"
                                             alt="{{ $item->description }}">
                                     </a>
@@ -230,8 +234,8 @@
                             <div class="d-flex align-items-center justify-content-between flex-wrap mb-2">
                                 <h5 class="mb-2">
                                     {{ str_pad($item->product_code, 6, '0', STR_PAD_LEFT) }} -
-                                    <a href="{{ url('/producto/' . $item->id) }}"
-                                        class="text-decoration-none text-dark">
+                                 
+                                    <a href="{{ url('/producto/' . $item->id . '-' . preg_replace('/[^a-zA-Z0-9\-]/', '-', strtolower($item->product_name))) }}"class="text-decoration-none text-dark">
                                         {{ $item->product_name }}
                                     </a>
                                 </h5>
@@ -265,19 +269,22 @@
                                 <div class="col-12 col-md-4 mb-3 mb-md-0">
                                     @php
                                         $precioDescontado =
-                                            $item->unit_price - $item->unit_price * ($item->discount / 100);
+                                            ($item->unit_price - $item->unit_price * ($item->discount / 100)) *
+                                            (1 + $item->vat);
                                     @endphp
                                     <p class="mb-0 unique-product-price1 bg-light p-2 rounded text-md-center">
                                         @if ($item->discount > 0)
                                             <span style="text-decoration: line-through; color: #888;">
-                                                ${{ number_format($item->unit_price, 2, '.', ',') }} MXN
+                                                ${{ number_format($item->unit_price * (1 + $item->vat), 2, '.', ',') }}
+                                                MXN
                                             </span><br>
                                             <span style="font-size: 1.2em; color: #28a745; font-weight: bold;">
                                                 ${{ number_format($precioDescontado, 2, '.', ',') }} MXN
                                             </span>
                                         @else
                                             <span style="font-size: 1.2em; color: #333; font-weight: bold;">
-                                                ${{ number_format($item->unit_price, 2, '.', ',') }} MXN
+                                                ${{ number_format($item->unit_price * (1 + $item->vat), 2, '.', ',') }}
+                                                MXN
                                             </span>
                                         @endif
                                         <small class="text-muted d-block">Precio unitario con IVA incluido</small>
@@ -339,7 +346,6 @@
                                         </p>
                                     @endif
 
-
                                     @php
                                         $allowedMethods = [];
                                         if ($item->allow_local_shipping) {
@@ -370,7 +376,6 @@
             @endif
             @if ($shippmentExists && $shippment->ShipmentMethod === 'EnvioPorCobrar')
                 <div class="unique-cart-item row mb-4 p-4 border-bottom shadow-sm rounded bg-cobrar-envio">
-
                     <div class="col-12 col-md-2 text-center mb-3 mb-md-0">
                         <img src="{{ asset('storage/img/envio_entrega/cobrar.png') }}"
                             class="img-thumbnail cobrar-envio-img" alt="Envío por Cobrar">
@@ -420,12 +425,12 @@
                                 <p class="mb-2 mb-md-0 unique-product-price bg-light p-2 rounded me-4 text-primary flex-grow-1"
                                     style="font-weight: 600;">
                                     <strong>Precio unitario:</strong>
-                                    ${{ number_format($shippingCostSinIVA, 2, '.', ',') }} MXN
+                                    ${{ number_format($shippment->final_price - $shippingCostSinIVA, 2, '.', ',') }} MXN
                                 </p>
                                 <p class="mb-2 mb-md-0 unique-product-total-price bg-light p-2 rounded text-primary flex-grow-1"
                                     style="font-weight: 600;">
-                                    <strong>Precio de envío con IVA:</strong>
-                                    ${{ number_format($shippingCostIVA, 2, '.', ',') }} MXN
+                                    <strong>Total con IVA:</strong>
+                                    ${{ number_format($shippment->final_price, 2, '.', ',') }} MXN
                                 </p>
                                 <div class="unique-item-actions2 ms-auto">
                                     <button class="btn btn-danger btn-sm remove-shipping">
@@ -469,7 +474,7 @@
                         <div class="d-flex align-items-center justify-content-between flex-wrap">
                             <p class="mb-2 mb-md-0 text-success bg-light p-2 rounded me-4 text-primary flex-grow-1"
                                 style="font-weight: 600;">
-                                <strong>Costo de Envío:</strong> Gratis
+                                Este Método de Entrega No Genera Costo de Envío
                             </p>
                             <div class="unique-item-actions2 ms-auto">
                                 <button class="btn btn-danger btn-sm remove-shipping">
@@ -477,6 +482,8 @@
                                 </button>
                             </div>
                         </div>
+
+
 
                         <div class="shipping-info mt-3 p-2 bg-light border-start border-primary">
                             <p class="mb-1 text-dark" style="font-weight: 500;">
@@ -489,14 +496,25 @@
                                 <strong>Dirección:</strong>
                                 {{ $shippment->store_address ?? 'No especificada' }}
                             </p>
-                            <p class="mb-1 text-dark" style="font-weight: 500;">
+                            <div class="mb-1 text-dark" style="font-weight: 500;">
                                 <i class="bi bi-calendar-check me-2"></i>
-                                <strong>Fecha de Recogida:</strong> {{ $shippment->pickup_date ?? 'No especificada' }}
-                            </p>
-                            <p class="mb-1 text-dark" style="font-weight: 500;">
-                                <i class="bi bi-clock me-2"></i>
-                                <strong>Hora de Recogida:</strong> {{ $shippment->pickup_time ?? 'No especificada' }}
-                            </p>
+                                <strong>Fecha de Recogida:</strong>
+                                @if (!empty($shippment->pickup_date))
+                                    {{ $shippment->pickup_date }}
+                                @else
+                                    <span class="text-muted text-danger">La fecha de recogida se confirmará pronto</span>
+                                @endif
+                            </div>
+                            <div class="mb-1 text-dark" style="font-weight: 500;">
+                                <i class="bi bi-clock me-2 "></i>
+                                <strong>Hora de Recogida:</strong>
+                                @if (!empty($shippment->pickup_time))
+                                    {{ $shippment->pickup_time }}
+                                @else
+                                    <span class="text-muted text-danger">La hora de recogida se confirmará pronto</span>
+                                @endif
+                            </div>
+
                             <p class="mt-2 text-secondary" style="font-weight: 500;">
                                 <i class="bi bi-exclamation-triangle me-2"></i>
                                 <strong>Aviso:</strong> Por favor, asegúrate de llevar una identificación válida
@@ -568,7 +586,7 @@
                 <div class="col-md-6">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <span class="text-muted">Subtotal de productos(sin IVA):</span>
-                        <span class="fw-bold text-dark">${{ number_format($subtotalProductosSinIVA, 2, '.', ',') }}
+                        <span class="fw-bold text-dark">${{ number_format($subtotalSinIVA, 2, '.', ',') }}
                             MXN</span>
                     </div>
 
@@ -578,7 +596,7 @@
                             MXN</span>
                     </div>
 
-                    <div class="d-flex justify-content-between align-items-center mb-3">
+                    {{-- <div class="d-flex justify-content-between align-items-center mb-3">
                         <span class="text-muted">Costo de Envío (sin IVA):</span>
                         @if ($shippmentExists && $shippment->ShipmentMethod === 'EnvioPorCobrar')
                             <p class="text-danger fw-bold">* El costo de envío aún no ha sido calculado y será cobrado
@@ -587,12 +605,12 @@
                             <span class="fw-bold text-dark">${{ number_format($shippingCostSinIVA, 2, '.', ',') }}
                                 MXN</span>
                         @endif
-                    </div>
-
+                    </div> --}}
+                    {{--
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <span class="text-muted">Total sin IVA:</span>
                         <span class="fw-bold text-dark">${{ number_format($totalSinIVA, 2, '.', ',') }} MXN</span>
-                    </div>
+                    </div> --}}
 
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <span class="text-muted">IVA (16%):</span>
@@ -627,6 +645,7 @@
                                         <div class="invalid-feedback">Por favor, proporcione un nombre completo de
                                             contacto.</div>
                                     </div>
+
 
                                     <div class="form-group mb-3">
                                         <label for="contactPhone" class="form-label fw-bold text-primary">Teléfono de
@@ -770,51 +789,57 @@
 
 <script>
     $(document).ready(function() {
-        const quantityControls = document.querySelectorAll('.quantity-controls');
-        quantityControls.forEach(control => {
-            const decreaseButton = control.querySelector('.quantity-decrease');
-            const increaseButton = control.querySelector('.quantity-increase');
-            const quantityInput = control.querySelector('.quantity-input');
-            const maxQuantity = parseInt(increaseButton.getAttribute('data-max-quantity'), 10);
-            const productCode = decreaseButton.getAttribute(
-                'data-product-code');
+        // const quantityControls = document.querySelectorAll('.quantity-controls');
+        // let maxQuantity = parseInt($('.quantity-increase').data('max-quantity'), 10);
+        // let productCode = $('.quantity-decrease').data('product.code');
+        // let quantity = $('.quantity-input').val();
+        // $('.quantity-increase').on('click', function() {
+        //     let currentValue = parseInt(quantity, 10);
+        //     if (currentValue < maxQuantity) {
+        //         updateCartQuantity(1, productCode);
+        //     }
+        // });
 
-            function updateButtonStates(currentValue) {
-                if (currentValue <= 1) {
-                    decreaseButton.disabled = true;
-                } else {
-                    decreaseButton.disabled = false;
-                }
+        // function updateButtonStates(currentValue) {
+        //     if (currentValue <= 1) {
+        //         decreaseButton.disabled = true;
+        //     } else {
+        //         decreaseButton.disabled = false;
+        //     }
 
-                if (currentValue >= maxQuantity) {
-                    increaseButton.disabled = true;
-                } else {
-                    increaseButton.disabled = false;
-                }
-            }
-
-            updateButtonStates(parseInt(quantityInput.value, 10));
-            decreaseButton.addEventListener('click', function() {
-                let currentValue = parseInt(quantityInput.value, 10);
-                if (currentValue > 1) {
-                    updateCartQuantity(-1, productCode);
-                } else if (currentValue === 1) {
-                    removeCartItem(productCode);
-                }
-            });
-
-            increaseButton.addEventListener('click', function() {
-                let currentValue = parseInt(quantityInput.value, 10);
-                if (currentValue < maxQuantity) {
-                    updateCartQuantity(1, productCode);
-                }
-            });
+        //     if (currentValue >= maxQuantity) {
+        //         increaseButton.disabled = true;
+        //     } else {
+        //         increaseButton.disabled = false;
+        //     }
+        // }
+        // quantityControls.forEach(control => {
+        //     // const decreaseButton = control.querySelector('.quantity-decrease');
+        //     // const increaseButton = control.querySelector('.quantity-increase');
+        //     // const quantityInput = control.querySelector('.quantity-input');
 
 
-            quantityInput.addEventListener('change', function() {
-                updateButtonStates(parseInt(quantityInput.value, 10));
-            });
-        });
+
+
+        //     updateButtonStates(parseInt(quantityInput.value, 10));
+        //     decreaseButton.addEventListener('click', function() {
+        //         let currentValue = parseInt(quantityInput.value, 10);
+        //         if (currentValue > 1) {
+        //             updateCartQuantity(-1, productCode);
+        //         } else if (currentValue === 1) {
+        //             removeCartItem(productCode);
+        //         }
+        //     });
+
+        //     increaseButton.addEventListener('click', function() {
+
+        //     });
+
+
+        //     quantityInput.addEventListener('change', function() {
+        //         updateButtonStates(parseInt(quantityInput.value, 10));
+        //     });
+        // });
 
         function updateCartQuantity(quantityChange, productCode) {
             $.ajax({
@@ -877,21 +902,57 @@
 </script>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.quantity-input').forEach(input => {
-            input.addEventListener('change', function() {
-                const productCode = this.getAttribute('data-product-code');
-                const maxQuantity = parseInt(this.getAttribute('data-max-quantity'), 10);
-                const newQuantity = parseInt(this.value, 10);
+    $(document).ready(function() {
+        $('.quantity-input').on('change', function() {
+            var productCode = $(this).data('product-code');
+            var maxQuantity = parseInt($(this).data('max-quantity'), 10);
+            var newQuantity = parseInt($(this).val(), 10);
 
-                if (newQuantity > maxQuantity) {
-                    this.value = maxQuantity;
-                    showError('La cantidad máxima disponible es ' + maxQuantity);
-                    return;
-                }
+            if (newQuantity == 0) {
+                $(this).parents('.unique-cart-item').find('.remove-from-cart1').click();
+                return;
+            }
 
+
+
+            if (newQuantity > maxQuantity) {
+                $(this).val(maxQuantity);
+                // console.error('La cantidad máxima permitida es ' + maxQuantity);
+                updateQuantity(productCode, maxQuantity);
+            } else {
+                // Actualizar la cantidad en el servidor
                 updateQuantity(productCode, newQuantity);
+            }
+        });
+        $('.remove-from-cart1').on('click',function(){
+            let no = $(this).data('nos');
+            removeItem(no);
+        });
+
+        function removeItem(itemNoS) {
+            $.ajax({
+                type: "POST",
+                url: "/cart/remove",
+                data: {
+                    no_s: itemNoS,
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    console.log('Item removed:', response);
+                    localStorage.setItem('showShippingAlert', 'true');
+                    location
+                        .reload();
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error al eliminar el ítem del carrito:',
+                        error);
+                    alert('Error al eliminar el ítem del carrito.');
+                }
             });
+        }
+
+        $('.update-quantity-btn').on('click', function() {
+            $(this).parent().find('.quantity-input').change();
         });
 
         function updateQuantity(productCode, quantity) {
@@ -908,13 +969,12 @@
                         location.reload();
                     } else if (!response.success && response.maxQuantity) {
                         showError(response.message);
-                        document.querySelector(`input[data-product-code="${productCode}"]`).value =
-                            response.maxQuantity;
+                        $(`input[data-product-code="${productCode}"]`).val(response.maxQuantity)
                     }
                 },
                 error: function(xhr) {
                     console.error(xhr.responseText);
-                    alert('Hubo un error al intentar actualizar la cantidad.');
+                    // alert('Hubo un error al intentar actualizar la cantidad.');
                 }
             });
         }
@@ -927,6 +987,56 @@
             setTimeout(() => errorAlert.remove(), 3000);
         }
     });
+    // document.addEventListener('DOMContentLoaded', function() {
+    //     document.querySelectorAll('.quantity-input').forEach(input => {
+    //         input.addEventListener('change', function() {
+    //             const productCode = this.getAttribute('data-product-code');
+    //             const maxQuantity = parseInt(this.getAttribute('data-max-quantity'), 10);
+    //             const newQuantity = parseInt(this.value, 10);
+
+    //             if (newQuantity > maxQuantity) {
+    //                 this.value = maxQuantity;
+    //                 showError('La cantidad máxima disponible es ' + maxQuantity);
+    //                 return;
+    //             }
+
+    //             updateQuantity(productCode, newQuantity);
+    //         });
+    //     });
+    //     function updateQuantity(productCode, quantity) {
+    //         $.ajax({
+    //             type: 'POST',
+    //             url: '/cart/update-quantity',
+    //             data: {
+    //                 _token: $('meta[name="csrf-token"]').attr('content'),
+    //                 quantity: quantity,
+    //                 product_code: productCode
+    //             },
+    //             success: function(response) {
+    //                 if (response.success) {
+    //                     location.reload();
+    //                 } else if (!response.success && response.maxQuantity) {
+    //                     showError(response.message);
+    //                     document.querySelector(`input[data-product-code="${productCode}"]`).value =
+    //                         response.maxQuantity;
+    //                 }
+    //             },
+    //             error: function(xhr) {
+    //                 console.error(xhr.responseText);
+    //                 alert('Hubo un error al intentar actualizar la cantidad.');
+    //             }
+    //         });
+    //     }
+
+    //     function showError(message) {
+    //         const errorAlert = document.createElement('div');
+    //         errorAlert.classList.add('alert', 'alert-danger');
+    //         errorAlert.textContent = message;
+    //         document.getElementById('unique-cart-container').prepend(errorAlert);
+    //         setTimeout(() => errorAlert.remove(), 3000);
+    //     }
+
+    // });
 </script>
 
 
@@ -1064,49 +1174,29 @@
     });
 
 
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.remove-from-cart1').forEach(function(button) {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                const itemNoS = this.getAttribute('data-nos');
-                $.ajax({
-                    type: "POST",
-                    url: "/cart/remove",
-                    data: {
-                        no_s: itemNoS,
-                        _token: $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function(response) {
-                        console.log('Item removed:', response);
-                        localStorage.setItem('showShippingAlert', 'true');
-                        location
-                            .reload();
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error al eliminar el ítem del carrito:',
-                            error);
-                        alert('Error al eliminar el ítem del carrito.');
-                    }
-                });
-            });
-        });
-    });
+    // document.addEventListener('DOMContentLoaded', function() {
+    //     document.querySelectorAll('.remove-from-cart1').forEach(function(button) {
+    //         button.addEventListener('click', function(e) {
+    //             e.preventDefault();
+
+    //         });
+    //     });
+    // });
 
 
     $(document).ready(function() {
         $('.remove-shipping').on('click', function(e) {
             e.preventDefault();
-
             removeShipping();
         });
 
         function removeShipping() {
+            let token = $('meta[name="csrf-token"]').attr('content');
             $.ajax({
                 type: "POST",
                 url: "/cart/remove-shipping",
                 data: {
-                    _token: $('meta[name="csrf-token"]').attr(
-                        'content')
+                    _token: token
                 },
                 success: function(response) {
                     console.log('Método de envío eliminado');

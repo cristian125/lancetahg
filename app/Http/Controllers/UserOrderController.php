@@ -9,95 +9,114 @@ class UserOrderController extends Controller
 {
     public function myOrders()
     {
-        // Verificar si el sitio está en mantenimiento
         $mantenimiento = ProductosDestacadosController::checkMaintenance();
         if ($mantenimiento == 'true') {
             return redirect(route('mantenimento'));
         }
 
-        // Obtener el ID del usuario autenticado
         $userId = Auth::id();
-
-        // Recuperar los pedidos del usuario con paginación
         $orders = DB::table('orders')
             ->where('user_id', $userId)
             ->orderBy('created_at', 'desc')
             ->paginate(5);
-
-        // Transformar los pedidos con el método map
+            
         $orders->map(function ($order) {
             $order->created_at = \Carbon\Carbon::parse($order->created_at);
-            // Verificar si la orden tiene menos de 10 minutos de haber sido creada
-            $order->is_new = $order->created_at->diffInMinutes(now()) < 1000;
+
+            $order->is_new = $order->created_at->diffInMinutes(now()) < 120;
             return $order;
         });
-
-        // Pasar los pedidos a la vista
         return view('orders_preview', compact('orders'));
     }
 
     public function orderDetails($orderId)
     {
-        // Verificar si el sitio está en mantenimiento
         $mantenimiento = ProductosDestacadosController::checkMaintenance();
         if ($mantenimiento == 'true') {
             return redirect(route('mantenimento'));
         }
-
-        // Obtener el ID del usuario autenticado
+    
         $userId = Auth::id();
-
-        // Verificar si existe la orden con el ID y pertenece al usuario
         $order = DB::table('orders')
-            ->where('id', $orderId) // Usar ID para buscar el pedido
-            ->where('user_id', $userId) // Asegurar que la orden pertenece al usuario
+            ->where('id', $orderId)
+            ->where('user_id', $userId)
             ->first();
-
-        $order_shippment = DB::table('order_shippment')->where('order_id', $order->id)->first();
-
-        // if (!$order) {
-        //     return redirect()->route('myorders')->with('error', 'Pedido no encontrado.');
-        // }
-
-        // Obtener el display_name del método de envío
-        $shipmentMethod = DB::table('shipping_methods')
-            ->where('name', $order->shipment_method)
-            ->value('display_name');
-
-        // Asignar display_name al order para que esté disponible en la vista
-        $order->shipment_method_display = $shipmentMethod ?? 'N/A';
-
-        // Obtener los productos asociados a este pedido
-        $order_items = DB::table('order_items')
-            ->join('itemsdb', 'order_items.product_id', '=', 'itemsdb.no_s') // Join con tabla de productos
-            ->select('order_items.*', 'itemsdb.nombre as product_name') // Seleccionar campos necesarios
-            ->where('order_items.order_id', $order->id)
-            ->get();
-
-        // if ($order_items->isEmpty()) {
-        //     return redirect()->route('myorders')->with('error', 'No hay productos asociados a este pedido.');
-        // }
-
-        // Obtener el historial del pedido (status) usando el OID como order_id en la tabla `order_history`
-        $orderHistory = DB::table('order_history')
-            ->where('order_id', $order->oid) // Usar el OID de la tabla orders para buscar el historial en order_history
-            ->first();
-
-        // Obtener la información de pago si el pago fue aprobado
-        $payment = DB::table('order_payment')
-            ->where('order_id', $order->id)
-            ->where('status', 'APROBADO') // Solo pagos aprobados
-            ->first();
-
-        // Calcular el descuento total en dinero
-        $totalDescuento = 0;
-        foreach ($order_items as $item) {
-            $descuentoPorProducto = ($item->discount / 100) * $item->unit_price * $item->quantity;
-            $totalDescuento += $descuentoPorProducto;
+    
+        if ($order == null) {
+            abort(404);
         }
-
-        // Pasar los datos a la vista junto con el historial del pedido y el método de pago
-        return view('order_details', compact('order', 'order_shippment', 'order_items', 'totalDescuento', 'orderHistory', 'payment'));
+    
+        $isAssignedForPickup = ($order->shipment_method === 'RecogerEnTienda' && !is_null($order->delivery_date) && !is_null($order->delivery_time));
+        $trackingNumber = DB::table('guias')
+            ->where('order_no', $order->order_number)
+            ->value('no_guia');
+    
+        $trackingUrl = env('TRACKING_URL'); // Obtener la URL base del archivo .env
+    
+        $order_shippment = DB::table('order_shippment')->where('order_id', $order->id)->first();
+        $shipmentMethod = DB::table('shipping_methods')->where('name', $order->shipment_method)->value('display_name');
+        $order->shipment_method_display = $shipmentMethod ?? 'N/A';
+    
+        // Obtener la información de la tienda si el envío es "RecogerEnTienda"
+        $store = null;
+        if ($order->shipment_method === 'RecogerEnTienda' && $order_shippment && $order_shippment->store_id) {
+            $store = DB::table('tiendas')
+                ->where('id', $order_shippment->store_id)
+                ->select('nombre', 'direccion')
+                ->first();
+        }
+    
+        // Filtrar los productos según el método de envío
+        $order_items_query = DB::table('order_items')
+            ->join('itemsdb', 'order_items.product_id', '=', 'itemsdb.no_s')
+            ->select('order_items.*', 'itemsdb.nombre as product_name')
+            ->where('order_items.order_id', $order->id);
+    
+        // Si el envío es "RecogerEnTienda", excluir el producto con product_id 999998
+        if ($order->shipment_method === 'RecogerEnTienda') {
+            $order_items_query->where('order_items.product_id', '!=', '999998');
+        }
+    
+        $order_items = $order_items_query->get();
+    
+        $orderHistory = DB::table('order_history')->where('order_id', $order->oid)->first();
+        $payment = DB::table('order_payment')->where('order_id', $order->id)->where('status', 'APROBADO')->first();
+    
+        $totalDescuento = 0;
+        $totalIva = 0;
+        $total = 0;
+        foreach ($order_items as $item) {
+            $totalDescuento += $item->discount_amount;
+            $totalIva += $item->vat_amount;
+            $total += $item->amount - $item->discount_amount + $item->vat_amount;
+        }
+    
+        if ($isAssignedForPickup) {
+            $order->status_label = 'Asignado a fecha de entrega';
+            $order->status_icon = 'bi-calendar-check-fill';
+            $order->status_color = 'info';
+            $order->delivery_message = "Fecha de entrega: " . \Carbon\Carbon::parse($order->delivery_date)->format('d/m/Y') .
+                "<br>Hora de entrega: " . \Carbon\Carbon::parse($order->delivery_time)->format('H:i') .
+                "<br>Recuerde llevar una identificación oficial para recoger su pedido.";
+        } else {
+            $order->status_label = 'Confirmado y Completado';
+            $order->status_icon = 'bi-check2-circle';
+            $order->status_color = 'success';
+        }
+    
+        return view('order_details', compact(
+            'order',
+            'order_shippment',
+            'order_items',
+            'store', // Pasar la tienda a la vista solo si corresponde
+            'totalDescuento',
+            'orderHistory',
+            'payment',
+            'isAssignedForPickup',
+            'trackingNumber',
+            'trackingUrl'
+        ));
     }
+    
 
 }

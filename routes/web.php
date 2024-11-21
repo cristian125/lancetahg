@@ -7,6 +7,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminDestacadosController;
 use App\Http\Controllers\AdminOrderController;
 use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\Api\GuiasController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\CarouselController;
 use App\Http\Controllers\CartController;
@@ -33,8 +34,7 @@ use App\Http\Controllers\UserDataController;
 use App\Http\Controllers\UserOrderController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\GuiasController;
-
+use Illuminate\Support\Facades\Mail;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -147,7 +147,9 @@ Route::group(['middleware' => ['auth', 'web']], function () {
     Route::post('/cart/check-stock', [ProductosDestacadosController::class, 'checkStock']);
     Route::post('/cart/update-quantity', [ProductController::class, 'updateQuantity'])->name('cart.updateQuantity');
     Route::post('/cart/update', [ShippingLocalController::class, 'actualizarEnvio'])->name('cart.actualizarEnvio');
-    Route::post('/cart/shipment', [ShippingLocalController::class, 'addShippingMethod'])->name('cart.updateMethod');
+    Route::post('/cart/local-shipping/update', [ShippingLocalController::class, 'actualizarEnvio'])->name('cart.localShipping.update');
+    Route::post('/cart/local-shipping/add', [ShippingLocalController::class, 'addShippingMethod'])->name('cart.localShipping.add');
+    Route::post('/cart/shipment', [ShippingLocalController::class, 'addShippingMethod'])->name('cart.updateMethod1');
     Route::post('/cart/remove-shipping', [ProductController::class, 'removeShipping']);
     Route::post('/update-datos', [UserDataController::class, 'update'])->name('update.datos');
     Route::get('/verificar-existencias', [StorePickupController::class, 'ajaxVerificarExistencias'])->name('verificarExistencias');
@@ -169,16 +171,9 @@ Route::group(['middleware' => ['auth', 'web']], function () {
     Route::get('/checkout', [CartController::class, 'showCheckout'])->name('checkout');
     Route::post('/update-payment-method', [CartController::class, 'updatePaymentMethod'])->name('update.payment.method');
     Route::post('/cart/process-cod', [CartController::class, 'processCod'])->name('process.cod');
-
-
-
-
-
-Route::get('/regimenes/{tipo_persona}', [AccountController::class, 'getRegimenesPorTipoPersona']);
-Route::get('/usos-cfdi/{regimen_fiscal_id}', [AccountController::class, 'getUsosCfdiPorRegimen']);
-
+    Route::get('/regimenes/{tipo_persona}', [AccountController::class, 'getRegimenesPorTipoPersona']);
+    Route::get('/usos-cfdi/{regimen_fiscal_id}', [AccountController::class, 'getUsosCfdiPorRegimen']);
 });
-
 Route::group(['middleware' => ['auth', 'web']], function () {
     Route::post('/paqueteexpress/cotizar', [PaqueteExpressController::class, 'showRequestCotizador'])->name('paqueteexpress.cotizar');
     Route::post('/paqueteexpress/solicitar', [PaqueteExpressController::class, 'sendRequestCotizadorPaqueteExpress'])->name('paqueteexpress.solicitar');
@@ -275,7 +270,7 @@ Route::prefix('adminlanz')->middleware('adminsession')->group(function () {
             Route::get('/items-data', [ProductImportController::class, 'showItemsData'])->name('admin.itemsData');
             Route::get('/fetch-items', [ProductImportController::class, 'fetchItemsManually'])->name('admin.fetchItems');
             Route::get('/fetch-guias', [GuiasController::class, 'guiasearch'])->name('admin.fetchGuias');
-
         });
     });
 });
+

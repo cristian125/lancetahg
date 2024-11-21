@@ -24,49 +24,55 @@ class StorePickupController extends ProductController
             'calendarioConfig' => $calendarioConfig,
         ];
     }
-
     public function saveStorePickup(Request $request)
     {
         $userId = auth()->id();
-        $cartId = DB::table('carts')->where('user_id', $userId)->value('id');
-
+        $cartId = DB::table('carts')
+        ->where('user_id', $userId)
+        ->where('status', 1) // Asegura que el carrito tenga status 1
+        ->value('id');
+    
         if (!$cartId) {
             return redirect()->route('cart.show')->with('error', 'Carrito no encontrado para el usuario actual.');
         }
-
+    
         // Verificar si se seleccionó una tienda, si no, asignar la primera tienda disponible
         $storeId = $request->input('store_id') ?: DB::table('tiendas')->value('id');
-
+    
         if (!$storeId) {
             return redirect()->route('cart.show')->with('error', 'No hay tiendas disponibles.');
         }
-
+    
         // Obtener información de la tienda seleccionada
         $store = DB::table('tiendas')->where('id', $storeId)->first();
         if (!$store) {
             return redirect()->route('cart.show')->with('error', 'La tienda seleccionada no existe.');
         }
-
-        $pickupDate = $request->input('pickup_date');
-        $pickupTime = $request->input('pickup_time');
-
-        // Inserta el método de envío en la tabla cart_shippment
+    
+        // Eliminar cualquier registro existente en `cart_shippment` para este `cart_id`
+        DB::table('cart_shippment')->where('cart_id', $cartId)->delete();
+    
+        // Utilizar valores predeterminados válidos para `pickup_date` y `pickup_time`
+        $pickupDate = null;
+        $pickupTime = null;
+    
+        // Inserta el método de envío en la tabla `cart_shippment`
         DB::table('cart_shippment')->insert([
             'cart_id' => $cartId,
             'ShipmentMethod' => 'RecogerEnTienda',
-            'no_s' => '999999',  // Código de producto especial para "Recoger en Tienda"
+            'no_s' => '999999',
             'description' => 'Recoger en Tienda',
-            'unit_price' => 0,  // No hay costo para recoger en tienda
+            'unit_price' => 0,
             'discount' => 0,
             'final_price' => 0,
-            'store_id' => $storeId,  // Guardar el store_id seleccionado por el usuario
+            'store_id' => $storeId,
             'pickup_date' => $pickupDate,
             'pickup_time' => $pickupTime,
             'quantity' => 1,
-            'nombre' => $store->nombre,  // Nombre de la tienda
-            'calle' => $store->direccion,  // Dirección de la tienda
-            'no_int' => $store->no_int ?? '',  // Número interior de la tienda si aplica
-            'no_ext' => $store->no_ext ?? '',  // Número exterior de la tienda si aplica
+            'nombre' => $store->nombre,
+            'calle' => $store->direccion,
+            'no_int' => $store->no_int ?? '',
+            'no_ext' => $store->no_ext ?? '',
             'entre_calles' => $store->entre_calles ?? '',
             'colonia' => $store->colonia ?? '',
             'municipio' => $store->municipio ?? '',
@@ -77,10 +83,11 @@ class StorePickupController extends ProductController
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-
-        return redirect()->route('cart.show')->with('success', 'Método de envío seleccionado correctamente.');
+    
+        return redirect()->route('cart.show')->with('success', 'Método de envío seleccionado correctamente. La tienda se contactará contigo para coordinar la recogida.');
     }
-
+    
+    
 
     private function verificarExistenciasEnTiendas($productCodes, $tiendas)
     {
@@ -151,6 +158,7 @@ class StorePickupController extends ProductController
         // Obtener el ID del carrito del usuario desde la tabla `carts`
         $cartId = DB::table('carts')
             ->where('user_id', $userId)
+            ->where('status', 1)
             ->value('id');
 
         if (!$cartId) {
@@ -181,7 +189,7 @@ class StorePickupController extends ProductController
         if ($tiendasDisponibles->isEmpty()) {
             return response()->json([
                 'tiendas' => [],
-                'mensaje' => 'Lo sentimos, no hay tiendas disponibles con stock para todos los productos.'
+                'mensaje' => 'Lo sentimos, no hay tiendas disponibles con stock para todos los productos.',
             ]);
         }
 

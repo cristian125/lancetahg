@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 class AdminUserController extends Controller
 {
-    // Método para listar usuarios con búsqueda y paginación
+
     public function index(Request $request)
     {
         $query = DB::table('users')

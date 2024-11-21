@@ -361,42 +361,50 @@
                 }
             }
 
-            // Subir imagen al servidor automáticamente
-            function uploadImage(file) {
-                const formData = new FormData();
-                formData.append('secondary_images[]', file);
-                formData.append('item_id', '{{ $item->id }}'); // ID del producto
-                formData.append('_token', '{{ csrf_token() }}'); // Token CSRF
+// Subir imagen al servidor automáticamente
+function uploadImage(file) {
+    const formData = new FormData();
+    formData.append('secondary_images[]', file);
+    formData.append('item_id', '{{ $item->id }}'); // ID del producto
+    formData.append('_token', '{{ csrf_token() }}'); // Token CSRF
 
-                fetch('{{ route('subir.imagen.secundaria') }}', {
-                        method: 'POST',
-                        body: formData,
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Actualizar la lista de imágenes secundarias después de la subida
-                            secondaryImagesContainer.innerHTML = ''; // Limpiar el contenedor
-                            data.image_urls.forEach(url => {
-                                const imageHtml = `
-                                <div class="col-3 mb-3 position-relative secondary-image-item">
-                                    <img src="${url}" alt="Imagen Secundaria" class="img-fluid rounded w-100 h-auto">
-                                    <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 eliminar-imagen" data-image="${url}">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </div>
-                            `;
-                                secondaryImagesContainer.insertAdjacentHTML('beforeend', imageHtml);
-                            });
-                        } else {
-                            alert('Error al subir las imágenes.');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('Ocurrió un error al subir las imágenes.');
-                    });
+    fetch('{{ route('subir.imagen.secundaria') }}', {
+            method: 'POST',
+            body: formData,
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Actualizar la lista de imágenes secundarias después de la subida
+                secondaryImagesContainer.innerHTML = ''; // Limpiar el contenedor
+                data.image_urls.forEach(url => {
+                    const imageHtml = `
+                    <div class="col-3 mb-3 position-relative secondary-image-item">
+                        <img src="${url}" alt="Imagen Secundaria" class="img-fluid rounded w-100 h-auto">
+                        <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 eliminar-imagen" data-image="${url}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                `;
+                    secondaryImagesContainer.insertAdjacentHTML('beforeend', imageHtml);
+                });
+
+                // Si hay una imagen principal nueva, actualizar la vista previa
+                if (data.main_image_url) {
+                    const mainImagePreview = document.getElementById('mainImagePreview');
+                    mainImagePreview.src = data.main_image_url;
+                }
+            } else {
+                alert('Error al subir las imágenes.');
             }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ocurrió un error al subir las imágenes.');
+        });
+}
+
+
 
             // Eliminar imagen
             $(document).on('click', '.eliminar-imagen', function() {

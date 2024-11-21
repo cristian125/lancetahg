@@ -1,5 +1,13 @@
 <div class="mb-4 p-4 bg-white rounded shadow-lg">
     <h4 class="mb-3 text-success"><i class="bi bi-shop"></i> Seleccione la tienda para recoger</h4>
+
+    <!-- Fecha y hora de recogida -->
+    <div class="bg-light p-4 rounded mb-4 border border-danger">
+        <h6 class="text-primary"><i class="bi bi-calendar"></i> Fecha y hora de recogida</h6>
+        <p class="text-muted">La tienda se pondrá en contacto con usted para coordinar la fecha y hora de recogida una vez que el pedido esté completo.</p>
+    </div>
+
+    <!-- Selector de tienda -->
     <div class="form-group mb-4">
         <label for="tienda-selector" class="form-label text-muted">Tiendas disponibles:</label>
         <select id="tienda-selector" class="form-select form-select-lg">
@@ -14,58 +22,41 @@
         </select>
     </div>
 
-    <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="bg-light p-3 rounded">
-                <h6 class="text-primary">Detalles de la Tienda</h6>
-                <p><strong>Dirección:</strong> <span class="store-address">{{ $storePickupData['tiendas']->first()->direccion }}</span></p>
-                <p><strong>Teléfono:</strong> <span class="store-phone">{{ $storePickupData['tiendas']->first()->telefono }}</span></p>
-                <p><strong>Horario:</strong>
-                    <span class="store-hours">
-                        Lunes a Viernes: {{ $storePickupData['tiendas']->first()->horario_semana }}<br>
-                        Sábado: {{ $storePickupData['tiendas']->first()->horario_sabado }}
-                    </span>
-                </p>
-                <iframe id="store-map" src="{{ $storePickupData['tiendas']->first()->google_maps_url }}" width="100%" height="360"
-                    style="border:0;" allowfullscreen="" loading="lazy"
-                    referrerpolicy="no-referrer-when-downgrade"></iframe>
-            </div>
-        </div>
+    <!-- Detalles de la tienda -->
+    <div class="bg-light p-3 rounded mb-4">
+        <h6 class="text-primary">Detalles de la Tienda</h6>
+        <p><strong>Dirección:</strong> <span class="store-address">{{ $storePickupData['tiendas']->first()->direccion }}</span></p>
+        <p><strong>Teléfono:</strong> <span class="store-phone">{{ $storePickupData['tiendas']->first()->telefono }}</span></p>
+        <p><strong>Horario:</strong>
+            <span class="store-hours">
+                Lunes a Viernes: {{ $storePickupData['tiendas']->first()->horario_semana }}<br>
+                Sábado: {{ $storePickupData['tiendas']->first()->horario_sabado }}
+            </span>
+        </p>
+    </div>
 
-        <div class="col-md-6">
-            <!-- Calendario interactivo -->
-            <div class="bg-light p-4 rounded mb-4 border border-danger">
-                <h6 class="text-primary"><i class="bi bi-calendar"></i> Seleccione la fecha y hora para recoger su pedido</h6>
-                <div id="date-error" class="alert alert-danger text-center mb-2" style="display: none;"></div>
-                <input type="date" id="pickup-date" class="form-control mb-3" placeholder="Seleccione fecha">
-                <select id="pickup-time" class="form-select">
-                    <!-- Las horas se generarán dinámicamente -->
-                </select>
-            </div>
+    <!-- Mapa de la tienda -->
+    <div class="bg-light p-3 rounded mb-4">
+        <iframe id="store-map" src="{{ $storePickupData['tiendas']->first()->google_maps_url }}" width="100%" height="360"
+            style="border:0;" allowfullscreen="" loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"></iframe>
+    </div>
 
-            <!-- Sección de Pago -->
-            <div id="payment-section" class="bg-light p-4 rounded text-center shadow-sm" style="display: none;">
-                <form id="storePickupForm" action="{{ route('storepickup.save') }}" method="POST"
-                    class="d-flex flex-column align-items-center">
-                    @csrf
-                    <input type="hidden" name="store_id" id="store_id">
-                    <input type="hidden" name="pickup_date" id="pickup_date_hidden">
-                    <input type="hidden" name="pickup_time" id="pickup_time_hidden">
-
-                    <button type="submit" class="btn btn-lg btn-success shadow-sm px-5 py-3 d-flex align-items-center justify-content-center mb-4">
-                        <i class="bi bi-check me-2"></i> Seleccionar Método de Entrega
-                    </button>
-
-                    <p class="mb-3 text-muted">
-                        No hay cobro de envío en este método de entrega.
-                        <a href="#" data-bs-toggle="modal" data-bs-target="#enviosModal">Más información</a>
-                    </p>
-
-                    <img src="{{ asset('storage/img/formasdepago/form_tarjeta.png') }}" alt="Formas de Pago"
-                        class="img-fluid" style="max-width: 120px;">
-                </form>
-            </div>
-        </div>
+    <!-- Sección de Confirmación -->
+    <div id="payment-section" class="bg-light p-4 rounded text-center shadow-sm">
+        <form id="storePickupForm" action="{{ route('storepickup.save') }}" method="POST" class="d-flex flex-column align-items-center">
+            @csrf
+            <input type="hidden" name="store_id" id="store_id">
+    
+            <button type="submit" class="btn btn-lg btn-success shadow-sm px-5 py-3 d-flex align-items-center justify-content-center mb-4">
+                <i class="bi bi-check me-2"></i> Confirmar Recogida en Tienda
+            </button>
+    
+            <p class="mb-3 text-muted">
+                Para este método de entrega no es necesario realizar un pago adicional.
+                <a href="#" data-bs-toggle="modal" data-bs-target="#enviosModal">Más información</a>
+            </p>
+        </form>
     </div>
 </div>
 
@@ -87,6 +78,7 @@
     </div>
 </div>
 
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const tiendaSelector = document.getElementById('tienda-selector');
@@ -94,13 +86,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const telefonoElement = document.querySelector('.store-phone');
     const horarioElement = document.querySelector('.store-hours');
     const storeMapIframe = document.getElementById('store-map'); // Referencia al iframe
-    const pickupDateInput = document.getElementById('pickup-date');
-    const pickupTimeInput = document.getElementById('pickup-time');
-    const dateErrorElement = document.getElementById('date-error');
     const paymentSection = document.getElementById('payment-section');
+    const storeIdInput = document.getElementById('store_id');
 
-    // Esconder la sección de pago inicialmente
-    paymentSection.style.display = 'none';
+    // Mostrar la sección de pago siempre, sin depender de la fecha y la hora
+    paymentSection.style.display = 'block';
 
     // Actualizar la información de la tienda seleccionada
     tiendaSelector.addEventListener('change', function() {
@@ -117,7 +107,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Actualizar la URL del iframe de Google Maps
         const googleMapsUrl = selectedOption.getAttribute('data-google-maps-url');
         storeMapIframe.src = googleMapsUrl;
+
+        // Actualizar el input oculto con el ID de la tienda seleccionada
+        storeIdInput.value = tiendaSelector.value;
     });
+});
+
 
     // Configuración del calendario interactivo
     pickupDateInput.addEventListener('input', function() {
@@ -192,7 +187,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         return hours;
     }
-});
+
 
 document.addEventListener('DOMContentLoaded', function() {
     const tiendaSelector = document.getElementById('tienda-selector');

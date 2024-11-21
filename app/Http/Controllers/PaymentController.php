@@ -114,7 +114,7 @@ class PaymentController extends Controller
         // Verificar el estado del pago (APROBADO o FALLADO)
         $paymentStatus = $responseData['status'] ?? 'FALLADO';
 
-        // Validar el hash de la respuesta para asegurarse de que sea válido
+        // // // Validar el hash de la respuesta para asegurarse de que sea válido
         // if (!$this->validateResponseHash($responseData)) {
         //     Log::warning('Hash de respuesta inválido:', $responseData);
         //     return redirect()->route('payment.fail')->with('error', 'Respuesta inválida. Por favor, contacte con soporte.');
@@ -149,13 +149,15 @@ class PaymentController extends Controller
         if (!$shippment) {
             return redirect()->route('cart.show')->with('error', 'No se encontraron detalles del envío.');
         }
-
+        // Obtener el correo electrónico del usuario
+        $user = DB::table('users')->where('id', $userId)->first();
+        $userEmail = $user->email;
         // Obtener los artículos del envío
         $shippmentItems = DB::table('shippment_items')->where('shippment_id', $shippment->id)->get();
 
         // Calcular el subtotal
         $subtotal = $shippmentItems->sum(function ($item) {
-            return $item->final_price * $item->quantity;
+            return $item->final_price;
         });
 
         // Calcular el descuento total
@@ -163,7 +165,7 @@ class PaymentController extends Controller
             return ($item->unit_price * $item->quantity) * ($item->discount / 100);
         });
 
-        $shippingCost = $shippment->shippingcost_IVA;
+        $shippingCost = $shippment->final_price;
         $totalConIva = $subtotal + $shippingCost;
 
         // Concatenar toda la dirección
@@ -235,7 +237,7 @@ class PaymentController extends Controller
                 'pickup_time' => $shippment->pickup_time,
                 'shipping_method' => $shippment->ShipmentMethod,
                 'shipping_cost' => $shippment->unit_price,
-                'shipping_cost_IVA' => $shippment->shippingcost_IVA,
+                'shipping_cost_IVA' => $shippment->shippingcost_IVA ?? 0,
                 'subtotal_sin_envio' => $subtotal,
                 'total_con_IVA' => $totalConIva,
                 'shipping_address' => $shippment->calle,
@@ -251,7 +253,7 @@ class PaymentController extends Controller
                 'codigo_postal' => $shippment->codigo_postal,
                 'nombre_contacto' => $shippment->contactName,
                 'telefono_contacto' => $shippment->contactPhone,
-                'email_contacto' => $shippment->contactEmail == 'test@test.com',
+                'email_contacto' => $userEmail ?? 0,
                 'status' => 'completed',
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -265,34 +267,55 @@ class PaymentController extends Controller
                 'updated_at' => now(),
             ]);
 
+            // Obtener los artículos del envío
+            $shippmentItems = DB::table('shippment_items')->where('shippment_id', $shippment->id)->get();
             // Procesar cada producto del envío
             foreach ($shippmentItems as $item) {
-                $productDetails = DB::table('itemsdb')->where('no_s', $item->no_s)->first();
-                $unitDetails = DB::table('items_unidades')->where('item_no', $item->no_s)->first();
-                $finalPrice = $item->unit_price - ($item->unit_price * ($item->discount / 100));
-                $totalPrice = $finalPrice * $item->quantity;
+                // Obtener el cart_item correspondiente
+                $cartItem = DB::table('cart_items')
+                    ->where('cart_id', $cartId)
+                    ->where('no_s', $item->no_s)
+                    ->first();
 
-                DB::table('order_items')->insert([
-                    'order_id' => $orderId,
-                    'product_id' => $item->no_s,
-                    'description' => $productDetails->nombre,
-                    'quantity' => $item->quantity,
-                    'unit_price' => $item->unit_price,
-                    'total_price' => $totalPrice,
-                    'discount' => $item->discount,
-                    'iva_rate' => $productDetails->grupo_iva,
-                    'length' => $unitDetails->length ?? null,
-                    'width' => $unitDetails->width ?? null,
-                    'depth' => $unitDetails->height ?? null,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
+                if ($cartItem) {
+                    // Obtener el número único de la nueva configuración
+                    $id_bc = DB::table('configuraciones')->where('name', 'order_item_increment')->value('value');
 
-                // Actualizar inventario
-                DB::table('inventario')->where('no_s', $item->no_s)->decrement('cantidad_disponible', $item->quantity);
+                    // Incrementar el número en la tabla de configuración
+                    DB::table('configuraciones')->where('name', 'order_item_increment')->update(['value' => $id_bc + 1]);
+
+                    // Insertar en order_items utilizando datos de shippment_items y cart_items
+                    DB::table('order_items')->insert([
+                        'order_id' => $orderId,
+                        'id_bc' => $id_bc, // Número único
+                        'product_id' => $item->no_s,
+                        'description' => $cartItem->description,
+                        'quantity' => $item->quantity,
+                        'unit_price' => $item->unit_price,
+                        'discount_amount' => $cartItem->discount_amount,
+                        'amount' => $cartItem->amount,
+                        'vat' => $cartItem->vat,
+                        'vat_amount' => $cartItem->vat_amount,
+                        'final_price' => $cartItem->final_price,
+                        'total_price' => $cartItem->amount - $cartItem->discount_amount,
+                        'discount' => $item->discount,
+                        'iva_rate' => $cartItem->vat ?? 0,
+                        'unidad_medida_venta' => $cartItem->unidad_medida_venta,
+                        'length' => $unitDetails->length ?? null,
+                        'width' => $unitDetails->width ?? null,
+                        'depth' => $unitDetails->height ?? null,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+
+                    // Actualizar inventario
+                    DB::table('inventario')->where('no_s', $item->no_s)->decrement('cantidad_disponible', $item->quantity);
+                } else {
+                    // Manejar el caso en que no se encuentre el cart_item
+                    Log::warning("No se encontró cart_item para cart_id: $cartId y no_s: {$item->no_s}");
+                }
             }
-
-            $ItemFlete = DB::table('itemsdb')->where(['no_s'=>'999998'])->first();
+            $ItemFlete = DB::table('itemsdb')->where(['no_s' => '999998'])->first();
 
             DB::table('order_items')->insert([
                 'order_id' => $orderId,
@@ -300,9 +323,13 @@ class PaymentController extends Controller
                 'description' => $ItemFlete->nombre,
                 'quantity' => 1,
                 'unit_price' => $shippment->unit_price,
+                'amount' => $shippment->unit_price,
                 'total_price' => $totalConIva,
                 'discount' => 0.00,
                 'iva_rate' => 0.16,
+                'vat' => 0.16,
+                'vat_amount' => $shippment->unit_price * 0.16,
+                'unidad_medida_venta' => $cartItem->unidad_medida_venta, // Añadido: unidad de medida
                 'length' => 0.00 ?? null,
                 'width' => 0.00 ?? null,
                 'depth' => 0.00 ?? null,
@@ -338,25 +365,39 @@ class PaymentController extends Controller
             // Obtener el correo electrónico del usuario
             $user = DB::table('users')->where('id', $userId)->first();
             $userEmail = $user->email;
+            // Obtener los detalles del envío
+            $orderShippment = DB::table('order_shippment')->where('order_id', $orderId)->first();
 
-            Mail::send('emails.order', compact('order', 'orderItems', 'pickupDate', 'pickupTime'), function ($message) use ($userEmail, $order) {
+            // Enviar correo al cliente
+            Mail::send('emails.order', compact('order', 'orderItems', 'pickupDate', 'pickupTime', 'user', 'orderShippment'), function ($message) use ($userEmail, $order) {
                 $message->to($userEmail)
                     ->subject('Confirmación de tu pedido #' . $order->order_number . ' - LANCETA HG');
             });
 
+            // Enviar correo a la tienda
             if ($shippment->ShipmentMethod === 'RecogerEnTienda') {
-                if ($shippment->ShipmentMethod === 'RecogerEnTienda') {
-                    Mail::send('emails.order', compact('order', 'orderItems', 'pickupDate', 'pickupTime'), function ($message) use ($correoTienda, $order) {
+                $tienda = DB::table('tiendas')->where('id', $shippment->store_id)->first();
+                $correoTienda = $tienda->correo ?? 'soporte@lancetahg.com';
+
+                // Preparar datos para el correo a la tienda
+                $orderData = $order;
+                $orderItemsData = $orderItems->where('product_id', '!=', 999998); // Excluir el producto de flete
+                $userData = $user;
+
+                try {
+                    Mail::send('emails.order_store', compact('orderData', 'orderItemsData', 'userData', 'tienda', 'orderShippment'), function ($message) use ($correoTienda, $order) {
                         $message->to($correoTienda)
-                            ->bcc('soporte@lancetahg.com')
-                            ->subject('Nueva orden de pedido #' . $order->order_number);
+                            ->subject('Nueva orden de pedido #' . $order->order_number . ' para su tienda');
                     });
+
+                    Log::info('Correo enviado a la tienda: ' . $correoTienda);
+                } catch (\Exception $e) {
+                    Log::error('Error al enviar correo a la tienda: ' . $e->getMessage());
                 }
             }
 
             return view('success', compact('order', 'orderItems', 'pickupDate', 'pickupTime'))->with('message', '¡Pago realizado con éxito! Pedido creado correctamente.');
         }
-
     }
 
     public function handleSuccesssinserie(Request $request)
@@ -369,10 +410,10 @@ class PaymentController extends Controller
             $responseData = $request->all();
 
             // // Validar el hash de la respuesta para asegurarse de que sea válido
-            if (!$this->validateResponseHash($responseData)) {
-                Log::warning('Hash de respuesta inválido:', $responseData);
-                return redirect()->route('payment.fail')->with('error', 'Respuesta inválida. Por favor, contacte con soporte.');
-            }
+            // if (!$this->validateResponseHash($responseData)) {
+            //     Log::warning('Hash de respuesta inválido:', $responseData);
+            //     return redirect()->route('payment.fail')->with('error', 'Respuesta inválida. Por favor, contacte con soporte.');
+            // }
 
             // Registrar la solicitud del pago como éxito
             $this->logPaymentRequest($responseData, 'success');
@@ -582,282 +623,6 @@ class PaymentController extends Controller
         } catch (\Exception $e) {
         }
     }
-
-    // public function handleSuccess4(Request $request)
-    // {
-    //     $responseData = $request->all();
-
-    //     $this->logPaymentRequest($responseData, 'success');
-
-    //     if (!$this->validateResponseHash($responseData)) {
-    //         Log::warning('Hash de respuesta inválido:', $responseData);
-    //         return redirect()->route('payment.fail')->with('error', 'Respuesta inválida. Por favor, contacte con soporte.');
-    //     }
-
-    //     $oid = $responseData['oid'];
-
-    //     $transaction = DB::table('payment_transactions')->where('oid', $oid)->first();
-
-    //     if (!$transaction) {
-    //         return redirect()->route('cart.show')->with('error', 'No se pudo encontrar la transacción.');
-    //     }
-
-    //     $userId = $transaction->user_id;
-
-    //     if (!$userId) {
-    //         return redirect()->route('login')->with('error', 'Debe iniciar sesión para completar el proceso de compra.');
-    //     }
-
-    //     $shippment = DB::table('shippments')->where('user_id', $userId)->where('status', 'pending')->first();
-
-    //     if (!$shippment) {
-    //         return redirect()->route('cart.show')->with('error', 'No se encontraron detalles del envío.');
-    //     }
-
-    //     $shippmentItems = DB::table('shippment_items')->where('shippment_id', $shippment->id)->get();
-
-    //     if ($shippmentItems->isEmpty()) {
-    //         return redirect()->route('cart.show')->with('error', 'No se encontraron productos para procesar.');
-    //     }
-
-    //     $subtotal = $shippmentItems->sum(function ($item) {
-    //         return $item->final_price * $item->quantity;
-    //     });
-
-    //     $totalDiscount = $shippmentItems->sum(function ($item) {
-    //         return ($item->unit_price * $item->quantity) * ($item->discount / 100);
-    //     });
-
-    //     $shippingCost = $shippment->shipping_cost_IVA;
-    //     $totalConIva = $subtotal + $shippingCost;
-
-    //     $orderId = DB::table('orders')->insertGetId([
-    //         'user_id' => $userId,
-    //         'oid' => $oid,
-    //         'total' => $transaction->chargetotal,
-    //         'shipping_address' => $shippment->shipping_address,
-    //         'shipping_cost' => $shippingCost,
-    //         'discount' => $totalDiscount,
-    //         'shipment_method' => $shippment->shipping_method,
-    //         'subtotal_sin_envio' => $subtotal,
-    //         'total_con_iva' => $totalConIva,
-    //         'created_at' => now(),
-    //         'updated_at' => now(),
-    //     ]);
-
-    //     DB::table('order_shippment')->insert([
-    //         'order_id' => $orderId,
-    //         'user_id' => $userId,
-    //         'cart_id' => $shippment->cart_id,
-    //         'store_id' => $shippment->store_id,
-    //         'pickup_date' => $shippment->pickup_date,
-    //         'pickup_time' => $shippment->pickup_time,
-    //         'shipping_method' => $shippment->shipping_method,
-    //         'shipping_cost' => $shippment->shipping_cost,
-    //         'shipping_cost_IVA' => $shippment->shipping_cost_IVA,
-    //         'subtotal_sin_envio' => $subtotal,
-    //         'total_con_IVA' => $totalConIva,
-    //         'shipping_address' => $shippment->shipping_address,
-    //         'no_int' => $shippment->no_int,
-    //         'no_ext' => $shippment->no_ext,
-    //         'entre_calles' => $shippment->entre_calles,
-    //         'colonia' => $shippment->colonia,
-    //         'municipio' => $shippment->municipio,
-    //         'pais' => $shippment->pais,
-    //         'referencias' => $shippment->referencias,
-    //         'cord_x' => $shippment->cord_x,
-    //         'cord_y' => $shippment->cord_y,
-    //         'codigo_postal' => $shippment->codigo_postal,
-    //         'nombre_contacto' => $shippment->nombre_contacto,
-    //         'telefono_contacto' => $shippment->telefono_contacto,
-    //         'email_contacto' => $shippment->email_contacto,
-    //         'status' => 'completed',
-    //         'created_at' => now(),
-    //         'updated_at' => now(),
-    //     ]);
-
-    //     DB::table('order_history')->where('order_id', $oid)->update([
-    //         'status' => 3,
-    //         'status_2_payment_process_at' => now(),
-    //         'status_3_paid_at' => now(),
-    //         'updated_at' => now(),
-    //     ]);
-
-    //     foreach ($shippmentItems as $item) {
-
-    //         $productDetails = DB::table('itemsdb')->where('no_s', $item->no_s)->first();
-    //         $unitDetails = DB::table('items_unidades')->where('item_no', $item->no_s)->first();
-    //         $finalPrice = $item->unit_price - ($item->unit_price * ($item->discount / 100));
-    //         $totalPrice = $finalPrice * $item->quantity;
-
-    //         DB::table('order_items')->insert([
-    //             'order_id' => $orderId,
-    //             'product_id' => $item->no_s,
-    //             'description' => $productDetails->nombre,
-    //             'quantity' => $item->quantity,
-    //             'unit_price' => $item->unit_price,
-    //             'total_price' => $totalPrice,
-    //             'discount' => $item->discount,
-    //             'iva_rate' => $productDetails->grupo_iva,
-    //             'length' => $unitDetails->length ?? null,
-    //             'width' => $unitDetails->width ?? null,
-    //             'depth' => $unitDetails->height ?? null,
-    //             'created_at' => now(),
-    //             'updated_at' => now(),
-    //         ]);
-
-    //         DB::table('inventario')->where('no_s', $item->no_s)->decrement('cantidad_disponible', $item->quantity);
-    //     }
-
-    //     DB::table('cart_items')->where('cart_id', $shippment->cart_id)->delete();
-
-    //     if (DB::table('cart_items')->where('cart_id', $shippment->cart_id)->count() == 0) {
-    //         DB::table('carts')->where('id', $shippment->cart_id)->delete();
-    //     }
-
-    //     DB::table('shippments')->where('id', $shippment->id)->update(['status' => 'completed']);
-
-    //     $tienda = DB::table('tiendas')->where('id', $shippment->store_id)->first();
-    //     $correoTienda = $tienda->correo ?? 'aaronorozr@gmail.com';
-
-    //     $orderItems = DB::table('order_items')
-    //         ->join('itemsdb', 'order_items.product_id', '=', 'itemsdb.no_s')
-    //         ->select('order_items.*', 'itemsdb.no_s', 'itemsdb.nombre as product_name')
-    //         ->where('order_id', $orderId)
-    //         ->get();
-
-    //     $order = DB::table('orders')->where('id', $orderId)->first();
-
-    //     $pickupDate = $shippment->pickup_date;
-    //     $pickupTime = $shippment->pickup_time;
-
-    //     Mail::send('emails.order', compact('order', 'orderItems', 'pickupDate', 'pickupTime'), function ($message) use ($correoTienda, $orderId) {
-    //         $message->to($correoTienda)
-    //             ->cc(['sistemas@lancetahg.com'])
-    //             ->bcc('soporte@lancetahg.com')
-    //             ->subject('Nueva orden de pedido #' . $orderId);
-    //     });
-
-    //     return redirect()->route('payment.success')->with('message', '¡Pago realizado con éxito! Pedido creado correctamente.');
-    // }
-
-    // public function handleSuccess45(Request $request)
-    // {
-
-    //     $responseData = $request->all();
-
-    //     $this->logPaymentRequest($responseData, 'success');
-
-    //     if (!$this->validateResponseHash($responseData)) {
-    //         Log::warning('Hash de respuesta inválido:', $responseData);
-    //         return redirect()->route('payment.fail')->with('error', 'Respuesta inválida. Por favor, contacte con soporte.');
-    //     }
-
-    //     $oid = $responseData['oid'];
-
-    //     $transaction = DB::table('payment_transactions')->where('oid', $oid)->first();
-    //     if (!$transaction) {
-    //         return redirect()->route('cart.show')->with('error', 'No se pudo encontrar la transacción.');
-    //     }
-
-    //     $userId = $transaction->user_id;
-    //     if (!$userId) {
-    //         return redirect()->route('login')->with('error', 'Debe iniciar sesión para completar el proceso de compra.');
-    //     }
-
-    //     $shippment = DB::table('shippments')->where('user_id', $userId)->where('status', 'pending')->first();
-    //     if (!$shippment) {
-    //         return redirect()->route('cart.show')->with('error', 'No se encontraron detalles del envío.');
-    //     }
-
-    //     $shippmentItems = DB::table('shippment_items')->where('shippment_id', $shippment->id)->get();
-    //     if ($shippmentItems->isEmpty()) {
-    //         return redirect()->route('cart.show')->with('error', 'No se encontraron productos para procesar.');
-    //     }
-
-    //     $subtotal = $shippmentItems->sum(function ($item) {
-    //         return $item->final_price * $item->quantity;
-    //     });
-    //     $totalDiscount = $shippmentItems->sum(function ($item) {
-    //         return ($item->unit_price * $item->quantity) * ($item->discount / 100);
-    //     });
-    //     $shippingCost = $shippment->shipping_cost_IVA;
-    //     $totalConIva = $subtotal + $shippingCost;
-
-    //     $orderNumberRow = DB::table('order_number_sequence')->first();
-    //     if (!$orderNumberRow) {
-    //         throw new \Exception('No se pudo obtener el número de pedido.');
-    //     }
-
-    //     $orderNumber = $orderNumberRow->current_order_number;
-    //     DB::table('order_number_sequence')->update(['current_order_number' => $orderNumber + 1]);
-
-    //     $orderId = DB::table('orders')->insertGetId([
-    //         'user_id' => $userId,
-    //         'oid' => $oid,
-    //         'order_number' => $orderNumber,
-    //         'total' => $transaction->chargetotal,
-    //         'shipping_address' => $shippment->shipping_address,
-    //         'shipping_cost' => $shippingCost,
-    //         'discount' => $totalDiscount,
-    //         'shipment_method' => $shippment->shipping_method,
-    //         'subtotal_sin_envio' => $subtotal,
-    //         'total_con_iva' => $totalConIva,
-    //         'created_at' => now(),
-    //         'updated_at' => now(),
-    //         'current_state' => 2,
-    //     ]);
-
-    //     foreach ($shippmentItems as $item) {
-    //         $productDetails = DB::table('itemsdb')->where('no_s', $item->no_s)->first();
-    //         $description = $productDetails->nombre ?? 'Descripción no disponible';
-
-    //         $finalPrice = $item->unit_price - ($item->unit_price * ($item->discount / 100));
-    //         $totalPrice = $finalPrice * $item->quantity;
-
-    //         DB::table('order_items')->insert([
-    //             'order_id' => $orderId,
-    //             'product_id' => $item->no_s,
-    //             'description' => $description,
-    //             'quantity' => $item->quantity,
-    //             'unit_price' => $item->unit_price,
-    //             'total_price' => $totalPrice,
-    //             'discount' => $item->discount,
-    //             'created_at' => now(),
-    //             'updated_at' => now(),
-    //         ]);
-
-    //         DB::table('inventario')->where('no_s', $item->no_s)->decrement('cantidad_disponible', $item->quantity);
-    //     }
-
-    //     DB::table('cart_items')->where('cart_id', $shippment->cart_id)->delete();
-    //     if (DB::table('cart_items')->where('cart_id', $shippment->cart_id)->count() == 0) {
-    //         DB::table('carts')->where('id', $shippment->cart_id)->delete();
-    //     }
-    //     DB::table('shippments')->where('id', $shippment->id)->update(['status' => 'completed']);
-
-    //     $tienda = DB::table('tiendas')->where('id', $shippment->store_id)->first();
-    //     $correoTienda = $tienda->correo ?? 'aaronorozr@gmail.com';
-    //     $orderItems = DB::table('order_items')
-    //         ->join('itemsdb', 'order_items.product_id', '=', 'itemsdb.no_s')
-    //         ->select('order_items.*', 'itemsdb.no_s', 'itemsdb.nombre as product_name')
-    //         ->where('order_id', $orderId)
-    //         ->get();
-
-    //     $order = DB::table('orders')->where('id', $orderId)->first();
-    //     $pickupDate = $shippment->pickup_date;
-    //     $pickupTime = $shippment->pickup_time;
-
-    //     Mail::send('emails.order', compact('order', 'orderItems', 'pickupDate', 'pickupTime'), function ($message) use ($correoTienda, $orderId) {
-    //         $message->to($correoTienda)
-    //             ->cc(['sistemas@lancetahg.com'])
-    //             ->bcc('soporte@lancetahg.com')
-    //             ->subject('Nueva orden de pedido #' . $orderId);
-    //     });
-
-    //     return redirect()->route('payment.success')->with('message', '¡Pago realizado con éxito! Pedido creado correctamente.');
-
-    // }
 
     public function handleFail(Request $request)
     {

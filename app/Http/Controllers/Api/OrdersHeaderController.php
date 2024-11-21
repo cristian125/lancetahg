@@ -66,7 +66,7 @@ class OrdersHeaderController extends Controller
                 // Calcular el total excluyendo IVA
                 $totalPaidTaxExcl += $unitPriceExcl * $item->quantity;
             }
-
+            
             // Formatear la orden
             $orderFormatted = [
                 "id" => $order->order_number,
@@ -139,9 +139,9 @@ class OrdersHeaderController extends Controller
                 $unitPriceTaxExcl = ($product && $product->grupo_iva === 'IVA16')
                     ? $item->unit_price / 1.16
                     : $item->unit_price;
-
+                
                 $orderRow = [
-                    "id" => (string)$item->id,
+                    "id" => (string)$item->id_bc,
                     "product_id" => (string)$item->product_id,
                     "product_attribute_id" => "0",
                     "product_quantity" => (string)$item->quantity,
@@ -149,33 +149,15 @@ class OrdersHeaderController extends Controller
                     "product_reference" => $item->product_id,
                     "product_ean13" => "",
                     "product_upc" => "",
-                    "product_price" => (string)$item->unit_price / 1.16,
+                    "product_price" => (string)$item->unit_price,
                     "unit_price_tax_incl" => (string)$item->unit_price,
-                    "unit_price_tax_excl" => (string)$item->unit_price / 1.16,
+                    "unit_price_tax_excl" => (string)$item->total_price,
                 ];
 
 
                 // Añadir `orderRow` al array `order_rows` de `orderFormatted`
                 $orderFormatted['associations']['order_rows'][] = $orderRow;
             }
-
-            // $shippment= DB::table('order_shippment')->where(['order_id'=>$order->id])->first();
-
-            // $orderRow = [
-            //     "id" => $item->id+1,
-            //     "product_id" => '999998',
-            //     "product_attribute_id" => "0",
-            //     "product_quantity" => 1,
-            //     "product_name" => "FLETE",
-            //     "product_reference" => '999998',
-            //     "product_ean13" => "",
-            //     "product_upc" => "",
-            //     "product_price" => $shippment->shipping_cost,
-            //     "unit_price_tax_incl" => $shippment->shipping_cost*1.16,
-            //     "unit_price_tax_excl" => $shippment->shipping_cost,
-            // ];
-
-            // $orderFormatted['associations']['order_rows'][] = $orderRow;
 
             // Agregar `orderFormatted` al array `orders`
             $orderData['orders'][] = $orderFormatted;
@@ -241,11 +223,11 @@ class OrdersHeaderController extends Controller
                 "product_quantity_in_stock" => "1",
                 "product_quantity_return" => "0",
                 "product_quantity_refunded" => "0",
-                "product_price" => (string)$item->unit_price / 1.16,
-                "reduction_percent" => "0.00",
-                "reduction_amount" => (string)$item->discount,
-                "reduction_amount_tax_incl" => (string)$item->discount,
-                "reduction_amount_tax_excl" => (string)$item->discount,
+                "product_price" => (string)$item->unit_price,
+                "reduction_percent" => (string)$item->discount,
+                "reduction_amount" => (string)$item->discount_amount,
+                "reduction_amount_tax_incl" => (string)$item->discount_amount*(1+$item->iva_rate),
+                "reduction_amount_tax_excl" => (string)$item->discount_amount,
                 "product_quantity_discount" => "0.000000",
                 "product_ean13" => "",
                 "product_isbn" => null,
@@ -259,10 +241,10 @@ class OrdersHeaderController extends Controller
                 "ecotax" => "0.000000",
                 "ecotax_tax_rate" => "0.000",
                 "download_nb" => "0",
-                "unit_price_tax_incl" => (string)($item->unit_price * 1.16),
-                "unit_price_tax_excl" => (string)$item->unit_price / 1.16,
-                "total_price_tax_incl" => (string)($item->total_price * 1.16),
-                "total_price_tax_excl" => (string)$item->total_price,
+                "unit_price_tax_incl" => (string)($item->unit_price)*(1+$item->iva_rate),
+                "unit_price_tax_excl" => (string)$item->unit_price,
+                "total_price_tax_incl" => (string)($item->amount)*(1+$item->iva_rate),
+                "total_price_tax_excl" => (string)$item->amount,
                 "total_shipping_price_tax_excl" => "0.000000",
                 "total_shipping_price_tax_incl" => "0.000000",
                 "purchase_supplier_price" => "88.530000", // Ficticio

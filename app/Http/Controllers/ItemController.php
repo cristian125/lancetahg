@@ -353,52 +353,88 @@ class ItemController extends Controller
     {
         // Validación de las imágenes subidas
         $validator = Validator::make($request->all(), [
-            'secondary_images.*', // Permitir JPEG/JPG y PNG sin límite de tamaño
+            'secondary_images.*' => 'required|image|mimes:jpeg,png,jpg|max:2048',
             'item_id' => 'required|integer',
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
         }
-
+    
         // Obtener el item de la base de datos
         $item = DB::table('itemsdb')->where('id', $request->input('item_id'))->first();
-
+    
         if (!$item) {
             return response()->json(['success' => false, 'message' => 'Item no encontrado'], 404);
         }
-
+    
         $no_s = $item->no_s;
         $no_s_padded = str_pad($no_s, 6, '0', STR_PAD_LEFT);
         $carpetaProducto = "itemsview/{$no_s_padded}";
         $disk = 'public';
-
+    
         // Crear la carpeta si no existe
         if (!Storage::disk($disk)->exists($carpetaProducto)) {
             Storage::disk($disk)->makeDirectory($carpetaProducto);
         }
-
+    
         // Subir las nuevas imágenes secundarias
         foreach ($request->file('secondary_images') as $secondaryImage) {
             $extension = strtolower($secondaryImage->getClientOriginalExtension());
-            // Asegurarse de que el nombre sea único
             $secondaryImageName = uniqid() . '.' . $extension;
-
-            // Guardar la imagen secundaria
             $secondaryImage->storeAs($carpetaProducto, $secondaryImageName, $disk);
         }
-
+    
+        // Verificar si existe una imagen principal
+        $files = Storage::disk($disk)->files($carpetaProducto);
+    
+        $mainImageExists = false;
+        $imageCount = count($files);
+    
+        foreach ($files as $file) {
+            $fileBasename = basename($file);
+            // Si existe un archivo con el nombre principal (no_s_padded.jpg, .jpeg, .png)
+            if (preg_match("/^{$no_s_padded}\.(jpg|jpeg|png)$/i", $fileBasename)) {
+                $mainImageExists = true;
+                break;
+            }
+        }
+    
+        // Si no existe una imagen principal y solo hay una imagen en la carpeta
+        if (!$mainImageExists && $imageCount == 1) {
+            $onlyImagePath = $files[0];
+            $extension = strtolower(pathinfo($onlyImagePath, PATHINFO_EXTENSION));
+            $mainImageName = "{$no_s_padded}.{$extension}";
+            $newMainImagePath = "{$carpetaProducto}/{$mainImageName}";
+    
+            // Renombrar la única imagen como imagen principal
+            Storage::disk($disk)->move($onlyImagePath, $newMainImagePath);
+        }
+    
         // Obtener todas las imágenes actuales en la carpeta
         $allImageUrls = [];
         $allFiles = Storage::disk($disk)->files($carpetaProducto);
-
+    
+        $mainImageUrl = null;
+    
         foreach ($allFiles as $file) {
-            $allImageUrls[] = asset("storage/{$file}");
+            $basename = basename($file);
+            if (preg_match("/^{$no_s_padded}\.(jpg|jpeg|png)$/i", $basename)) {
+                // Es la imagen principal
+                $mainImageUrl = asset("storage/{$file}");
+            } else {
+                $allImageUrls[] = asset("storage/{$file}");
+            }
         }
-
-        // Devolver todas las imágenes en la carpeta
-        return response()->json(['success' => true, 'image_urls' => $allImageUrls]);
+    
+        // Devolver todas las imágenes, incluyendo la principal
+        return response()->json([
+            'success' => true,
+            'image_urls' => $allImageUrls,
+            'main_image_url' => $mainImageUrl,
+        ]);
     }
+    
 
     public function hacerImagenPrincipal(Request $request)
     {

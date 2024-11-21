@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\ProductosDestacadosController;
 use App\Http\Controllers\ShippingCobrarController;
 use App\Http\Controllers\ShippingLocalController;
@@ -11,7 +12,6 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use App\Http\Controllers\CartController;
 
 class ProductController extends Controller
 {
@@ -64,8 +64,8 @@ class ProductController extends Controller
 
         $imagenesMiniaturas = collect([$imagenPrincipal])->merge($imagenesSecundarias);
         $mensajeStock = $cantidadDisponible > 0
-            ? "Disponibles: {$cantidadDisponible} en stock"
-            : "No disponible para venta en línea. <br> Llame al 55-5578-1958 para preguntar por su disponibilidad.";
+        ? "Disponibles: {$cantidadDisponible} en stock"
+        : "No disponible para venta en línea. <br> Llame al 55-5578-1958 para preguntar por su disponibilidad.";
         $claseStock = $cantidadDisponible > 0 ? 'text-success' : 'text-danger';
         $botonDeshabilitado = $cantidadDisponible > 0 ? '' : 'disabled';
 
@@ -198,7 +198,7 @@ class ProductController extends Controller
             ->join('carts', 'cart_items.cart_id', '=', 'carts.id')
             ->join('itemsdb', 'cart_items.no_s', '=', 'itemsdb.no_s')
             ->where('carts.user_id', $userId)
-            ->where('carts.status',1)
+            ->where('carts.status', 1)
             ->where('itemsdb.activo', 1)
             ->select(
                 'cart_items.no_s',
@@ -295,7 +295,7 @@ class ProductController extends Controller
         $userId = auth()->id();
         $no_s = $request->input('no_s');
 
-        $cart = DB::table('carts')->where('user_id', $userId)->where('status',1)->orderBy('id','asc')->first();
+        $cart = DB::table('carts')->where('user_id', $userId)->where('status', 1)->orderBy('id', 'asc')->first();
         if (!$cart) {
             return response()->json(['error' => 'No se encontró un carrito para el usuario.'], 404);
         }
@@ -315,7 +315,7 @@ class ProductController extends Controller
         $userId = auth()->id();
         $requestedQuantity = $request->input('quantity', 1);
 
-        $cart = DB::table('carts')->where('user_id', $userId)->where('status',1)->first();
+        $cart = DB::table('carts')->where('user_id', $userId)->where('status', 1)->first();
         if (!$cart) {
             $cartId = DB::table('carts')->insertGetId([
                 'user_id' => $userId,
@@ -347,15 +347,9 @@ class ProductController extends Controller
 
         $descuento = $producto->descuento ?? 0;
         $precioConDescuento = $producto->precio_unitario_IVAinc - ($producto->precio_unitario_IVAinc * ($descuento / 100));
-
-        $tasa_iva = 0;
-
-        if ($producto->grupo_iva == 'IVA16') {
-            $tasa_iva = 0.16;
-        }
+        $tasa_iva = $producto->grupo_iva == 'IVA16' ? 0.16 : 0;
 
         if ($cartItem) {
-
             $newQuantity = $cartItem->quantity + $requestedQuantity;
             if ($newQuantity > $inventario->cantidad_disponible) {
                 return response()->json([
@@ -366,18 +360,21 @@ class ProductController extends Controller
             DB::table('cart_items')
                 ->where('cart_id', $cartId)
                 ->where('no_s', $producto->no_s)
-                ->update(['quantity' => $newQuantity]);
+                ->update([
+                    'quantity' => $newQuantity,
+                    'updated_at' => now(),
+                ]);
         } else {
-
             DB::table('cart_items')->insert([
                 'cart_id' => $cartId,
                 'no_s' => $producto->no_s,
                 'description' => $producto->nombre,
-                'unit_price' => $producto->precio_unitario_IVAinc,
+                'unit_price' => $producto->precio_unitario,
                 'final_price' => $precioConDescuento,
                 'discount' => $descuento,
                 'quantity' => $requestedQuantity,
-                'vat'=>$tasa_iva,
+                'vat' => $tasa_iva,
+                'unidad_medida_venta' => $producto->unidad_medida_venta, // Agregar unidad de medida de itemsdb
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -394,9 +391,9 @@ class ProductController extends Controller
             $userId = auth()->id();
             $no_s = $request->input('no_s');
             $quantity = $request->input('quantity');
-
-            $cart = DB::table('carts')->where('user_id', $userId)->where('status',1)->first();
-
+    
+            $cart = DB::table('carts')->where('user_id', $userId)->where('status', 1)->first();
+    
             if (!$cart) {
                 $cartId = DB::table('carts')->insertGetId([
                     'user_id' => $userId,
@@ -406,34 +403,32 @@ class ProductController extends Controller
             } else {
                 $cartId = $cart->id;
             }
+    
             $cartItem = DB::table('cart_items')
                 ->where('cart_id', $cartId)
                 ->where('no_s', $no_s)
                 ->first();
-
+    
             $producto = DB::table('itemsdb')->where('no_s', $no_s)->first();
             if (!$producto) {
                 return response()->json(['error' => 'Producto no encontrado'], 404);
             }
-
+    
             $inventario = DB::table('inventario')->where('no_s', $producto->no_s)->first();
             $cantidadDisponible = $inventario ? $inventario->cantidad_disponible : 0;
-
+    
             $cantidadEnCarrito = DB::table('cart_items')
                 ->where('cart_id', $cartId)
                 ->where('no_s', $no_s)
                 ->sum('quantity');
             $cantidadRequerida = $cantidadEnCarrito + $quantity;
-
+    
             if ($cantidadDisponible < $cantidadRequerida) {
                 return response()->json(['error' => 'No puedes añadir más de este producto. Stock insuficiente.'], 400);
             }
-            $tasa_iva = 0;
-
-            if ($producto->grupo_iva == 'IVA16') {
-                $tasa_iva = 0.16;
-            }
-
+    
+            $tasa_iva = $producto->grupo_iva == 'IVA16' ? 0.16 : 0;
+    
             if ($cartItem) {
                 DB::table('cart_items')
                     ->where('cart_id', $cartId)
@@ -444,18 +439,19 @@ class ProductController extends Controller
                     'cart_id' => $cartId,
                     'no_s' => $no_s,
                     'description' => $producto->nombre,
-                    'unit_price' => $producto->precio_unitario_IVAinc,
+                    'unit_price' => $producto->precio_unitario,
                     'discount' => $producto->descuento,
                     'final_price' => $producto->descuento > 0 ? $producto->precio_con_descuento : $producto->precio_unitario_IVAinc,
                     'quantity' => $quantity,
                     'vat' => $tasa_iva,
+                    'unidad_medida_venta' => $producto->unidad_medida_venta, // Agregar unidad de medida de itemsdb
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
             }
-
+    
             $cantidadRestante = $cantidadDisponible - ($cantidadEnCarrito + $quantity);
-
+    
             return response()->json([
                 'message' => 'Producto añadido al carrito correctamente',
                 'stock_restante' => $cantidadRestante,
@@ -465,13 +461,14 @@ class ProductController extends Controller
             return response()->json(['error' => 'Ocurrió un error al añadir el producto al carrito. ' . $e->getMessage()], 500);
         }
     }
+    
     public function updateQuantity(Request $request)
     {
         $userId = auth()->id();
         $productCode = $request->input('product_code');
         $newQuantity = (int) $request->input('quantity');
 
-        $cart = DB::table('carts')->where('user_id', $userId)->where('status',1)->orderBy('id','asc')->first();
+        $cart = DB::table('carts')->where('user_id', $userId)->where('status', 1)->orderBy('id', 'asc')->first();
         $cartId = $cart->id;
 
         $cartItem = DB::table('cart_items')
@@ -539,7 +536,7 @@ class ProductController extends Controller
             ->where('activo', 1);
 
         if ($request->has('search') && trim($request->input('search')) !== '') {
-            $search = str_replace(' ','%',$request->input('search'));
+            $search = str_replace(' ', '%', $request->input('search'));
             $query->where(function ($q) use ($search) {
                 $q->where('nombre', 'like', $search . '%')
                     ->orWhere('nombre', 'like', '%' . $search . '%')
@@ -638,7 +635,7 @@ class ProductController extends Controller
 
     public function ajaxSearch(Request $request)
     {
-        $search = str_replace(' ','%',$request->input('search'));
+        $search = str_replace(' ', '%', $request->input('search'));
         $query = DB::table('itemsdb')
             ->select('id', 'nombre', 'descripcion', 'precio_unitario_IVAinc', 'precio_con_descuento', 'descuento', 'no_s', 'unidad_medida_venta')
             ->where('activo', 1);
@@ -674,7 +671,7 @@ class ProductController extends Controller
         return response()->json($productos);
     }
 
-    public function showCart(Request $request)
+    public function showCart1(Request $request)
     {
 
         $mantenimiento = ProductosDestacadosController::checkMaintenance();
@@ -782,7 +779,7 @@ class ProductController extends Controller
 
         $iva = $subtotalSinIVA * 0.16;
         $shippingCostIVA = $shippment->final_price ?? 0.00;
-        
+
         if ($shippmentExists && $shippment->ShipmentMethod === 'EnvioPorCobrar') {
             $shippingCostIVA = 0.00;
         }
@@ -816,13 +813,14 @@ class ProductController extends Controller
 
         $noShippingMethodsAvailable = empty($envios);
         $shippingLocalController = new ShippingLocalController();
-        $localShippingData = $shippingLocalController->handleLocalShipping($request, $userId, $totalPrice);
+        $localShippingData = $shippingLocalController->handleLocalShipping($request, $userId, $totalPrice, $direcciones);
+
         $shippingPaqueteriaController = new ShippingPaqueteriaController();
-        $paqueteriaShippingData = $shippingPaqueteriaController->handlePaqueteriaShipping($request, $userId, $totalPrice);
+        $paqueteriaShippingData = $shippingPaqueteriaController->handlePaqueteriaShipping($request, $userId, $totalPrice, $direcciones);
         $storePickupController = new StorePickupController();
-        $storePickupData = $storePickupController->handleStorePickup($request, $userId);
+        $storePickupData = $storePickupController->handleStorePickup($request, $userId, $direcciones);
         $shippingCobrarController = new ShippingCobrarController();
-        $cobrarShippingData = $shippingCobrarController->handleCobrarShipping($request, $userId, $totalPrice);
+        $cobrarShippingData = $shippingCobrarController->handleCobrarShipping($request, $userId, $totalPrice, $direcciones);
 
         $nonEligibleLocalShipping = $cartItems->filter(function ($item) {
             return empty($item->allow_local_shipping);
@@ -836,27 +834,18 @@ class ProductController extends Controller
         $nonEligibleCobrarShipping = $cartItems->filter(function ($item) {
             return empty($item->allow_cobrar_shipping);
         });
-        
+
         $subtotalProductosSinIVA = $eligibleCartItems->sum(function ($item) {
-            $unitPriceSinIVA = $item->final_price / 1.16;
+            $unitPriceSinIVA = $item->unit_price * $item->quantity;
 
-            return $unitPriceSinIVA * $item->quantity;
-        });
-    
-
-        $totalDescuentoSinIVA = $eligibleCartItems->sum(function ($item) {
-            $unitPriceSinIVA = ($item->final_price / 1.16)*($item->quantity);
-   
-            $discountAmount = $unitPriceSinIVA * ($item->discount / 100) * $item->quantity;
-   
-            return $discountAmount;
-            
+            return $unitPriceSinIVA;
         });
 
+        $totalDescuentoSinIVA = $totalDescuento / 1.16;
 
         $shippingCostSinIVA = $shippingCostIVA / 1.16;
         $totalSinIVA = $subtotalProductosSinIVA - $totalDescuentoSinIVA + $shippingCostSinIVA;
-        
+
         $ivaTotal = $totalSinIVA * 0.16;
 
         $totalFinal = $totalSinIVA + $ivaTotal;
@@ -894,6 +883,213 @@ class ProductController extends Controller
             'ivaTotal' => $ivaTotal,
             'totalFinal' => $totalFinal,
         ]);
+    }
+
+    public function showCart(Request $request)
+    {
+        $mantenimiento = ProductosDestacadosController::checkMaintenance();
+        if ($mantenimiento == 'true') {
+            return redirect(route('mantenimento'));
+        }
+
+        $userId = auth()->id();
+
+        if (!$userId) {
+            return redirect()->route('login');
+        }
+        $user = auth()->user();
+        $userData = DB::table('users_data')->where('user_id', $userId)->first();
+        $direcciones = DB::table('users_address')->where('user_id', $userId)->get();
+        $tieneDirecciones = $direcciones->isNotEmpty();
+
+        $contactName = $user->name;
+        if ($userData) {
+            $contactName = $userData->nombre . ' ' . $userData->apellido_paterno . ' ' . $userData->apellido_materno;
+        }
+
+        $cartId = CartController::getId();
+        if (!$cartId) {
+            return redirect()->route('home');
+        }
+        $cartItems = DB::table('cart_items')
+            ->join('itemsdb', 'cart_items.no_s', '=', 'itemsdb.no_s')
+            ->join('inventario', 'cart_items.no_s', '=', 'inventario.no_s')
+            ->where(['cart_items.cart_id' => $cartId, 'itemsdb.activo' => 1])
+            ->select(
+                'itemsdb.id',
+                'itemsdb.unidad_medida_venta as unidad',
+                'itemsdb.nombre as product_name',
+                'itemsdb.descripcion as description',
+                'cart_items.quantity',
+                'cart_items.unit_price',
+                'cart_items.discount',
+                'cart_items.discount_amount',
+                'cart_items.vat_amount',
+                'cart_items.vat',
+                'cart_items.final_price',
+                'itemsdb.no_s as product_code',
+                'inventario.cantidad_disponible as available_quantity',
+                'itemsdb.allow_local_shipping',
+                'itemsdb.allow_paqueteria_shipping',
+                'itemsdb.allow_store_pickup',
+                'itemsdb.allow_cobrar_shipping',
+                'itemsdb.grupo_iva'
+            )
+            ->get();
+        foreach ($cartItems as $item) {
+            $codigoProducto = str_pad($item->product_code, 6, "0", STR_PAD_LEFT);
+            $imagePath = "storage/itemsview/{$codigoProducto}/{$codigoProducto}.jpg";
+
+            if (file_exists(public_path($imagePath))) {
+                $item->image = $imagePath;
+            } else {
+                $item->image = 'storage/itemsview/default.jpg';
+            }
+        }
+        $shippment = DB::table('cart_shippment')
+            ->leftJoin('tiendas', 'cart_shippment.store_id', '=', 'tiendas.id')
+            ->where('cart_id', $cartId)
+            ->select('cart_shippment.*', 'tiendas.nombre as store_name', 'tiendas.direccion as store_address')
+            ->first();
+
+        $shippmentExists = $shippment !== null;
+        $tipoEnvioSeleccionado = $shippment ? $shippment->ShipmentMethod : null;
+        if ($tipoEnvioSeleccionado) {
+            $eligibleCartItems = $cartItems->filter(function ($item) use ($tipoEnvioSeleccionado) {
+                if ($tipoEnvioSeleccionado === 'EnvioLocal') {
+                    return $item->allow_local_shipping;
+                } elseif ($tipoEnvioSeleccionado === 'EnvioPorPaqueteria') {
+                    return $item->allow_paqueteria_shipping;
+                } elseif ($tipoEnvioSeleccionado === 'RecogerEnTienda') {
+                    return $item->allow_store_pickup;
+                } elseif ($tipoEnvioSeleccionado === 'EnvioPorCobrar') {
+                    return $item->allow_cobrar_shipping == 1;
+                }
+
+                return true;
+            });
+
+            $eligibleProductCodes = $eligibleCartItems->pluck('product_code')->all();
+            $nonEligibleItems = $cartItems->reject(function ($item) use ($eligibleProductCodes) {
+                return in_array($item->product_code, $eligibleProductCodes);
+            });
+        } else {
+
+            $eligibleCartItems = $cartItems;
+            $nonEligibleItems = collect();
+        }
+
+        /***
+         * precio de pedido sin envio
+         */
+        $total_productos_pedido = $eligibleCartItems->sum(function ($item) {
+            return $item->final_price * $item->quantity;
+        });
+
+        $subtotal_productos_pedido = $eligibleCartItems->sum(function ($item) {
+            return $item->unit_price * $item->quantity;
+        });
+
+        $descuento_productos_pedido = $eligibleCartItems->sum(function ($item) {
+            return $item->discount_amount;
+        });
+
+        $iva_productos_pedido = $eligibleCartItems->sum(function ($item) {
+            return $item->vat_amount;
+        });
+        // dd($shippment);
+
+        // Asegúrate de que $shippment existe antes de acceder a sus propiedades
+        $envio_subtotal_pedido = isset($shippment) && isset($shippment->unit_price) ? (float) $shippment->unit_price : 0.00;
+        $envio_descuento_pedido = isset($shippment) && isset($shippment->discount) ? (float) $shippment->discount : 0.00;
+        $envio_iva_pedido = isset($shippment) && isset($shippment->shippingcost_IVA) ? (float) $shippment->shippingcost_IVA : 0.00;
+        $envio_total_pedido = isset($shippment) && isset($shippment->final_price) ? (float) $shippment->final_price : 0.00;
+
+        // Calcular el total con las verificaciones previas
+        $subtotal_pedido = (float) $subtotal_productos_pedido + $envio_subtotal_pedido;
+        $descuento_pedido = (float) $descuento_productos_pedido + $envio_descuento_pedido;
+        $iva_pedido = (float) $iva_productos_pedido + $envio_iva_pedido;
+        $total_pedido = $subtotal_pedido - $descuento_pedido + $iva_pedido;
+    //    dd($total_pedido, $subtotal_pedido, $descuento_pedido, $iva_pedido);
+        // dd($subtotal_pedido,$descuento_pedido,$iva_pedido,$total_pedido);
+        $activeShippingMethods = DB::table('shipping_methods')
+            ->where('is_active', 1)
+            ->get();
+
+        $envios = [];
+
+        foreach ($activeShippingMethods as $method) {
+            $price = 0.00;
+
+            if ($method->name === 'EnvioLocal') {
+                $price = 250.00;
+            } elseif ($method->name === 'EnvioPorPaqueteria') {
+                $price = 500.00;
+            } elseif ($method->name === 'RecogerEnTienda') {
+                $price = 0.00;
+            } elseif ($method->name === 'EnvioPorCobrar') {
+                $price = 0.00;
+            }
+
+            $envios[] = [
+                'name' => $method->display_name,
+                'value' => $method->name,
+                'price' => $price,
+            ];
+        }
+
+        $noShippingMethodsAvailable = empty($envios);
+        $shippingLocalController = new ShippingLocalController();
+        $localShippingData = $shippingLocalController->handleLocalShipping($request, $userId, $total_productos_pedido, $direcciones);
+        $shippingPaqueteriaController = new ShippingPaqueteriaController();
+        $paqueteriaShippingData = $shippingPaqueteriaController->handlePaqueteriaShipping($request, $userId, $total_productos_pedido, $direcciones);
+        $storePickupController = new StorePickupController();
+        $storePickupData = $storePickupController->handleStorePickup($request, $userId, $direcciones);
+        $shippingCobrarController = new ShippingCobrarController();
+        $cobrarShippingData = $shippingCobrarController->handleCobrarShipping($request, $userId, $total_productos_pedido, );
+
+        $nonEligibleLocalShipping = $cartItems->filter(function ($item) {
+            return empty($item->allow_local_shipping);
+        });
+        $nonEligiblePaqueteriaShipping = $cartItems->filter(function ($item) {
+            return empty($item->allow_paqueteria_shipping);
+        });
+        $nonEligibleStorePickup = $cartItems->filter(function ($item) {
+            return empty($item->allow_store_pickup);
+        });
+        $nonEligibleCobrarShipping = $cartItems->filter(function ($item) {
+            return empty($item->allow_cobrar_shipping);
+        });
+    
+        $variables_compartidas = [
+            'cartItems' => $cartItems,
+            'eligibleCartItems' => $eligibleCartItems,
+            'nonEligibleItems' => $nonEligibleItems,
+            'nonEligibleLocalShipping' => $nonEligibleLocalShipping,
+            'nonEligiblePaqueteriaShipping' => $nonEligiblePaqueteriaShipping,
+            'nonEligibleStorePickup' => $nonEligibleStorePickup,
+            'nonEligibleCobrarShipping' => $nonEligibleCobrarShipping,
+            'noShippingMethodsAvailable' => $noShippingMethodsAvailable,
+            'tieneDirecciones' => $tieneDirecciones,
+            'cartId' => $cartId,
+            'shippment' => $shippment,
+            'shippmentExists' => $shippmentExists,
+            'subtotalProductosSinIVA' => $total_productos_pedido,
+            'subtotalSinIVA' => $subtotal_pedido,
+            'totalDescuentoSinIVA' => $descuento_pedido,
+            'shippingCostSinIVA' => $envio_subtotal_pedido,
+            'ivaTotal' => $iva_pedido,
+            'totalFinal' => $total_pedido,
+            'contactName' => $contactName,
+            'envios' => $envios,
+            'storePickupData' => $storePickupData,
+            'localShippingData' => $localShippingData,
+            'shippingCostIVA' => $envio_iva_pedido,
+            'paqueteriaShippingData' => $paqueteriaShippingData,
+            'cobrarShippingData' => $cobrarShippingData,
+        ];
+
+        return view('carrito', $variables_compartidas);
     }
 
     public function removeShipping(Request $request)

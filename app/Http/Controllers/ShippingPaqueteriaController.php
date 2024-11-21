@@ -19,26 +19,21 @@ class ShippingPaqueteriaController extends Controller
     public function handlePaqueteriaShipping(Request $request, $userId, $totalPrice)
     {
         $this->id = $userId;
-        // Obtener todas las direcciones del usuario
         $direcciones = DB::table('users_address')
             ->where('user_id', $userId)
             ->where('status', 1)
             ->get();
 
-        // Inicializar variables
         $direccionValida = false;
-        $costoEnvio = 500; // Costo de envío por paquetería
-        $minimoCompra = 2000; // Minimo de compra para envío gratuito
+        $costoEnvio = 500; 
+        $minimoCompra = 2000; 
 
-        // Recorrer las direcciones para validar si alguna es válida para paquetería
         foreach ($direcciones as $direccion) {
             $codigoPostal = $direccion->codigo_postal;
 
-            // Suponiendo que todos los códigos postales son válidos para paquetería
             $direccion->esPaqueteria = true;
             $direccionValida = true;
 
-            // Verificar si el total del carrito cumple con el mínimo de compra para envío gratuito
             if ($totalPrice >= $minimoCompra) {
                 $direccion->costoEnvio = 0;
             } else {
@@ -46,7 +41,6 @@ class ShippingPaqueteriaController extends Controller
             }
         }
 
-        // Retornar los datos relevantes
         return [
             'direcciones' => $direcciones,
             'direccionValida' => $direccionValida,
@@ -59,28 +53,16 @@ class ShippingPaqueteriaController extends Controller
 
     public function actualizarEnvioPaqueteria(Request $request)
     {
-        // Obtener datos del request
         $direccionId = intval($request->direccion);
-        
-    
-        // Obtener user_id de la base de datos
         $user = DB::table('users_address')->select('user_id')->where('id', $direccionId)->first();
-        
+
         if (!$user) {
             return response()->json(['error' => 'Dirección no encontrada'], 404);
         }
 
-
-
         $id = $user->user_id;
-
-        // Crear instancia del cliente Guzzle
         $client = new Client();
-        
-        // Definir la URL base y los parámetros de la consulta
         $url = route('api.orders'); 
-        
-        // Hacer la petición GET con parámetros
         $token = csrf_token();
         $response = $client->request('POST', $url, [
             'headers' => [
@@ -94,14 +76,8 @@ class ShippingPaqueteriaController extends Controller
             ]
         ]);
 
-        // dd($response->getBody()->getContents());
-        // Obtener el cuerpo de la respuesta
         $body = $response->getBody()->getContents();
-
-        // Decodificar JSON si es necesario
         $data = json_decode($body, true);
-
-        // Hacer algo con los datos
         return response()->json($data);
     }
 
@@ -110,34 +86,30 @@ class ShippingPaqueteriaController extends Controller
         try {
             $cartId = $request->input('cart_id');
             $direccionId = $request->input('direccion');
-            $shippingCostWithIVA = $request->input('shipping_cost_with_iva'); // Recibir el costo con IVA
+            $shippingCostWithIVA = $request->input('shipping_cost_with_iva'); 
         
-            // Verificar que los datos necesarios están presentes
             if (!$cartId || !$direccionId || !$shippingCostWithIVA) {
                 return response()->json(['success' => false, 'error' => 'Faltan datos requeridos o costo de envío no proporcionado.']);
             }
         
-            // Obtener los detalles de la dirección
             $direccion = DB::table('users_address')->where('id', $direccionId)->first();
             if (!$direccion) {
                 return response()->json(['success' => false, 'error' => 'Dirección no encontrada.']);
             }
         
-            // Calcular el total de productos con IVA (sin incluir el envío)
             $totalProductosConIVA = DB::table('cart_items')
                 ->where('cart_id', $cartId)
                 ->sum(DB::raw('final_price * quantity'));
     
-            // Inserción en la tabla `cart_shippment`
             DB::table('cart_shippment')->insert([
                 'cart_id' => $cartId,
                 'ShipmentMethod' => 'EnvioPorPaqueteria',
-                'no_s' => '999999', // Código de producto especial para el envío por paquetería
+                'no_s' => '999999', 
                 'description' => "Envio por Paquetería",
-                'unit_price' => round($shippingCostWithIVA/1.16,2), // Precio total de los productos con IVA, pero sin envío
-                'discount' => 0, // Puedes cambiar este valor si aplicas algún descuento
-                'final_price' => $shippingCostWithIVA, // Precio final sin incluir envío
-                'shippingcost_IVA' => $shippingCostWithIVA-round($shippingCostWithIVA/1.16,2), // Guardar el costo con IVA del envío
+                'unit_price' => round($shippingCostWithIVA/1.16,2),
+                'discount' => 0, 
+                'final_price' => $shippingCostWithIVA, 
+                'shippingcost_IVA' => $shippingCostWithIVA-round($shippingCostWithIVA/1.16,2), 
                 'quantity' => 1,
                 'nombre' => $direccion->nombre,
                 'calle' => $direccion->calle,
@@ -151,13 +123,12 @@ class ShippingPaqueteriaController extends Controller
                 'referencias' => $direccion->referencias,
                 'cord_x' => $direccion->cord_x,
                 'cord_y' => $direccion->cord_y,
-                'status' => 1, // Agregar este campo para solucionar el error
+                'status' => 1, 
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
         
             return response()->json(['success' => true]);
-        
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()]);
         }

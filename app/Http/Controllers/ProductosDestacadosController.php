@@ -213,7 +213,7 @@ class ProductosDestacadosController extends Controller
                     'cart_id' => $cartId,
                     'no_s' => $no_s,
                     'description' => $producto->descripcion,
-                    'unit_price' => $producto->precio_unitario_IVAinc,
+                    'unit_price' => $producto->precio_unitario,
                     'discount' => $producto->descuento,
                     'final_price' => $producto->descuento > 0 ? $producto->precio_con_descuento : $producto->precio_unitario_IVAinc,
                     'quantity' => $quantity,

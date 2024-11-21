@@ -82,7 +82,8 @@
                     <h4 class="mb-4">Filtros</h4>
                     @if (isset($division))
                         @if (isset($grupo) && isset($categoria))
-                            <form action="{{ url('/categorias/' . $division . '/' . $grupo . '/' . $categoria) }}"
+                        <form action="{{ url('/categorias/' . $division . '/' . preg_replace('/[^a-zA-Z0-9\-]/', '-', strtolower($grupo)) . '/' . preg_replace('/[^a-zA-Z0-9\-]/', '-', strtolower($categoria))) }}" method="GET">
+
                                 method="GET">
                                 <input type="hidden" name="division" value="{{ $division }}">
                                 <input type="hidden" name="grupo" value="{{ $grupo }}">
@@ -155,13 +156,15 @@
                             @foreach ($productos as $producto)
                                 <div class="col-md-3 mb-4">
                                     <div class="card h-100 shadow-sm">
-                                        <a href="{{ url('/producto/' . $producto->id . '-' . urlencode($producto->nombre)) }}">
+                                        <a href="{{ url('/producto/' . $producto->id . '-' . preg_replace('/[^a-zA-Z0-9\-]/', '-', strtolower($producto->nombre))) }}">
+
                                             <img src="{{ $producto->imagen_principal }}" class="card-img-top"
                                                 alt="{{ $producto->nombre }}"
                                                 style="max-height: 180px; object-fit: cover;">
                                         </a>
                                         <div class="card-body d-flex flex-column">
-                                            <a href="{{ url('/producto/' . $producto->id . '-' . urlencode($producto->nombre)) }}"
+                                            <a href="{{ url('/producto/' . $producto->id . '-' . preg_replace('/[^a-zA-Z0-9\-]/', '-', strtolower($producto->nombre))) }}">
+
                                                 class="text-decoration-none text-dark">
                                                 <h5 class="card-title text-truncate">{{ $producto->nombre }}</h5>
                                             </a>
@@ -199,9 +202,10 @@
                             <table class="table table-hover">
                                 <tbody>
                                     @foreach ($productos as $producto)
-                                        <tr class="product-item"
-                                            onclick="window.location='{{ url('/producto/' . $producto->id . '-' . urlencode($producto->nombre)) }}';"
-                                            style="cursor: pointer;">
+                                    <tr class="product-item"
+                                    onclick="window.location='{{ url('/producto/' . $producto->id . '-' . preg_replace('/[^a-zA-Z0-9\-]/', '-', strtolower($producto->nombre))) }}';"
+                                    style="cursor: pointer;">
+                                
                                             <td class="image">
                                                 <img src="{{ $producto->imagen_principal }}"
                                                     alt="{{ $producto->nombre }}"
@@ -212,7 +216,9 @@
                                                 <p class="product-description">
                                                     {{ \Illuminate\Support\Str::limit(strip_tags($producto->descripcion), 150) }}
                                                 </p>
+
                                             </td>
+                                            
                                             <td class="price text-right">
                                                 @if (isset($producto->descuento) && $producto->descuento > 0)
                                                     <span class="precio-original">

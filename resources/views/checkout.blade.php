@@ -94,15 +94,15 @@
                                             <strong>Importe:</strong>
                                             @if ($item->discount > 0)
                                                 <span class="text-muted" style="text-decoration: line-through;">
-                                                    ${{ number_format($item->unit_price * $item->quantity, 2, '.', ',') }}
+                                                    ${{ number_format(($item->unit_price * $item->quantity)*(1+$item->vat), 2, '.', ',') }}
                                                     MXN
                                                 </span>
                                                 <br>
-                                                <strong>${{ number_format($item->final_price * $item->quantity, 2, '.', ',') }}
+                                                <strong>${{ number_format($item->final_price, 2, '.', ',') }}
                                                     MXN</strong>
                                                 <br><span class="text-danger">Descuento: {{ $item->discount }}%</span>
                                             @else
-                                                <strong>${{ number_format($item->final_price * $item->quantity, 2, '.', ',') }}
+                                                <strong>${{ number_format($item->final_price, 2, '.', ',') }}
                                                     MXN</strong>
                                             @endif
                                         </div>
@@ -224,15 +224,14 @@
                                             Sábado: {{ $storeDetails->horario_sabado }}
                                         </li>
                                         <li class="list-group-item">
-                                            <strong>Fecha de Recogida:</strong> {{ $shippment->pickup_date }}
+                                            <strong>Fecha de Recogida:</strong> <span class="text-danger">La fecha de recogida se confirmará pronto.</span>
                                         </li>
                                         <li class="list-group-item">
-                                            <strong>Hora de Recogida:</strong> {{ $shippment->pickup_time }}
+                                            <strong>Hora de Recogida:</strong> <span class="text-danger">La hora de recogida se confirmará pronto.</span>
                                         </li>
-                                        <li class="list-group-item"><strong>Nombre de Contacto:</strong>
-                                            {{ $shippment->nombre_contacto }}</li>
-                                        <li class="list-group-item"><strong>Teléfono de Contacto:</strong>
-                                            {{ $shippment->telefono_contacto }}</li>
+                                        <li class="list-group-item"><strong>Nombre de Contacto:</strong> {{ $shippment->contactName }}</li>
+                                        <li class="list-group-item"><strong>Teléfono de Contacto:</strong> {{ $shippment->contactPhone }}</li>
+                                        
                                     @else
                                         <!-- Mostrar los detalles de envío a domicilio -->
                                         <li class="list-group-item"><strong>Dirección:</strong>

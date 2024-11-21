@@ -58,7 +58,7 @@
                                 step2.fadeIn('slow');
                             }
                         });
-                    }, 8000); /
+                    }, 8000);
                 });
             } else if (step2.length) {
                 step2.fadeIn('slow');
@@ -165,7 +165,9 @@
                             </div>
                         @endif
 
-                        <a href="{{ url('/producto/' . $producto->id . '-' . urlencode($producto->nombre)) }}" class="text-decoration-none">
+                        <a href="{{ url('/producto/' . $producto->id . '-' . preg_replace('/[^a-zA-Z0-9\-]/', '-', strtolower($producto->nombre))) }}" class="text-decoration-none">
+
+
 
                             <div>
                             <img src="{{ $producto->imagen_principal }}" alt="{{ $producto->nombre }}">
@@ -231,9 +233,9 @@
         width: 100%;
     }
     .marca {
-        color: #838383; 
+        color: #838383;
     }
     .nprod {
-        color: #252525; 
+        color: #252525;
     }
 </style>

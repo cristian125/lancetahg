@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\UserAddressController;
 use App\Http\Controllers\Api\GuiasController;
-
+use App\Http\Controllers\OrderController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -42,3 +42,9 @@ Route::get('/addresses', [UserAddressController::class, 'getAllUserAddresses']);
 Route::get('/status-update', [GuiasController::class, 'statusUpdate'])->name('status.update');
 
 Route::get('/guias', [GuiasController::class, 'guiasearch']);
+
+
+Route::get('/storepickup', [OrderController::class, 'getStorePickupOrderHeaders']);
+Route::get('/storepickup/{orderNumber}', [OrderController::class, 'getOrderItemsByOrderNumber']);
+
+Route::post('/update-delivery', [OrderController::class, 'updateDelivery'])->name('update.delivery');

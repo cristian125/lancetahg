@@ -234,7 +234,9 @@
             @foreach ($productosRelacionados as $recomendado)
                 <div class="item">
                     <div class="product-card2 bg-white rounded">
-                        <a href="{{ url('/producto/' . $recomendado->id) }}" class="text-decoration-none text-dark">
+                        
+                        <a href="{{ url('/producto/' . $recomendado->id . '-' . str_replace('/', '-', urlencode($recomendado->nombre))) }}" class="text-decoration-none text-dark">
+
                             <div class="image-container" style="position: relative; overflow: hidden;">
                                 <img src="{{ $recomendado->imagen }}" alt="{{ $recomendado->descripcion }}"
                                     class="img-fluid rounded"

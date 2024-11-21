@@ -2,17 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
-
-
+use Illuminate\Support\Facades\DB;
 
 class AdminOrderController extends Controller
 {
 
     public function show($orderId)
     {
-        // Obtener los datos de la orden junto con la información del usuario y del envío
         $orden = DB::table('orders')
             ->join('users', 'orders.user_id', '=', 'users.id')
             ->leftJoin('users_data', 'users.id', '=', 'users_data.user_id')
@@ -35,7 +32,6 @@ class AdminOrderController extends Controller
                 'users_data.apellido_materno',
                 'users_data.telefono',
                 'users_data.correo',
-                // Campos de dirección de envío
                 'order_shippment.shipping_address',
                 'order_shippment.no_int',
                 'order_shippment.no_ext',
@@ -53,7 +49,6 @@ class AdminOrderController extends Controller
             abort(404, 'Orden no encontrada.');
         }
     
-        // Obtener los detalles de los productos de la orden y buscar el ID real de cada producto en itemsdb
         $items = DB::table('order_items')
             ->where('order_id', $orderId)
             ->select(
@@ -69,13 +64,11 @@ class AdminOrderController extends Controller
             ->get();
     
         foreach ($items as $item) {
-            // Buscar el ID del producto en la tabla itemsdb usando el product_id como no_s
             $item->real_product_id = DB::table('itemsdb')
                 ->where('no_s', $item->product_id)
-                ->value('id'); // Obtenemos el ID real del producto
+                ->value('id');
         }
     
-        // Obtener los detalles de pago
         $pago = DB::table('order_payment')
             ->where('order_id', $orderId)
             ->select(
@@ -87,39 +80,47 @@ class AdminOrderController extends Controller
             )
             ->first();
     
-        return view('admin.order_detail', compact('orden', 'items', 'pago'));
-    }
+        // Obtener el número de guía
+        $trackingNumber = DB::table('guias')
+            ->where('order_no', $orden->order_number)
+            ->value('no_guia');
     
+        // Obtener las URLs desde .env
+        $trackingUrl = env('TRACKING_URL');
+        $genLabelUrl = env('GEN_LABEL_URL');
+    
+        return view('admin.order_detail', compact('orden', 'items', 'pago', 'trackingNumber', 'trackingUrl', 'genLabelUrl'));
+    }
     
     
 
     public function index(Request $request)
     {
-        $search = $request->input('search', '');  
+        $search = $request->input('search', '');
         $query = DB::table('orders')
             ->join('users', 'orders.user_id', '=', 'users.id')
             ->select(
                 'orders.id as order_id',
-                'orders.order_number', 
+                'orders.order_number',
                 'orders.total',
                 'orders.subtotal_sin_envio',
                 'orders.shipping_cost',
                 'orders.discount',
                 'orders.total_con_iva',
                 'orders.shipment_method',
-                'orders.created_at as order_created_at', 
+                'orders.created_at as order_created_at',
                 'users.name as user_name'
             )
-            ->orderByDesc('orders.created_at'); // Ordenar por la fecha de creación de manera descendente
-    
+            ->orderByDesc('orders.created_at');
+
         if (!empty($search)) {
             $query->where('orders.order_number', 'like', "%{$search}%")
                 ->orWhere('users.name', 'like', "%{$search}%")
                 ->orWhere('orders.shipment_method', 'like', "%{$search}%");
         }
-    
-        $ordenes = $query->paginate(5);
-        
+
+        $ordenes = $query->paginate(10);
+
         foreach ($ordenes as $orden) {
             $orden->items = DB::table('order_items')
                 ->where('order_id', $orden->order_id)
@@ -132,43 +133,39 @@ class AdminOrderController extends Controller
                     'discount'
                 )
                 ->get();
-    
+
             foreach ($orden->items as $item) {
                 $realProduct = DB::table('itemsdb')
-                    ->where('no_s', $item->product_id) 
+                    ->where('no_s', $item->product_id)
                     ->first();
-    
+
                 if ($realProduct) {
-                    $item->real_product_id = $realProduct->id;  
+                    $item->real_product_id = $realProduct->id;
                 } else {
-                    $item->real_product_id = null;  
+                    $item->real_product_id = null;
                 }
             }
         }
-    
+
         return view('admin.ordenes', compact('ordenes', 'search'));
     }
-    
-
-
 
     public function downloadOrderPdf($orderId)
     {
-        // Obtener los datos de la orden junto con la información del usuario y del pedido
         $orden = DB::table('orders')
             ->join('users', 'orders.user_id', '=', 'users.id')
-            ->join('users_data', 'users.id', '=', 'users_data.user_id')  
+            ->join('users_data', 'users.id', '=', 'users_data.user_id')
             ->where('orders.id', $orderId)
             ->select(
                 'orders.id as order_id',
-                'orders.order_number', 
+                'orders.order_number',
                 'orders.total',
                 'orders.subtotal_sin_envio',
                 'orders.shipping_cost',
                 'orders.discount',
                 'orders.total_con_iva',
-                'orders.shipping_address',     // Asegúrate de que este campo exista en `orders`
-                'orders.shipment_method',      // Asegúrate de que este campo exista en `orders`
+                'orders.shipping_address',
+                'orders.shipment_method',
                 'orders.created_at as order_created_at',
                 'users_data.nombre',
                 'users_data.apellido_paterno',
@@ -177,10 +174,7 @@ class AdminOrderController extends Controller
                 'users_data.correo'
             )
             ->first();
-    
 
-
-        // Obtener los detalles de los productos de la orden
         $items = DB::table('order_items')
             ->where('order_id', $orderId)
             ->select(
@@ -194,10 +188,7 @@ class AdminOrderController extends Controller
                 'iva_rate'
             )
             ->get();
-    
 
-
-        // Obtener los detalles de pago
         $pago = DB::table('order_payment')
             ->where('order_id', $orderId)
             ->select(
@@ -208,28 +199,21 @@ class AdminOrderController extends Controller
                 'cardnumber'
             )
             ->first();
-    
 
-
-        // Calcular el descuento total aplicado
         $descuentoTotal = 0;
         foreach ($items as $item) {
             $descuentoTotal += ($item->discount / 100) * $item->unit_price * $item->quantity;
         }
-    
 
-
-        // Generar el PDF
         $html = view('admin.order_pdf', compact('orden', 'items', 'descuentoTotal', 'pago'))->render();
         require_once storage_path('app/public/dompdf/autoload.inc.php');
-    
+
         $dompdf = new \Dompdf\Dompdf();
         $dompdf->loadHtml($html);
         $dompdf->setPaper('A4', 'portrait');
         $dompdf->render();
-    
+
         return $dompdf->stream('pedido_' . $orden->order_number . '.pdf');
     }
-    
-    
+
 }

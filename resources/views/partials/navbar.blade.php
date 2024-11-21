@@ -1,4 +1,3 @@
-
 <div id="cookieConsent" class="cookie-banner fixed-bottom p-3 d-none" style="z-index: 9999;">
     <div class="container d-flex justify-content-between align-items-center">
         <div class="cookie-message">
@@ -204,19 +203,24 @@
                     </li>
                 @endif
                 <div id="btnCart" class="nav-item dropdown position-relative d-flex align-items-center">
-                    <a class="nav-link" href="#" id="navbarDropdownCart" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <img src="{{ asset('storage/iconos/carrito.png') }}" alt="Carrito de Compras" style="height: 30px;">
+                    <a class="nav-link" href="#" id="navbarDropdownCart" role="button"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        <img src="{{ asset('storage/iconos/carrito.png') }}" alt="Carrito de Compras"
+                            style="height: 30px;">
                     </a>
-                    <span id="cart-item-count" class="badge bg-danger ms-2" style="display: none; font-size: 12px;">0</span> <!-- Contador de items -->
+                    <span id="cart-item-count" class="badge bg-danger ms-2"
+                        style="display: none; font-size: 12px;">0</span> <!-- Contador de items -->
                     <div class="dropdown-menu dropdown-menu-end p-4" aria-labelledby="navbarDropdownCart">
                         <div id="cart-items" class="list-group">
                         </div>
                         <div class="d-grid gap-2 mt-2">
-                            <button id="verCarrito" class="btn btn-primary d-flex align-items-center justify-content-center">
+                            <button id="verCarrito"
+                                class="btn btn-primary d-flex align-items-center justify-content-center">
                                 <i class="bi bi-bag-check-fill me-2"></i> Ver Carrito
                             </button>
                         </div>
-                        <form id="verCarritoForm" action="{{ route('cart.show') }}" method="POST" style="display: none;">
+                        <form id="verCarritoForm" action="{{ route('cart.show') }}" method="POST"
+                            style="display: none;">
                             @csrf
                             <input type="hidden" name="recaptcha_token" id="recaptchaToken">
                         </form>
@@ -230,228 +234,157 @@
 
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    $(document).ready(function() {
         loadCategorias();
-    });
 
-    function loadCategorias() {
-        $.ajax({
-            type: "GET",
-            url: "/get-categorias",
-            dataType: "json",
-            success: function(data) {
-                let categoriasList = '';
-                let subcategoriaContent = '';
-                $.each(data, function(codigoDivision, division) {
-                    let safeCodigo = codigoDivision.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g,
-                        '');
-                    let urlBase = `/categorias/${encodeURIComponent(codigoDivision)}`;
-                    categoriasList += `
+        function loadCategorias() {
+            $.ajax({
+                type: "GET",
+                url: "/get-categorias",
+                dataType: "json",
+                success: function(data) {
+                    let categoriasList = '';
+                    let subcategoriaContent = '';
+                    $.each(data, function(codigoDivision, division) {
+                        let safeCodigo = codigoDivision.replace(/\s+/g, '_').replace(
+                            /[^a-zA-Z0-9_]/g,
+                            '');
+                        let urlBase = `/categorias/${encodeURIComponent(codigoDivision)}`;
+                        categoriasList += `
                     <li>
                         <a class="dropdown-item category-item" href="${urlBase}"
                             data-url="${urlBase}" data-target="#division-${safeCodigo}">
                             ${division.nombre}
                         </a>
                     </li>`;
-                    subcategoriaContent += `
+                        subcategoriaContent += `
                     <div id="division-${safeCodigo}" class="row submenu" style="display: none;">
                         <h5>${division.nombre}</h5>
                         <div class="row">`;
 
-                    const categorias = division.subcategorias;
-                    const totalCategorias = Object.keys(categorias).length;
-                    const quarter = Math.ceil(totalCategorias / 4);
-                    let count = 0;
-                    let colIndex = 0;
+                        const categorias = division.subcategorias;
+                        const totalCategorias = Object.keys(categorias).length;
+                        const quarter = Math.ceil(totalCategorias / 4);
+                        let count = 0;
+                        let colIndex = 0;
 
-                    $.each(categorias, function(codCategoria, categoria) {
-                        if (count % quarter === 0) {
-                            if (colIndex > 0) {
-                                subcategoriaContent += '</ul></div>';
+                        $.each(categorias, function(codCategoria, categoria) {
+                            if (count % quarter === 0) {
+                                if (colIndex > 0) {
+                                    subcategoriaContent += '</ul></div>';
+                                }
+                                subcategoriaContent +=
+                                    '<div class="col-md-3"><ul class="list-unstyled">';
+                                colIndex++;
                             }
-                            subcategoriaContent +=
-                                '<div class="col-md-3"><ul class="list-unstyled">';
-                            colIndex++;
-                        }
 
-                        let urlCategoria = `${urlBase}/${encodeURIComponent(codCategoria)}`;
-                        subcategoriaContent +=
-                            `<li><a href="${urlCategoria}"><strong>${categoria.nombre}</strong></a><ul class="ms-3">`;
-
-                        $.each(categoria.subsubcategorias, function(i, subsubcategoria) {
-                            let urlProducto =
-                                `${urlCategoria}/${encodeURIComponent(subsubcategoria.codigo)}`;
+                            let urlCategoria =
+                                `${urlBase}/${encodeURIComponent(codCategoria)}`;
                             subcategoriaContent +=
-                                `<li><a href="${urlProducto}">${subsubcategoria.texto}</a></li>`;
+                                `<li><a href="${urlCategoria}"><strong>${categoria.nombre}</strong></a><ul class="ms-3">`;
+
+                            $.each(categoria.subsubcategorias, function(i,
+                                subsubcategoria) {
+                                let urlProducto =
+                                    `${urlCategoria}/${encodeURIComponent(subsubcategoria.codigo)}`;
+                                subcategoriaContent +=
+                                    `<li><a href="${urlProducto}">${subsubcategoria.texto}</a></li>`;
+                            });
+
+                            subcategoriaContent += '</ul></li>';
+                            count++;
                         });
 
-                        subcategoriaContent += '</ul></li>';
-                        count++;
+                        subcategoriaContent += '</ul></div>';
+                        subcategoriaContent += '</div>';
+                        subcategoriaContent += '</div>';
                     });
 
-                    subcategoriaContent += '</ul></div>';
-                    subcategoriaContent += '</div>';
-                    subcategoriaContent += '</div>';
-                });
+                    $('#categoria-menu').html(categoriasList);
+                    $('.col-md-9').html(subcategoriaContent);
 
-                $('#categoria-menu').html(categoriasList);
-                $('.col-md-9').html(subcategoriaContent);
-
-                initializeSubmenuBehavior();
-            },
-            error: function() {
-                console.log('Error al cargar las categorías y subcategorías.');
-                $('#categoria-menu').html(
-                    '<li><a class="dropdown-item">Error al cargar categorías</a></li>');
-                $('.col-md-9').html(
-                    '<div class="row submenu"><div class="col-md-12"><p>No se pudieron cargar las subcategorías.</p></div></div>'
-                );
-            }
-        });
-    }
-
-    function initializeSubmenuBehavior() {
-        document.querySelectorAll('.category-item').forEach(function(categoryItem) {
-            categoryItem.addEventListener('mouseenter', function() {
-                document.querySelectorAll('.submenu').forEach(function(submenu) {
-                    submenu.style.display = 'none'; 
-                });
-                var target = categoryItem.getAttribute('data-target');
-                if (target) {
-                    document.querySelector(target).style.display =
-                        'block'; 
+                    initializeSubmenuBehavior();
+                },
+                error: function() {
+                    console.log('Error al cargar las categorías y subcategorías.');
+                    $('#categoria-menu').html(
+                        '<li><a class="dropdown-item">Error al cargar categorías</a></li>');
+                    $('.col-md-9').html(
+                        '<div class="row submenu"><div class="col-md-12"><p>No se pudieron cargar las subcategorías.</p></div></div>'
+                    );
                 }
             });
+        }
+        $('#login-dropdown .nav-link').on('click', function() {
+            // console.log($(this).children('.dropdown-menu'));
+            $(this).parent().children('.dropdown-menu').toggle();
         });
 
-        document.querySelectorAll('.megamenu-content').forEach(function(menu) {
-            menu.addEventListener('mouseleave', function() {
-                document.querySelectorAll('.submenu').forEach(function(submenu) {
-                    submenu.style.display =
-                        'none'; 
-                });
+        function initializeSubmenuBehavior() {
+            $('.category-item').on('mouseenter', function() {
+                $('.submenu').hide();
+                let target = $(this).data('target');
+                $(target).show();
             });
-        });
-    }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const loginDropdown = document.getElementById('login-dropdown');
-        const loginToggle = loginDropdown.querySelector('.nav-link.dropdown-toggle');
-        const dropdownMenu = loginDropdown.querySelector('.dropdown-menu');
-        const emailField = document.getElementById('email');
-        const passwordField = document.getElementById('password');
-
-        loginToggle.addEventListener('click', function(event) {
-            event.preventDefault();
-            event.stopPropagation();
-            toggleDropdown();
-        });
-
-        document.addEventListener('click', function(event) {
-            const dropdownRect = dropdownMenu.getBoundingClientRect();
-            const distance = calculateDistance(event.clientX, event.clientY, dropdownRect);
-
-            if (!loginDropdown.contains(event.target) && distance > 300) {
-                dropdownMenu.classList.remove('show');
-                loginDropdown.classList.remove('show');
-            }
-        });
-
-        function toggleDropdown() {
-            const isOpen = dropdownMenu.classList.contains('show');
-            if (isOpen) {
-                dropdownMenu.classList.remove('show');
-                loginDropdown.classList.remove('show');
-            } else {
-                dropdownMenu.classList.add('show');
-                loginDropdown.classList.add('show');
-            }
+            $('.megamenu-content').on('mouseleave', function() {
+                $('.submenu').hide();
+            });
         }
-
-        function calculateDistance(x, y, rect) {
-            const dx = Math.max(rect.left - x, x - rect.right, 0);
-            const dy = Math.max(rect.top - y, y - rect.bottom, 0);
-            return Math.sqrt(dx * dx + dy * dy);
-        }
-
-        emailField.addEventListener('click', function(event) {
-            event.stopPropagation();
-            showDropdown();
-        });
-
-        passwordField.addEventListener('click', function(event) {
-            event.stopPropagation();
-            showDropdown();
-        });
-
-        function showDropdown() {
-            dropdownMenu.classList.add('show');
-            loginDropdown.classList.add('show');
-        }
-
-        emailField.addEventListener('input', function() {
-            showDropdown();
-        });
-
-
-        dropdownMenu.addEventListener('mouseleave', function(event) {
-            if (event.relatedTarget && !dropdownMenu.contains(event.relatedTarget)) {
-                showDropdown();
-            }
-        });
     });
 </script>
 
 <script>
-$(document).ready(function() {
-    let typingTimer;
-    const typingInterval = 300; // Espera de 0.3 segundos
+    $(document).ready(function() {
+        let typingTimer;
+        const typingInterval = 300; // Espera de 0.3 segundos
 
-    // Configurar búsqueda AJAX al escribir en el input
-    $('#custom-search').on('keyup', function(e) {
-        if (e.keyCode === 13) return; // Permitir el envío de formulario con Enter
+        // Configurar búsqueda AJAX al escribir en el input
+        $('#custom-search').on('keyup', function(e) {
+            if (e.keyCode === 13) return; // Permitir el envío de formulario con Enter
 
-        clearTimeout(typingTimer);
-        let searchWord = $(this).val().trim();
+            clearTimeout(typingTimer);
+            let searchWord = $(this).val().trim();
 
-        if (searchWord.length > 2) {
-            typingTimer = setTimeout(function() {
-                executeSearch(searchWord); // Enviar el valor del input al ejecutar la búsqueda
-            }, typingInterval);
-        } else {
-            $('#custom-search-results').hide();
-        }
-    });
-
-    // Ejecutar búsqueda AJAX
-    function executeSearch(query) {
-        $.ajax({
-            type: "GET",
-            url: "{{ route('ajax.search') }}",
-            data: {
-                search: query,
-            },
-            dataType: "json",
-            success: function(data) {
-                displaySearchResults(data);
-            },
-            error: function() {
-                $('#custom-results-list').empty();
+            if (searchWord.length > 2) {
+                typingTimer = setTimeout(function() {
+                    executeSearch(
+                        searchWord); // Enviar el valor del input al ejecutar la búsqueda
+                }, typingInterval);
+            } else {
                 $('#custom-search-results').hide();
             }
         });
-    }
 
-    // Mostrar resultados de búsqueda
-    function displaySearchResults(products) {
-        const $resultsList = $('#custom-results-list');
-        $resultsList.empty(); // Limpiar resultados anteriores
+        // Ejecutar búsqueda AJAX
+        function executeSearch(query) {
+            $.ajax({
+                type: "GET",
+                url: "{{ route('ajax.search') }}",
+                data: {
+                    search: query,
+                },
+                dataType: "json",
+                success: function(data) {
+                    displaySearchResults(data);
+                },
+                error: function() {
+                    $('#custom-results-list').empty();
+                    $('#custom-search-results').hide();
+                }
+            });
+        }
 
-        if (products.length === 0) {
-            $resultsList.append('<li class="text-center">No se encontraron productos.</li>');
-        } else {
-            products.forEach(function(product) {
-                let productHTML = `
+        // Mostrar resultados de búsqueda
+        function displaySearchResults(products) {
+            const $resultsList = $('#custom-results-list');
+            $resultsList.empty(); // Limpiar resultados anteriores
+
+            if (products.length === 0) {
+                $resultsList.append('<li class="text-center">No se encontraron productos.</li>');
+            } else {
+                products.forEach(function(product) {
+                    let productHTML = `
                     <li class="d-flex align-items-center mb-2" style="width: 100%;">
                         <a href="/producto/${product.id}" class="d-flex w-100 text-decoration-none text-dark">
                             <img src="${product.imagen_principal}" class="item-img me-2" alt="Producto">
@@ -465,51 +398,82 @@ $(document).ready(function() {
                             </div>
                         </a>
                     </li>`;
-                $resultsList.append(productHTML);
-            });
+                    $resultsList.append(productHTML);
+                });
 
-            $('#custom-search-results').show();
+                $('#custom-search-results').show();
+            }
+
+            // Manejar la adición al carrito
+            $('.add-to-cart-btn').on('click', function(e) {
+                e.preventDefault(); // Prevenir la redirección
+                const productId = $(this).data('id');
+                addToCart(productId);
+            });
         }
 
-        // Manejar la adición al carrito
-        $('.add-to-cart-btn').on('click', function(e) {
-            e.preventDefault(); // Prevenir la redirección
-            const productId = $(this).data('id');
-            addToCart(productId);
-        });
-    }
-
-    // Función para añadir al carrito y recargar la página
-    function addToCart(productId) {
-        $.ajax({
-            type: "POST",
-            url: "/cart/add",
-            data: {
-                id: productId,
-                _token: $('meta[name="csrf-token"]').attr('content')
-            },
-            success: function() {
-                window.location.reload(); // Recargar la página para actualizar el carrito
-            },
-            error: function() {
-                alert("Error al añadir el producto al carrito.");
-            }
-        });
-    }
-});
-
+        // Función para añadir al carrito y recargar la página
+        function addToCart(productId) {
+            $.ajax({
+                type: "POST",
+                url: "/cart/add",
+                data: {
+                    id: productId,
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function() {
+                    window.location.reload(); // Recargar la página para actualizar el carrito
+                },
+                error: function() {
+                    alert("Error al añadir el producto al carrito.");
+                }
+            });
+        }
+    });
 </script>
 <script>
-    document.getElementById('verCarrito').addEventListener('click', function (e) {
-        e.preventDefault();
-        grecaptcha.execute('{{ config('services.recapcha.site_key') }}', { action: 'ver_carrito' }).then(function (token) {
-            document.getElementById('recaptchaToken').value = token;
-            document.getElementById('verCarritoForm').submit();
+    $(document).ready(function() {
+        $('#verCarrito').on('click', function(e) {
+            e.preventDefault();
+            grecaptcha.execute('{{ config('services.recapcha.site_key') }}', {
+                action: 'ver_carrito'
+            }).then(function(token) {
+                $('#recaptchaToken').val(token);
+                $('#verCarritoForm').submit();
+            });
         });
     });
 </script>
 
 <style>
+.megamenu-content {
+    display: none;
+    align-items: flex-start !important;
+}
+
+.submenu {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start !important;
+}
+
+.megamenu-content .row {
+    align-items: flex-start !important;
+}
+
+.megamenu-content .row > .col-md-3 {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+}
+
+.submenu ul {
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+
     #custom-search {
         width: 550px !important;
     }
