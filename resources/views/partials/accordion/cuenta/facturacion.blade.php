@@ -19,9 +19,9 @@
 
             <div class="row">
                 <form id="frmFacturacion" action="{{ route('cuenta.facturacion.actualizar') }}" method="POST">
-
                     @csrf
 
+                    <!-- Dirección Fiscal Seleccionada -->
                     @if ($direccion_facturacion)
                         <div class="row mb-3">
                             <div class="col-md-12">
@@ -38,6 +38,8 @@
                         <p class="text-danger">No has seleccionado una dirección de facturación. Por favor selecciona
                             una.</p>
                     @endif
+
+                    <!-- Razón Social -->
                     <div class="row mb-3">
                         <div class="col-md-12">
                             <label for="razon_social" class="form-label fw-bold">Nombre o Razón Social:</label>
@@ -65,8 +67,6 @@
                         </div>
                     </div>
 
-
-
                     <!-- Tipo de Persona -->
                     <div class="row mb-3">
                         <div class="col-md-12">
@@ -76,32 +76,40 @@
                                     <i class="fa fa-user"></i>
                                 </span>
                                 <select id="tipo_persona" name="tipo_persona" class="form-control" required>
-                                    <option value="" disabled selected>Selecciona</option>
+                                    <option value="" disabled {{ empty($userData->tipo_persona) ? 'selected' : '' }}>Selecciona</option>
                                     <option value="fisica"
                                         {{ old('tipo_persona', $userData->tipo_persona ?? '') == 'fisica' ? 'selected' : '' }}>
-                                        Física</option>
+                                        Física
+                                    </option>
                                     <option value="moral"
                                         {{ old('tipo_persona', $userData->tipo_persona ?? '') == 'moral' ? 'selected' : '' }}>
-                                        Moral</option>
+                                        Moral
+                                    </option>
                                 </select>
                             </div>
                         </div>
                     </div>
 
-
+                    <!-- Régimen Fiscal -->
                     <div class="row mb-3">
                         <div class="col-md-12">
                             <label for="regimen_fiscal" class="form-label fw-bold">Régimen Fiscal:</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fa fa-file-contract"></i></span>
                                 <select id="regimen_fiscal" name="regimen_fiscal" class="form-control" required>
-                                    @isset( $regimen_fiscal_seleccionado->codigo)
-                                    <option value="{{ $regimen_fiscal_seleccionado->codigo }}">{{ $regimen_fiscal_seleccionado->codigo }} - {{ $regimen_fiscal_seleccionado->descripcion }}</option>
-                                    @endisset
+                                    <option value="" disabled {{ empty($regimen_fiscal_seleccionado) ? 'selected' : '' }}>
+                                        Selecciona un régimen
+                                    </option>
+                                    @if ($regimen_fiscal_seleccionado)
+                                        <option value="{{ $regimen_fiscal_seleccionado->codigo }}" selected>
+                                            {{ $regimen_fiscal_seleccionado->codigo }} - {{ $regimen_fiscal_seleccionado->descripcion }}
+                                        </option>
+                                    @endif
                                 </select>
                             </div>
                         </div>
                     </div>
+
                     <!-- Uso del CFDI -->
                     <div class="row mb-3">
                         <div class="col-md-12">
@@ -109,14 +117,19 @@
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fa fa-file-alt"></i></span>
                                 <select id="uso_cfdi" name="uso_cfdi" class="form-control" required>
-                                    @isset($uso_de_cfdi_seleccionado->codigo)
-                                    <option value="{{ $uso_de_cfdi_seleccionado->codigo }}">{{ $uso_de_cfdi_seleccionado->codigo }} - {{ $uso_de_cfdi_seleccionado->descripcion }}</option>
-                                    @endisset
-                                    {{-- <option value="">Selecciona un uso de CFDI</option> --}}
+                                    <option value="" disabled {{ empty($uso_de_cfdi_seleccionado) ? 'selected' : '' }}>
+                                        Selecciona un uso de CFDI
+                                    </option>
+                                    @if ($uso_de_cfdi_seleccionado)
+                                        <option value="{{ $uso_de_cfdi_seleccionado->codigo }}" selected>
+                                            {{ $uso_de_cfdi_seleccionado->codigo }} - {{ $uso_de_cfdi_seleccionado->descripcion }}
+                                        </option>
+                                    @endif
                                 </select>
                             </div>
                         </div>
                     </div>
+
                     <!-- Botón Guardar -->
                     <div class="row mt-4">
                         <div class="col-md-12">
@@ -131,6 +144,7 @@
         </div>
     </div>
 </div>
+
 <script>
     $(document).ready(function() {
         // Cuando se selecciona el tipo de persona

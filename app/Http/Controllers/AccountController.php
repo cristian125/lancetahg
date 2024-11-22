@@ -14,44 +14,37 @@ class AccountController extends Controller
 
     public function index(Request $request)
     {
-
         $mantenimiento = ProductosDestacadosController::checkMaintenance();
         if ($mantenimiento == 'true') {
             return redirect(route('mantenimento'));
         }
-
+    
         $sectionToOpen = $request->get('section', null);
         $user = Auth::user();
         $userID = $user->id;
+    
         $direcciones = $this->obtenerDirecciones($userID);
         $direccion_facturacion = DB::table('users_address')
             ->where('user_id', $userID)
             ->where('facturacion', 1)
             ->first();
+    
+        // Validar si existen datos en users_data
         $userData = DB::table('users_data')->where('user_id', $userID)->first();
-
-        // $regimenes_fiscales_fisica = DB::table('regimenes_fiscales')->where('fisica', 'Si')->get();
-        // $regimenes_fiscales_moral = DB::table('regimenes_fiscales')->where('moral', 'Si')->get();
-
-        // // Obtener todos los usos de CFDI relacionados con cada régimen fiscal
-        // $usosCfdiPorRegimen = [];
-        // $regimenes = DB::table('regimenes_fiscales')->get();
-
-        // foreach ($regimenes as $regimen) {
-        //     $usosCfdi = DB::table('usos_cfdi')
-        //         ->join('regimen_fiscal_uso_cfdi', 'usos_cfdi.id', '=', 'regimen_fiscal_uso_cfdi.uso_cfdi_id')
-        //         ->where('regimen_fiscal_uso_cfdi.regimen_fiscal_id', $regimen->id)
-        //         ->select('usos_cfdi.codigo', 'usos_cfdi.descripcion')
-        //         ->get();
-        //     $usosCfdiPorRegimen[$regimen->codigo] = $usosCfdi; // Agrupamos por código de régimen fiscal
-        // }
-
+        $regimen_fiscal_seleccionado = null;
+        $uso_de_cfdi_seleccionado = null;
+    
+        if ($userData) {
+            $regimen_fiscal_seleccionado = DB::table('regimenes_fiscales')->where('codigo', $userData->regimen_fiscal)->first();
+            $uso_de_cfdi_seleccionado = DB::table('usos_cfdi')->where('codigo', $userData->uso_cfdi)->first();
+        }
+    
         $files_modal = File::allFiles(resource_path('views/partials/modal/cuenta'));
         $files_accordion = File::allFiles(resource_path('views/partials/accordion/cuenta'));
-
+    
         $modal_files = new \stdClass();
         $accordion_files = new \stdClass();
-
+    
         $i = 0;
         foreach ($files_modal as $file) {
             $modal_files->$i = str_replace('.blade.php', '', $file->getRelativePathname());
@@ -62,9 +55,7 @@ class AccountController extends Controller
             $accordion_files->$i = str_replace('.blade.php', '', $file->getRelativePathname());
             $i++;
         }
-        $regimen_fiscal_seleccionado = DB::table('regimenes_fiscales')->where(['codigo' => $userData->regimen_fiscal])->first();
-        $uso_de_cfdi_seleccionado = DB::table('usos_cfdi')->where(['codigo' => $userData->uso_cfdi])->first();
-
+    
         return view('cuenta', [
             'direcciones' => $direcciones,
             'direccion_facturacion' => $direccion_facturacion,
@@ -75,11 +66,9 @@ class AccountController extends Controller
             'sectionToOpen' => $sectionToOpen,
             'regimen_fiscal_seleccionado' => $regimen_fiscal_seleccionado,
             'uso_de_cfdi_seleccionado' => $uso_de_cfdi_seleccionado,
-            // 'regimenes_fiscales_fisica' => $regimenes_fiscales_fisica,
-            // 'regimenes_fiscales_moral' => $regimenes_fiscales_moral,
-            // 'usosCfdiPorRegimen' => $usosCfdiPorRegimen, // Pasamos el array a la vista
         ]);
     }
+    
 
     public function agregarDireccion(Request $request)
     {
