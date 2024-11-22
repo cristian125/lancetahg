@@ -221,7 +221,9 @@
 
     @media (min-width: 768px) {
         .carousel-custom-size {
-            height: 380px;
+            height: auto;
+            width: 100%;
+           
         }
 
         .carousel-image {

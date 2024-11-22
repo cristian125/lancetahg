@@ -84,7 +84,7 @@
                         @if (isset($grupo) && isset($categoria))
                         <form action="{{ url('/categorias/' . $division . '/' . preg_replace('/[^a-zA-Z0-9\-]/', '-', strtolower($grupo)) . '/' . preg_replace('/[^a-zA-Z0-9\-]/', '-', strtolower($categoria))) }}" method="GET">
 
-                                method="GET">
+                                
                                 <input type="hidden" name="division" value="{{ $division }}">
                                 <input type="hidden" name="grupo" value="{{ $grupo }}">
                                 <input type="hidden" name="categoria" value="{{ $categoria }}">
@@ -165,7 +165,7 @@
                                         <div class="card-body d-flex flex-column">
                                             <a href="{{ url('/producto/' . $producto->id . '-' . preg_replace('/[^a-zA-Z0-9\-]/', '-', strtolower($producto->nombre))) }}">
 
-                                                class="text-decoration-none text-dark">
+                                                
                                                 <h5 class="card-title text-truncate">{{ $producto->nombre }}</h5>
                                             </a>
                                             <p class="card-text product-description">

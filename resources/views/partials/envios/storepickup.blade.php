@@ -17,6 +17,7 @@
                     data-horario-sabado="{{ $tienda->horario_sabado }}"
                     data-google-maps-url="{{ $tienda->google_maps_url }}">
                     {{ $tienda->nombre }} - {{ $tienda->direccion }}
+
                 </option>
             @endforeach
         </select>

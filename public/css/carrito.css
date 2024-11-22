@@ -1,16 +1,78 @@
-@media (width <= 900px) {
+@media (max-width: 900px) {
     #btnCart .dropdown-menu {
-        position: absolute;
-        width: auto !important;
+        position: absolute; /* Controlar la posición del elemento */
+        top: 170px; /* Centrar verticalmente */
+        left: 280px; /* Centrar horizontalmente */
+        transform: translate(-51%, -50%); /* Ajustar para centrar completamente */
+        width: 80%; /* Ajustar el ancho para pantallas más pequeñas */
+        padding: 10px; /* Añadir algo de espacio interno */
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Mejorar el diseño */
+        background: white; /* Fondo blanco para visibilidad */
+        border-radius: 8px; /* Esquinas redondeadas */
+        z-index: 999; /* Asegurar que esté encima */
     }
 }
 
-@media (orientation: landscape) and (width <= 1200px) {
+@media (max-width: 700px) {
     #btnCart .dropdown-menu {
-        position: absolute !important;
-        margin-top: -200px !important;
+        position: absolute; /* Controlar la posición del elemento */
+        top: 170px; /* Centrar verticalmente */
+        left: 280px; /* Centrar horizontalmente */
+        transform: translate(-70%, -50%); /* Ajustar para centrar completamente */
+        max-width: 100%; /* Ajustar el ancho para pantallas más pequeñas */
+        padding: 10px; /* Añadir algo de espacio interno */
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Mejorar el diseño */
+        background: white; /* Fondo blanco para visibilidad */
+        border-radius: 8px; /* Esquinas redondeadas */
+        z-index: 999; /* Asegurar que esté encima */
     }
 }
+@media (max-width: 550px) {
+    #btnCart .dropdown-menu {
+        position: fixed; /* Controlar la posición del elemento */
+        top: 350px; /* Centrar verticalmente */
+        left: 70%; /* Centrar horizontalmente */
+        /* transform: translate(-57%, -50%); Ajustar para centrar completamente */
+        max-width: 100%; /* Ajustar el ancho para pantallas más pequeñas */
+        padding: 10px; /* Añadir algo de espacio interno */
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Mejorar el diseño */
+        background: white; /* Fondo blanco para visibilidad */
+        border-radius: 8px; /* Esquinas redondeadas */
+        z-index: 999; /* Asegurar que esté encima */
+    }
+}
+@media (max-width: 400px) {
+    #btnCart .dropdown-menu {
+        position: absolute; /* Controlar la posición del elemento */
+        top: 170px; /* Centrar verticalmente */
+        left: 280px; /* Centrar horizontalmente */
+        transform: translate(-80%, -50%); /* Ajustar para centrar completamente */
+        max-width: 100%; /* Ajustar el ancho para pantallas más pequeñas */
+        padding: 10px; /* Añadir algo de espacio interno */
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Mejorar el diseño */
+        background: white; /* Fondo blanco para visibilidad */
+        border-radius: 8px; /* Esquinas redondeadas */
+        z-index: 999; /* Asegurar que esté encima */
+    }
+}
+
+
+@media (orientation: landscape) and (max-width: 1200px) {
+    #btnCart .dropdown-menu {
+        position: fixed; /* Controlar la posición del elemento */
+        top: 50px; /* Centrar verticalmente */
+        left: 400px; /* Centrar horizontalmente */
+        /* transform: translate(-140%, -50%); */
+        width: 80%; /* Ajustar el ancho para pantallas más pequeñas */
+        padding: 10px; /* Añadir algo de espacio interno */
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Mejorar el diseño */
+        background: white; /* Fondo blanco para visibilidad */
+        border-radius: 8px; /* Esquinas redondeadas */
+        z-index: 999; /* Asegurar que esté encima */
+    }
+}
+
+
 
 /* Estilo para el contenedor del dropdown del carrito */
 #btnCart .dropdown-menu {
@@ -162,13 +224,13 @@
 
 .custom-btn-minus {
     background-color: #007bff; /* Cambia el color del botón "-" */
- 
+
     border: none; /* Sin borde */
 }
 
 .custom-btn-plus {
     background-color: #007bff; /* Cambia el color del botón "+" */
-   
+
     border: none; /* Sin borde */
 }
 

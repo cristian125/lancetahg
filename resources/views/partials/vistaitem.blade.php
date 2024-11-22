@@ -45,9 +45,11 @@
                                     @if ($cantidadDisponible > 0)
                                         <div class="stock-indicator">
                                             <span class="stock-icon">
-                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                                    xmlns="http://www.w3.org/2000/svg">
                                                     <circle cx="12" cy="12" r="10" fill="#38A169" />
-                                                    <path d="M10 15.5l-3-3 1.41-1.42L10 12.67l5.59-5.59L17 8l-7 7z" fill="white" />
+                                                    <path d="M10 15.5l-3-3 1.41-1.42L10 12.67l5.59-5.59L17 8l-7 7z"
+                                                        fill="white" />
                                                 </svg>
                                             </span>
                                             <span class="stock-message">{{ $mensajeStock }}</span>
@@ -55,16 +57,18 @@
                                     @else
                                         <div class="custom-alert">
                                             <div class="alert-icon">
-                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                                    xmlns="http://www.w3.org/2000/svg">
                                                     <path fill-rule="evenodd" clip-rule="evenodd"
-                                                          d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z"
-                                                          fill="#E53E3E" />
+                                                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z"
+                                                        fill="#E53E3E" />
                                                 </svg>
                                             </div>
                                             <div class="alert-message">No disponible.</div>
                                         </div>
                                         <p class="contact-info">
-                                            <i class="me-1 fa fa-phone"></i> Llame al 55-5578-1958 para preguntar por su disponibilidad.
+                                            <i class="me-1 fa fa-phone"></i> Llame al 55-5578-1958 para preguntar por su
+                                            disponibilidad.
                                         </p>
                                     @endif
                                 </div>
@@ -79,7 +83,8 @@
                                 <span
                                     class="h4 text-danger">${{ number_format($producto->precio_con_descuento, 2, '.', ',') }}
                                     MXN</span>
-                                    <span class="badge bg-success ms-2">{{ number_format($producto->descuento, 0) }}% de descuento</span>
+                                <span class="badge bg-success ms-2">{{ number_format($producto->descuento, 0) }}% de
+                                    descuento</span>
                             @else
                                 <span
                                     class="h5"><br>${{ number_format($producto->precio_unitario_IVAinc, 2, '.', ',') }}
@@ -120,48 +125,57 @@
                                 <div class="col-md-4 col-6 mb-3">
                                     <label class="mb-2 d-block">Cantidad</label>
                                     <div class="input-group mb-3" style="width: 170px;">
-                                        <button id="btnremoveqty" class="btn btn-primary border border-secondary px-3"
-                                            type="button">
-                                            <i class="bi bi-dash"></i>
-                                        </button>
-                                        <input id="qty" name="quantity" type="number"
-                                            class="form-control text-center border border-secondary" value="1"
-                                            min="1" max="{{ $cantidadDisponible }}" />
-                                        <button id="btnaddqty" class="btn btn-primary border border-secondary px-3"
-                                            type="button">
-                                            <i class="bi bi-plus"></i>
-                                        </button>
-                                    </div>
-                                    <div class="toast-container position-fixed bottom-0 end-0 p-3"
-                                        style="z-index: 1055;">
-                                        <div id="stockAlertToast"
-                                            class="toast align-items-center text-bg-danger border-0" role="alert"
-                                            aria-live="assertive" aria-atomic="true">
-                                            <div class="d-flex">
-                                                <div class="toast-body">
-                                                    No se puede añadir esa cantidad porque supera el límite de stock.
+                                        <div class="input-group mb-3" style="width: 170px;">
+                                            <button class="btn btn-primary border border-secondary px-3 btn-remove-qty"
+                                                type="button">
+                                                <i class="bi bi-dash"></i>
+                                            </button>
+                                            <input id="qty" name="quantity" type="number"
+                                                class="form-control text-center border border-secondary" value="1"
+                                                min="1" max="{{ $cantidadDisponible }}" />
+                                            <button class="btn btn-primary border border-secondary px-3 btn-add-qty"
+                                                type="button">
+                                                <i class="bi bi-plus"></i>
+                                            </button>
+                                        </div>
+
+                                        <div class="toast-container position-fixed bottom-0 end-0 p-3"
+                                            style="z-index: 1055;">
+                                            <div id="stockAlertToast"
+                                                class="toast align-items-center text-bg-danger border-0" role="alert"
+                                                aria-live="assertive" aria-atomic="true">
+                                                <div class="d-flex">
+                                                    <div class="toast-body">
+                                                        No se puede añadir esa cantidad porque supera el límite de
+                                                        stock.
+                                                    </div>
+                                                    <button type="button"
+                                                        class="btn-close btn-close-white me-2 m-auto"
+                                                        data-bs-dismiss="toast" aria-label="Close"></button>
                                                 </div>
-                                                <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                                                    data-bs-dismiss="toast" aria-label="Close"></button>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <form action="{{ env('APP_URL') }}/producto/{{ $id }}" method="GET">
-                                <button id="add-to-cart" data-id="{{ $producto->id }}"
-                                    data-nos="{{ $producto->no_s }}" class="btn btn-primary shadow-0">
-                                    <i class="me-1 fa fa-shopping-basket"></i> Añadir al carrito
-                                </button>
-                                @if (Auth::check())
-                                    <button id="show-cart" class="btn btn-danger shadow-0 p-2">
-                                        <i class="me-1 fa fa-eye"></i> Ver carrito
+                                <form action="{{ env('APP_URL') }}/producto/{{ $id }}" method="GET">
+                                    <button id="add-to-cart" data-id="{{ $producto->id }}"
+                                        data-nos="{{ $producto->no_s }}" class="btn btn-primary shadow-0">
+                                        <i class="me-1 fa fa-shopping-basket"></i> Añadir al carrito
                                     </button>
-                                @endif
-                            </form>
-                        @else
-                            <p class="text-danger"></p>
+
+                                    @if (Auth::check())
+                                        <button id="show-cart" class="btn btn-danger shadow-0 p-2">
+                                            <i class="me-1 fa fa-eye"></i> Ver carrito
+                                        </button>
+                                    @endif
+                                </form>
+                                <!-- Contenedor para la notificación -->
+                                <div id="cart-notification" style="display: none;">
+                                    <p>Producto añadido al carrito</p>
+                                </div>
+                            @else
+                                <p class="text-danger"></p>
                         @endif
                         <hr />
                         <div class="row">
@@ -234,8 +248,9 @@
             @foreach ($productosRelacionados as $recomendado)
                 <div class="item">
                     <div class="product-card2 bg-white rounded">
-                        
-                        <a href="{{ url('/producto/' . $recomendado->id . '-' . str_replace('/', '-', urlencode($recomendado->nombre))) }}" class="text-decoration-none text-dark">
+
+                        <a href="{{ url('/producto/' . $recomendado->id . '-' . str_replace('/', '-', urlencode($recomendado->nombre))) }}"
+                            class="text-decoration-none text-dark">
 
                             <div class="image-container" style="position: relative; overflow: hidden;">
                                 <img src="{{ $recomendado->imagen }}" alt="{{ $recomendado->descripcion }}"
@@ -270,62 +285,106 @@
             @endforeach
         </div>
     </div>
+
+    <!-- Contenedor para la notificación -->
+    <div id="cart-notification" style="display: none;">
+        <p>Producto añadido al carrito</p>
+    </div>
+
 </section>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Identificar elementos del DOM
         const qtyInput = document.getElementById('qty');
-        const addButton = document.getElementById('btnaddqty');
-        const removeButton = document.getElementById('btnremoveqty');
+        const addButton = document.querySelector('.btn-add-qty');
+        const removeButton = document.querySelector('.btn-remove-qty');
         const addToCartButton = document.getElementById('add-to-cart');
-        const maxQty = parseInt(qtyInput.getAttribute('max'));
-        const stockAlertToast = new bootstrap.Toast(document.getElementById('stockAlertToast'));
+        const stockAlertToast = document.getElementById('stockAlertToast') ?
+            new bootstrap.Toast(document.getElementById('stockAlertToast')) :
+            null;
 
-        function updateAddToCartButton() {
-            const currentQty = parseInt(qtyInput.value) || 0;
-            addToCartButton.disabled = currentQty < 1 || isNaN(currentQty);
+        // Límite de cantidades
+        const maxQty = parseInt(qtyInput.getAttribute('max')) || 1;
+        const minQty = parseInt(qtyInput.getAttribute('min')) || 1;
+
+        // Función para ajustar la cantidad
+        function sanitizeQuantity(value) {
+            return Math.min(Math.max(value, minQty), maxQty);
         }
 
-        addButton.addEventListener('click', () => {
-            let currentQty = parseInt(qtyInput.value) || 1;
-            if (currentQty < maxQty) {
-                qtyInput.value = currentQty + 1;
-                stockAlertToast.hide(); 
-            } else if (currentQty === maxQty) {
-                qtyInput.value = maxQty;
-                stockAlertToast.hide();
-            } else {
-                stockAlertToast.show();
+        // Actualizar cantidad
+        function updateQuantity(change) {
+            let currentQty = parseInt(qtyInput.value) || minQty;
+            currentQty = sanitizeQuantity(currentQty + change);
+            qtyInput.value = currentQty;
+
+            // Mostrar alerta si se excede el máximo
+            if (stockAlertToast) {
+                if (currentQty >= maxQty && change > 0) {
+                    stockAlertToast.show();
+                } else {
+                    stockAlertToast.hide();
+                }
             }
+
+            updateAddToCartButton();
+        }
+
+        // Habilitar o deshabilitar botón de "Añadir al carrito"
+        function updateAddToCartButton() {
+            const currentQty = parseInt(qtyInput.value) || 0;
+            addToCartButton.disabled = currentQty < minQty || currentQty > maxQty || isNaN(currentQty);
+        }
+
+        // Escuchar clic en botón "+"
+        addButton.addEventListener('click', function() {
+            updateQuantity(1);
+        });
+
+        // Escuchar clic en botón "-"
+        removeButton.addEventListener('click', function() {
+            updateQuantity(-1);
+        });
+
+        // Validar entrada manual
+        qtyInput.addEventListener('input', function() {
+            const currentQty = parseInt(qtyInput.value) || minQty;
+            qtyInput.value = sanitizeQuantity(currentQty);
             updateAddToCartButton();
         });
 
-
-        removeButton.addEventListener('click', () => {
-            let currentQty = parseInt(qtyInput.value) || 1;
-            if (currentQty > 1) {
-                qtyInput.value = currentQty - 1;
-                stockAlertToast.hide();
-            } else {
-                qtyInput.value = 1; 
-            }
-            updateAddToCartButton();
-        });
-
-        qtyInput.addEventListener('input', () => {
-            let currentQty = parseInt(qtyInput.value);
-            if (currentQty > maxQty) {
-                stockAlertToast.show();
-                qtyInput.value = maxQty;
-            } else if (currentQty < 1 || isNaN(currentQty)) {
-                qtyInput.value = 1;
-            }
-            updateAddToCartButton();
-        });
+        // Inicializar estado del botón "Añadir al carrito"
         updateAddToCartButton();
     });
 </script>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const addToCartButton = document.getElementById('add-to-cart');
+        const qtyInput = document.getElementById('qty');
+        const maxQty = parseInt(qtyInput.getAttribute('max')) || 1;
+        const notification = document.getElementById('cart-notification');
+
+        addToCartButton.addEventListener('click', function(event) {
+            event.preventDefault(); // Prevenir el comportamiento por defecto si es necesario
+            const currentQty = parseInt(qtyInput.value) || 1;
+
+            if (currentQty < maxQty) {
+                // Mostrar notificación de "Producto añadido"
+                notification.style.display = 'block';
+                // Ocultar la notificación después de 2 segundos (opcional)
+                setTimeout(function() {
+                    notification.style.display = 'none';
+                }, 2000);
+            }
+
+            // Aquí puedes agregar la lógica para añadir el producto al carrito
+            // Por ejemplo, si utilizas un formulario, puedes enviarlo aquí
+            // document.getElementById('add-to-cart-form').submit();
+        });
+    });
+</script>
 
 
 <script>
@@ -335,13 +394,13 @@
         if (itemsCount >= 5) {
 
             $("#related-products-slider").owlCarousel({
-                loop: true, 
+                loop: true,
                 margin: 10,
-                nav: true, 
-                dots: true, 
-                autoplay: true, 
-                autoplayTimeout: 3000, 
-                autoplayHoverPause: true, 
+                nav: true,
+                dots: true,
+                autoplay: true,
+                autoplayTimeout: 3000,
+                autoplayHoverPause: true,
                 items: 5,
                 responsive: {
                     0: {
@@ -361,11 +420,20 @@
             if (itemsCount === 1) {
                 $("#related-products-slider .item").css("margin", "0 auto");
             } else if (itemsCount === 2) {
-                $("#related-products-slider .item").css({ "margin-left": "10%", "margin-right": "10%" });
+                $("#related-products-slider .item").css({
+                    "margin-left": "10%",
+                    "margin-right": "10%"
+                });
             } else if (itemsCount === 3) {
-                $("#related-products-slider .item").css({ "margin-left": "5%", "margin-right": "5%" });
+                $("#related-products-slider .item").css({
+                    "margin-left": "5%",
+                    "margin-right": "5%"
+                });
             } else if (itemsCount === 4) {
-                $("#related-products-slider .item").css({ "margin-left": "2.5%", "margin-right": "2.5%" });
+                $("#related-products-slider .item").css({
+                    "margin-left": "2.5%",
+                    "margin-right": "2.5%"
+                });
             }
         }
 
@@ -383,76 +451,88 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        gap: 20px; 
+        gap: 20px;
     }
 </style>
 
 
 <style>
-.custom-alert {
-    display: flex;
-    align-items: center;
-    background-color: #fff4f4;
-    border: 1px solid #f5c6c6;
-    border-radius: 8px;
-    padding: 10px 15px;
-    color: #c53030;
-    font-weight: 500;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    margin-top: 5px;
-}
+    .custom-alert {
+        display: flex;
+        align-items: center;
+        background-color: #fff4f4;
+        border: 1px solid #f5c6c6;
+        border-radius: 8px;
+        padding: 10px 15px;
+        color: #c53030;
+        font-weight: 500;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        margin-top: 5px;
+    }
 
-.alert-icon {
-    margin-right: 10px;
-}
+    .alert-icon {
+        margin-right: 10px;
+    }
 
-.alert-icon svg {
-    width: 20px;
-    height: 20px;
-}
+    .alert-icon svg {
+        width: 20px;
+        height: 20px;
+    }
 
-.alert-message {
-    font-size: 16px;
-    line-height: 1.5;
-}
+    .alert-message {
+        font-size: 16px;
+        line-height: 1.5;
+    }
 
-.contact-info {
-    margin-top: 8px;
-    color: #d3762a;
-    font-size: 16px;
-    font-weight: 500;
-    font-style: italic;
-}
+    .contact-info {
+        margin-top: 8px;
+        color: #d3762a;
+        font-size: 16px;
+        font-weight: 500;
+        font-style: italic;
+    }
 
 
-.contact-info a {
-    color: #c53030;
-    text-decoration: underline;
-}
+    .contact-info a {
+        color: #c53030;
+        text-decoration: underline;
+    }
 
-.stock-indicator {
-    display: inline-flex;
-    align-items: center;
-    background-color: #e6f4ea;
-    border: 1px solid #38a169;
-    border-radius: 8px;
-    padding: 8px 12px;
-    color: #2f855a;
-    font-weight: 500;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    margin-top: 5px;
-}
+    .stock-indicator {
+        display: inline-flex;
+        align-items: center;
+        background-color: #e6f4ea;
+        border: 1px solid #38a169;
+        border-radius: 8px;
+        padding: 8px 12px;
+        color: #2f855a;
+        font-weight: 500;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        margin-top: 5px;
+    }
 
-.stock-icon {
-    margin-right: 8px;
-}
+    .stock-icon {
+        margin-right: 8px;
+    }
 
-.stock-icon svg {
-    width: 18px;
-    height: 18px;
-}
+    .stock-icon svg {
+        width: 18px;
+        height: 18px;
+    }
 
-.stock-message {
-    font-size: 16px;
-}
+    .stock-message {
+        font-size: 16px;
+    }
 </style>
+<style>
+    #cart-notification {
+
+        background-color: #38c172; /* Verde */
+        color: white;
+        padding: 10px; /* Reducido para un cuadro más compacto */
+        border-radius: 5px;
+        z-index: 1000;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    </style>
+    

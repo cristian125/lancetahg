@@ -111,14 +111,17 @@
 
                     <li class="nav-item dropdown me-3">
                         <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown"
-                            role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-person-fill me-2"></i>
-                            @if ($userData && !empty($userData->tratamiento))
-                                {{ $userData->tratamiento }} {{ $userData->nombre }} {{ $userData->apellido_paterno }}
-                            @else
-                                {{ Auth::user()->name }}
-                            @endif
-                        </a>
+                        role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-fill me-2"></i>
+                        @if ($userData && $userData->tratamiento !== 'NA')
+                            {{ $userData->tratamiento }} {{ $userData->nombre }} {{ $userData->apellido_paterno }}
+                        @elseif ($userData)
+                            {{ $userData->nombre }} {{ $userData->apellido_paterno }}
+                        @else
+                            {{ Auth::user()->name }}
+                        @endif
+                    </a>
+                    
                         <div class="dropdown-menu dropdown-menu-end p-4 shadow-lg border-0 rounded"
                             aria-labelledby="userDropdown" style="min-width: 300px;">
                             <form id="logout-form" action="{{ route('logout') }}" method="POST">
@@ -321,16 +324,58 @@
         });
 
         function initializeSubmenuBehavior() {
-            $('.category-item').on('mouseenter', function() {
-                $('.submenu').hide();
-                let target = $(this).data('target');
-                $(target).show();
-            });
+    const categoryLinks = document.querySelectorAll(".category-item");
 
-            $('.megamenu-content').on('mouseleave', function() {
-                $('.submenu').hide();
+    categoryLinks.forEach((link) => {
+        let isFirstClick = true; // Controlar si es el primer clic
+        const targetSubmenu = document.querySelector(link.getAttribute("data-target"));
+
+        // Para dispositivos móviles
+        link.addEventListener("click", function (e) {
+            if (window.innerWidth <= 900) { // Sólo para pantallas móviles
+                e.preventDefault(); // Evitar redirección predeterminada
+
+                if (isFirstClick) {
+                    // Mostrar u ocultar el submenu en el primer clic
+                    if (targetSubmenu) {
+                        targetSubmenu.style.display = targetSubmenu.style.display === "block" ? "none" : "block";
+                    }
+                    isFirstClick = false; // Cambiar el estado
+                } else {
+                    // Segundo clic redirige
+                    window.location.href = link.getAttribute("href");
+                }
+            }
+        });
+
+        // Para computadoras (hover abre submenu)
+        link.addEventListener("mouseenter", function () {
+            if (window.innerWidth > 900 && targetSubmenu) { // Solo en escritorio
+                targetSubmenu.style.display = "block";
+            }
+        });
+
+        // Ocultar el submenu cuando el mouse sale
+        if (targetSubmenu) {
+            targetSubmenu.addEventListener("mouseleave", function () {
+                if (window.innerWidth > 900) { // Solo en escritorio
+                    targetSubmenu.style.display = "none";
+                }
             });
         }
+
+        // Restablecer la lógica de clic al hacer clic fuera
+        document.addEventListener("click", function (event) {
+            if (!link.contains(event.target) && !targetSubmenu.contains(event.target)) {
+                if (targetSubmenu) {
+                    targetSubmenu.style.display = "none";
+                }
+                isFirstClick = true; // Restablecer clic en móviles
+            }
+        });
+    });
+}
+
     });
 </script>
 
@@ -475,8 +520,36 @@
 
 
     #custom-search {
-        width: 550px !important;
+        width: 400px !important;
     }
+
+    /* Para pantallas grandes (1200px o más) */
+@media (min-width: 1200px) {
+    #custom-search {
+        width: 420px !important; /* Ancho mayor para pantallas grandes */
+    }
+}
+
+/* Para pantallas medianas (entre 900px y 1199px) */
+@media (max-width: 1199px) and (min-width: 900px) {
+    #custom-search {
+        width: 320px !important; /* Ajustar a un ancho moderado */
+    }
+}
+
+/* Para pantallas pequeñas (entre 700px y 899px) */
+@media (max-width: 899px) and (min-width: 700px) {
+    #custom-search {
+        width: 220px !important; /* Ajustar a un ancho más pequeño */
+    }
+}
+
+/* Para pantallas muy pequeñas (menos de 700px) */
+@media (max-width: 699px) {
+    #custom-search {
+        width: 120px !important; /* Reducir aún más el ancho */
+    }
+}
 
     #custom-search-results {
         border: 1px solid #005f7fea;
