@@ -6,11 +6,32 @@ use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Auth;
 
 class ShippingPaqueteriaController extends Controller
 {
     private $id = 0;
+    private $user_id = 0;
+    private $cart_id = 0;
 
+    public function __construct()
+    {
+        if (Auth::check()) {
+            $this->user_id = Auth::id();
+            $this->cart_id = $this->getCartId();
+        }
+    }
+
+    private function getCartId()
+    {
+        $cart = DB::table('carts')
+            ->select('id')
+            ->where('user_id', $this->user_id)
+            ->where('status', '1') // Asegúrate de que '1' es el estado correcto
+            ->first();
+
+        return $cart ? $cart->id : null;
+    }
     public function __autoload()
     {
         session_start();
@@ -23,32 +44,43 @@ class ShippingPaqueteriaController extends Controller
             ->where('user_id', $userId)
             ->where('status', 1)
             ->get();
-
+    
         $direccionValida = false;
         $costoEnvio = 500; 
         $minimoCompra = 2000; 
-
+    
         foreach ($direcciones as $direccion) {
-            $codigoPostal = $direccion->codigo_postal;
-
             $direccion->esPaqueteria = true;
             $direccionValida = true;
-
+    
             if ($totalPrice >= $minimoCompra) {
                 $direccion->costoEnvio = 0;
             } else {
                 $direccion->costoEnvio = $costoEnvio;
             }
         }
-
+    
+        // Filtrar productos no elegibles
+        $nonEligiblePaqueteriaShipping = collect();
+        if ($this->cart_id) {
+            $nonEligiblePaqueteriaShipping = DB::table('cart_items')
+                ->join('itemsdb', 'cart_items.no_s', '=', 'itemsdb.no_s')
+                ->where('cart_items.cart_id', $this->cart_id)
+                ->where('itemsdb.allow_paqueteria_shipping', 0)
+                ->select('itemsdb.nombre as product_name', 'itemsdb.no_s as product_code')
+                ->get();
+        }
+    
         return [
             'direcciones' => $direcciones,
             'direccionValida' => $direccionValida,
             'costoEnvio' => $costoEnvio,
             'totalCart' => $totalPrice,
             'minimoCompra' => $minimoCompra,
+            'nonEligiblePaqueteriaShipping' => $nonEligiblePaqueteriaShipping,
         ];
     }
+    
 
 
     public function actualizarEnvioPaqueteria(Request $request)

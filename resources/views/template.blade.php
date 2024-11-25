@@ -90,6 +90,13 @@
 </head>
 
 <body>
+    @php
+    use App\Http\Controllers\ProductosDestacadosController;
+                $mantenimiento = ProductosDestacadosController::checkMaintenance();
+        if ($mantenimiento == 'true') {
+            return redirect(route('mantenimento'));
+        }
+    @endphp
     @isset($_GET['m'])
         @if ($_GET['m'] != 0)
             @include('partials.navbar')

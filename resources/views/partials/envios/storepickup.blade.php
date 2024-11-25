@@ -1,5 +1,18 @@
 <div class="mb-4 p-4 bg-white rounded shadow-lg">
     <h4 class="mb-3 text-success"><i class="bi bi-shop"></i> Seleccione la tienda para recoger</h4>
+    <!-- Productos no elegibles -->
+    @if ($storePickupData['nonEligibleStorePickup']->isNotEmpty())
+    <div class="alert alert-warning non-eligible-alert">
+        <h5><i class="fa-solid fa-triangle-exclamation"></i> Productos no elegibles para Recoger en Tienda</h5>
+        <p>Los siguientes productos en su carrito no pueden ser recogidos en tienda:</p>
+        <ul>
+            @foreach ($storePickupData['nonEligibleStorePickup'] as $item)
+                <li>{{ $item->product_name }} (Código: {{ $item->product_code }})</li>
+            @endforeach
+        </ul>
+        <p>Te invitamos a explorar otros métodos de envío disponibles para estos productos y continuar disfrutando de tu experiencia de compra con nosotros.</p>
+    </div>
+@endif
 
     <!-- Fecha y hora de recogida -->
     <div class="bg-light p-4 rounded mb-4 border border-danger">

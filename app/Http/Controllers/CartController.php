@@ -8,14 +8,14 @@ use Illuminate\Support\Facades\DB;
 
 class CartController extends ProductController
 {
-    static public function getId()
+    public static function getId()
     {
         $userId = auth()->id();
         $cartId = DB::table('carts')
             ->where('user_id', $userId)
-            ->where('status',1)
+            ->where('status', 1)
             ->value('id');
-            return $cartId;
+        return $cartId;
     }
 
     public function proceedToPayment(Request $request)
@@ -31,7 +31,7 @@ class CartController extends ProductController
         if (!$userId) {
             return redirect()->route('login');
         }
-        session(['allow_checkout' => true]);
+        session(['terms_accepted' => true]);
 
         $cartId = $this->getId();
 
@@ -53,7 +53,7 @@ class CartController extends ProductController
                 'itemsdb.allow_local_shipping',
                 'itemsdb.allow_paqueteria_shipping',
                 'itemsdb.allow_store_pickup',
-                'itemsdb.allow_cobrar_shipping', 
+                'itemsdb.allow_cobrar_shipping',
                 'itemsdb.nombre as product_name'
             )
             ->get();
@@ -63,7 +63,6 @@ class CartController extends ProductController
                 return redirect()->back()->with('error', "No hay suficiente stock para el producto {$item->product_name}.");
             }
         }
-
 
         $metodoEnvio = $shippmentDetails->ShipmentMethod;
 
@@ -75,7 +74,7 @@ class CartController extends ProductController
             } elseif ($metodoEnvio === 'RecogerEnTienda') {
                 return $item->allow_store_pickup == 1;
             } elseif ($metodoEnvio === 'EnvioPorCobrar') {
-                return $item->allow_cobrar_shipping == 1; 
+                return $item->allow_cobrar_shipping == 1;
             }
             return false;
         });
@@ -84,7 +83,6 @@ class CartController extends ProductController
         $nonEligibleItems = $cartItems->reject(function ($item) use ($eligibleProductNos) {
             return in_array($item->no_s, $eligibleProductNos);
         });
-
 
         if ($eligibleCartItems->isEmpty()) {
             return redirect()->back()->with('error', 'No hay productos elegibles para el método de envío seleccionado.');
@@ -109,7 +107,6 @@ class CartController extends ProductController
             $dayOfWeek = $pickupDate->format('N');
             $hour = (int) $pickupTime->format('H');
 
-
             if ($dayOfWeek == 7) {
                 return redirect()->back()->with('error', 'No puedes seleccionar domingos para la recogida en tienda.');
             }
@@ -126,7 +123,6 @@ class CartController extends ProductController
             ->where('status', 'pending')
             ->first();
 
-
         if ($existingShippment) {
             DB::table('shippment_items')
                 ->where('shippment_id', $existingShippment->id)
@@ -142,16 +138,14 @@ class CartController extends ProductController
 
         $shippmentUpdate = DB::table('cart_shippment')
             ->where('cart_id', $cartId)
-            ->update(['contactName'=>$contactName,'contactPhone'=>$contactPhone,'contactEmail'=>$request->user()->email]);
-
+            ->update(['contactName' => $contactName, 'contactPhone' => $contactPhone, 'contactEmail' => $request->user()->email]);
 
         $shippmentId = $shippmentDetails->id;
 
-        $check = DB::table('shippment_items')->where('shippment_id',$shippmentId)->get();
+        $check = DB::table('shippment_items')->where('shippment_id', $shippmentId)->get();
 
-        if(count($check)>0)
-        {
-            DB::table('shippment_items')->where('shippment_id',$shippmentId)->delete();
+        if (count($check) > 0) {
+            DB::table('shippment_items')->where('shippment_id', $shippmentId)->delete();
         }
 
         foreach ($eligibleCartItems as $item) {
@@ -179,7 +173,7 @@ class CartController extends ProductController
         }
 
         if ($metodoEnvio === 'EnvioPorCobrar') {
-            $shippingCost = 0; 
+            $shippingCost = 0;
         } else {
             $shippingCost = floatval($shippmentDetails->shippingcost_IVA);
         }
@@ -189,22 +183,28 @@ class CartController extends ProductController
 
     public function showCheckout(Request $request)
     {
+        // Verificar que los términos han sido aceptados
+        if (!session('terms_accepted')) {
+            return redirect('/carrito')->with('error', 'Debe aceptar los términos y condiciones para continuar.');
+        }
+            // Limpiar `terms_accepted` después de acceder
+    session()->forget('terms_accepted');
         $cart = DB::table('carts')
             ->where('user_id', auth()->id())
             ->where('status', 1)
             ->first();
-    
+
         if (!$cart) {
             return redirect('/carrito')->with('error', 'No tienes un carrito activo.');
         }
-    
+
         $cartId = $cart->id;
-    
+
         $mantenimiento = ProductosDestacadosController::checkMaintenance();
         if ($mantenimiento == 'true') {
             return redirect(route('mantenimiento'));
         }
-    
+
         $shippment = DB::table('cart_shippment')
             ->where('cart_id', $cartId)
             ->select(
@@ -229,18 +229,18 @@ class CartController extends ProductController
                 'pickup_time'
             )
             ->first();
-    
+
         if (!$shippment) {
             return view('checkout', ['error' => 'No se han encontrado detalles del envío.']);
         }
-    
+
         $storeDetails = null;
         if ($shippment->ShipmentMethod === 'RecogerEnTienda') {
             $storeDetails = DB::table('tiendas')
                 ->where('id', $shippment->store_id)
                 ->first();
         }
-    
+
         $allowedColumn = null;
 
         if ($shippment->ShipmentMethod === 'EnvioPorPaqueteria') {
@@ -252,12 +252,11 @@ class CartController extends ProductController
         } elseif ($shippment->ShipmentMethod === 'EnvioPorCobrar') {
             $allowedColumn = 'allow_cobrar_shipping';
         }
-        
+
         if (!$allowedColumn) {
             return redirect('/carrito')->with('error', 'Método de envío no válido.');
         }
 
-    
         $cartItems = DB::table('cart_items')
             ->join('itemsdb', 'cart_items.no_s', '=', 'itemsdb.no_s')
             ->where('cart_items.cart_id', $cartId)
@@ -274,30 +273,30 @@ class CartController extends ProductController
                 'itemsdb.grupo_iva'
             )
             ->get();
-    
+
         $totalConIVA = $cartItems->filter(function ($item) {
             return $item->grupo_iva === 'IVA16';
         })->sum(function ($item) {
             return $item->final_price;
         });
-    
+
         $totalSinIVA = $cartItems->filter(function ($item) {
             return $item->grupo_iva === 'IVA0';
         })->sum(function ($item) {
             return $item->final_price * $item->quantity;
         });
-    
+
         $shippingCost = $shippment->final_price;
         $totalPriceItems = $cartItems->sum(function ($item) {
             return $item->final_price;
         });
-    
+
         $subtotalSinIVA = $totalPriceItems / 1.16;
         $ivaTotal = $subtotalSinIVA * 0.16;
         $totalFinal = $totalPriceItems + $shippingCost;
-    
+
         $oid = uniqid('C-', true);
-    
+
         DB::table('payment_transactions')->insert([
             'user_id' => auth()->id(),
             'cart_id' => $cartId,
@@ -316,7 +315,7 @@ class CartController extends ProductController
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-    
+
         DB::table('order_history')->insert([
             'order_id' => $oid,
             'status' => 1,
@@ -324,7 +323,7 @@ class CartController extends ProductController
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-    
+
         $paymentData = [
             'oid' => $oid,
             'chargetotal' => number_format($totalFinal, 2, '.', ''),
@@ -339,13 +338,13 @@ class CartController extends ProductController
             'txndatetime' => now()->format('Y:m:d-H:i:s'),
             'txntype' => 'sale',
         ];
-    
+
         ksort($paymentData);
         $secretKey = env('PAYMENT_SECRET_KEY');
         $hashString = implode('|', $paymentData);
         $hash = base64_encode(hash_hmac('sha256', $hashString, $secretKey, true));
         $paymentData['hashExtended'] = $hash;
-    
+
         return view('checkout', [
             'shippment' => $shippment,
             'cartItems' => $cartItems,
@@ -361,8 +360,6 @@ class CartController extends ProductController
             'storeDetails' => $storeDetails,
         ]);
     }
-    
-    
 
     public function updatePaymentMethod(Request $request)
     {
@@ -377,7 +374,6 @@ class CartController extends ProductController
         if (!$paymentMethod) {
             return response()->json(['success' => false, 'message' => 'No se recibió el método de pago']);
         }
-
 
         $paymentTransaction = DB::table('payment_transactions')
             ->where('user_id', $userId)
@@ -413,7 +409,6 @@ class CartController extends ProductController
                 return response()->json(['success' => false, 'message' => 'Debes iniciar sesión para proceder al pedido.']);
             }
 
-
             $shippment = DB::table('shippments')
                 ->where('user_id', $userId)
                 ->where('status', 'pending')
@@ -430,7 +425,6 @@ class CartController extends ProductController
             if ($shippmentItems->isEmpty()) {
                 return response()->json(['success' => false, 'message' => 'No se encontraron productos para procesar.']);
             }
-
 
             $subtotal = $shippmentItems->sum(function ($item) {
                 return $item->final_price * $item->quantity;
@@ -450,9 +444,9 @@ class CartController extends ProductController
             $orderId = DB::table('orders')->insertGetId([
                 'cart_id' => $cartId,
                 'user_id' => $userId,
-                'oid' => uniqid(), 
+                'oid' => uniqid(),
                 'total' => $totalConIva,
-                'shipping_address' => $completeAddress, 
+                'shipping_address' => $completeAddress,
                 'shipping_cost' => $shippingCost,
                 'discount' => $totalDiscount,
                 'shipment_method' => $shippment->shipping_method,
@@ -460,7 +454,7 @@ class CartController extends ProductController
                 'total_con_iva' => $totalConIva,
                 'created_at' => now(),
                 'updated_at' => now(),
-                'current_state' => 0, 
+                'current_state' => 0,
             ]);
 
             DB::table('order_shippment')->insert([
@@ -475,7 +469,7 @@ class CartController extends ProductController
                 'shipping_cost_IVA' => $shippment->shipping_cost_IVA,
                 'subtotal_sin_envio' => $subtotal,
                 'total_con_IVA' => $totalConIva,
-                'shipping_address' => $completeAddress, 
+                'shipping_address' => $completeAddress,
                 'no_int' => $shippment->no_int,
                 'no_ext' => $shippment->no_ext,
                 'entre_calles' => $shippment->entre_calles,
@@ -493,7 +487,6 @@ class CartController extends ProductController
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
-
 
             foreach ($shippmentItems as $item) {
                 $productDetails = DB::table('itemsdb')->where('no_s', $item->no_s)->first();
@@ -517,12 +510,10 @@ class CartController extends ProductController
                     'updated_at' => now(),
                 ]);
 
-
                 DB::table('inventario')
                     ->where('no_s', $item->no_s)
                     ->decrement('cantidad_disponible', $item->quantity);
             }
-
 
             DB::table('cart_items')->where('cart_id', $shippment->cart_id)->delete();
 
@@ -530,24 +521,21 @@ class CartController extends ProductController
                 DB::table('carts')->where('id', $shippment->cart_id)->delete();
             }
 
-
             DB::table('shippments')->where('id', $shippment->id)->update(['status' => 'completed']);
-
 
             DB::table('order_history')->insert([
                 'order_id' => $orderId,
-                'status' => 3, 
+                'status' => 3,
                 'status_2_payment_process_at' => now(),
                 'status_3_paid_at' => now(),
                 'updated_at' => now(),
             ]);
 
-
             DB::table('order_payment')->insert([
                 'order_id' => $orderId,
                 'chargetotal' => $totalConIva,
-                'request_type' => 'COD', 
-                'txtn_processed' => null, 
+                'request_type' => 'COD',
+                'txtn_processed' => null,
                 'timezone' => $shippment->timezone ?? 'UTC',
                 'processor_network_information' => null,
                 'associationResponseMessage' => null,
@@ -556,14 +544,13 @@ class CartController extends ProductController
                 'cardnumber' => null,
                 'ipgTransactionId' => null,
                 'fail_reason' => null,
-                'status' => 'COD', 
+                'status' => 'COD',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
 
-
             $tienda = DB::table('tiendas')->where('id', $shippment->store_id)->first();
-            $correoTienda = $tienda->correo ?? 'soporte@lancetahg.com'; 
+            $correoTienda = $tienda->correo ?? 'soporte@lancetahg.com';
 
             $orderItems = DB::table('order_items')
                 ->join('itemsdb', 'order_items.product_id', '=', 'itemsdb.no_s')
@@ -577,7 +564,7 @@ class CartController extends ProductController
 
             Mail::send('emails.order', compact('order', 'orderItems', 'pickupDate', 'pickupTime'), function ($message) use ($correoTienda, $orderId) {
                 $message->to($correoTienda)
-                    ->bcc('soporte@lancetahg.com') 
+                    ->bcc('soporte@lancetahg.com')
                     ->subject('Nueva orden de pedido #' . $orderId);
             });
 

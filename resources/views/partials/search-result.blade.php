@@ -20,18 +20,20 @@
         </p>
         <hr class="my-4">
 
-        <div class="pagination-container mb-3">
-            <div class="pagination-links">
-                {{ $productos->links() }}
-            </div>
-            <div class="pagination-info">
+        <!-- Contenedor de paginación superior -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+            <div class="pagination-info order-2 order-lg-1">
                 <span>Mostrando página {{ $productos->currentPage() }} de {{ $productos->lastPage() }}</span>
+            </div>
+            <div class="pagination-links order-1 order-lg-2">
+                <nav aria-label="Paginación de resultados">
+                    {{ $productos->links() }}
+                </nav>
             </div>
         </div>
 
-
-        <div class="d-flex justify-content-end align-items-center mb-3">
-
+        <!-- Contenedor de botones de ordenamiento y vista -->
+        <div class="d-flex flex-wrap justify-content-end align-items-center mb-3">
             <div class="btn-group me-2">
                 <button class="btn btn-light sort-price-btn {{ request('sort_price') == 'asc' ? 'active' : '' }}"
                     data-sort-price="asc" title="Ordenar por precio: menor a mayor">
@@ -62,7 +64,6 @@
                 </button>
             </div>
 
-
             <div class="btn-group">
                 <button id="gridViewBtn"
                     class="btn btn-light {{ session('preferredView') == 'grid' ? 'active' : '' }}">
@@ -76,25 +77,23 @@
         </div>
 
         <div class="row">
-
-            <div class="col-md-2">
+            <!-- Sidebar de filtros -->
+            <div class="col-12 col-lg-2 mb-4">
                 <div class="sidebars p-3 shadow-sm rounded bg-light">
                     <h4 class="mb-4">Filtros</h4>
                     @if (isset($division))
                         @if (isset($grupo) && isset($categoria))
-                        <form action="{{ url('/categorias/' . $division . '/' . preg_replace('/[^a-zA-Z0-9\-]/', '-', strtolower($grupo)) . '/' . preg_replace('/[^a-zA-Z0-9\-]/', '-', strtolower($categoria))) }}" method="GET">
-
-                                
+                            <form action="{{ url('/categorias/' . $division . '/' . preg_replace('/[^a-zA-Z0-9\-]/', '-', strtolower($grupo)) . '/' . preg_replace('/[^a-zA-Z0-9\-]/', '-', strtolower($categoria))) }}" method="GET">
                                 <input type="hidden" name="division" value="{{ $division }}">
                                 <input type="hidden" name="grupo" value="{{ $grupo }}">
                                 <input type="hidden" name="categoria" value="{{ $categoria }}">
-                            @elseif (isset($grupo))
-                                <form action="{{ url('/categorias/' . $division . '/' . $grupo) }}" method="GET">
-                                    <input type="hidden" name="division" value="{{ $division }}">
-                                    <input type="hidden" name="grupo" value="{{ $grupo }}">
-                                @else
-                                    <form action="{{ url('/categorias/' . $division) }}" method="GET">
-                                        <input type="hidden" name="division" value="{{ $division }}">
+                        @elseif (isset($grupo))
+                            <form action="{{ url('/categorias/' . $division . '/' . $grupo) }}" method="GET">
+                                <input type="hidden" name="division" value="{{ $division }}">
+                                <input type="hidden" name="grupo" value="{{ $grupo }}">
+                        @else
+                            <form action="{{ url('/categorias/' . $division) }}" method="GET">
+                                <input type="hidden" name="division" value="{{ $division }}">
                         @endif
                     @else
                         <form action="{{ route('product.search') }}" method="GET">
@@ -106,12 +105,12 @@
                         <h5 class="mb-3">Precio</h5>
                         <div class="d-flex justify-content-between mb-2">
                             <span id="minPriceDisplay">Mínimo: $0 MXN</span>
-
                         </div>
                         <input type="range" class="form-range" min="0" max="300000" step="10"
                             id="minPriceRange" name="min_price" value="{{ request('min_price', 0) }}">
-                        <div class="d-flex justify-content-between mb-2"><span id="maxPriceDisplay">Máximo: $300,000
-                                MXN</span></div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span id="maxPriceDisplay">Máximo: $300,000 MXN</span>
+                        </div>
                         <input type="range" class="form-range mt-2" min="0" max="300000" step="100"
                             id="maxPriceRange" name="max_price" value="{{ request('max_price', 300000) }}">
                     </div>
@@ -149,23 +148,21 @@
                 </div>
             </div>
 
-            <div class="col-md-10">
+            <!-- Contenido principal -->
+            <div class="col-12 col-lg-10">
                 <div id="productViewContainer" class="animate__animated">
+                    <!-- Vista de cuadrícula -->
                     <div class="grid-view d-none">
                         <div class="row">
                             @foreach ($productos as $producto)
-                                <div class="col-md-3 mb-4">
+                                <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
                                     <div class="card h-100 shadow-sm">
                                         <a href="{{ url('/producto/' . $producto->id . '-' . preg_replace('/[^a-zA-Z0-9\-]/', '-', strtolower($producto->nombre))) }}">
-
                                             <img src="{{ $producto->imagen_principal }}" class="card-img-top"
-                                                alt="{{ $producto->nombre }}"
-                                                style="max-height: 180px; object-fit: cover;">
+                                                alt="{{ $producto->nombre }}">
                                         </a>
                                         <div class="card-body d-flex flex-column">
                                             <a href="{{ url('/producto/' . $producto->id . '-' . preg_replace('/[^a-zA-Z0-9\-]/', '-', strtolower($producto->nombre))) }}">
-
-                                                
                                                 <h5 class="card-title text-truncate">{{ $producto->nombre }}</h5>
                                             </a>
                                             <p class="card-text product-description">
@@ -174,18 +171,15 @@
                                             <div class="mt-auto">
                                                 @if (isset($producto->descuento) && $producto->descuento > 0)
                                                     <p class="precio-original">
-                                                        <del>${{ number_format($producto->precio_unitario_IVAinc, 2, '.', ',') }}
-                                                            MXN</del>
+                                                        <del>${{ number_format($producto->precio_unitario_IVAinc, 2, '.', ',') }} MXN</del>
                                                     </p>
                                                     <p class="precio-con-descuento">
-                                                        <strong>${{ number_format($producto->precio_con_descuento, 2, '.', ',') }}
-                                                            MXN</strong>
+                                                        <strong>${{ number_format($producto->precio_con_descuento, 2, '.', ',') }} MXN</strong>
                                                     </p>
                                                     <span class="badge bg-danger">¡Oferta!</span>
                                                 @else
                                                     <p class="precio-normal">
-                                                        <strong>${{ number_format($producto->precio_unitario_IVAinc, 2, '.', ',') }}
-                                                            MXN</strong>
+                                                        <strong>${{ number_format($producto->precio_unitario_IVAinc, 2, '.', ',') }} MXN</strong>
                                                     </p>
                                                 @endif
                                             </div>
@@ -196,43 +190,38 @@
                         </div>
                     </div>
 
-                    <!-- Vista Lista (visible inicialmente) -->
+                    <!-- Vista de lista (visible inicialmente) -->
                     <div class="list-view">
                         <div class="table-responsive">
                             <table class="table table-hover">
                                 <tbody>
                                     @foreach ($productos as $producto)
-                                    <tr class="product-item"
-                                    onclick="window.location='{{ url('/producto/' . $producto->id . '-' . preg_replace('/[^a-zA-Z0-9\-]/', '-', strtolower($producto->nombre))) }}';"
-                                    style="cursor: pointer;">
-                                
+                                        <tr class="product-item"
+                                            onclick="window.location='{{ url('/producto/' . $producto->id . '-' . preg_replace('/[^a-zA-Z0-9\-]/', '-', strtolower($producto->nombre))) }}';"
+                                            style="cursor: pointer;">
                                             <td class="image">
                                                 <img src="{{ $producto->imagen_principal }}"
-                                                    alt="{{ $producto->nombre }}"
-                                                    style="max-width: 100px; max-height: 100px; object-fit: cover;">
+                                                    alt="{{ $producto->nombre }}">
                                             </td>
                                             <td class="product">
                                                 <strong>{{ $producto->nombre }}</strong><br>
                                                 <p class="product-description">
                                                     {{ \Illuminate\Support\Str::limit(strip_tags($producto->descripcion), 150) }}
                                                 </p>
-
                                             </td>
-                                            
                                             <td class="price text-right">
                                                 @if (isset($producto->descuento) && $producto->descuento > 0)
                                                     <span class="precio-original">
-                                                        <del>${{ number_format($producto->precio_unitario_IVAinc, 2, '.', ',') }}
-                                                            MXN</del>
+                                                        <del>${{ number_format($producto->precio_unitario_IVAinc, 2, '.', ',') }} MXN</del>
                                                     </span><br>
-                                                    <span
-                                                        class="precio-con-descuento">${{ number_format($producto->precio_con_descuento, 2, '.', ',') }}
-                                                        MXN</span><br>
+                                                    <span class="precio-con-descuento">
+                                                        ${{ number_format($producto->precio_con_descuento, 2, '.', ',') }} MXN
+                                                    </span><br>
                                                     <span class="badge bg-danger">¡Oferta!</span>
                                                 @else
-                                                    <span
-                                                        class="precio-normal">${{ number_format($producto->precio_unitario_IVAinc, 2, '.', ',') }}
-                                                        MXN</span>
+                                                    <span class="precio-normal">
+                                                        ${{ number_format($producto->precio_unitario_IVAinc, 2, '.', ',') }} MXN
+                                                    </span>
                                                 @endif
                                             </td>
                                         </tr>
@@ -242,19 +231,24 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-        <div class="pagination-container mt-4">
-            <div class="pagination-links">
-                {{ $productos->links() }}
-            </div>
-            <div class="pagination-info">
-                <span>Mostrando página {{ $productos->currentPage() }} de {{ $productos->lastPage() }}</span>
+
+                <!-- Contenedor de paginación inferior -->
+                <div class="d-flex flex-wrap justify-content-between align-items-center mt-4">
+                    <div class="pagination-info order-2 order-lg-1">
+                        <span>Mostrando página {{ $productos->currentPage() }} de {{ $productos->lastPage() }}</span>
+                    </div>
+                    <div class="pagination-links order-1 order-lg-2">
+                        <nav aria-label="Paginación de resultados">
+                            {{ $productos->links() }}
+                        </nav>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Scripts -->
 <script>
     $(document).ready(function() {
         const gridViewBtn = $('#gridViewBtn');
@@ -270,7 +264,6 @@
         function updatePriceDisplay() {
             let minPrice = parseInt(minPriceRangeInput.val());
             let maxPrice = parseInt(maxPriceRangeInput.val());
-
 
             if (minPrice > maxPrice) {
                 minPriceRangeInput.val(maxPrice);
@@ -317,14 +310,12 @@
             applyView('list');
         }
 
-
         gridViewBtn.on('click', function() {
             if (gridView.hasClass('d-none')) {
                 container.addClass('animate__fadeOut');
                 setTimeout(() => {
                     applyView('grid');
-                    localStorage.setItem('preferredView',
-                        'grid');
+                    localStorage.setItem('preferredView', 'grid');
                     container.removeClass('animate__fadeOut').addClass('animate__fadeIn');
                 }, 500);
             }
@@ -335,13 +326,11 @@
                 container.addClass('animate__fadeOut');
                 setTimeout(() => {
                     applyView('list');
-                    localStorage.setItem('preferredView',
-                        'list');
+                    localStorage.setItem('preferredView', 'list');
                     container.removeClass('animate__fadeOut').addClass('animate__fadeIn');
                 }, 500);
             }
         });
-
 
         $('.sort-price-btn').on('click', function() {
             var sortPrice = $(this).data('sort-price');
@@ -350,14 +339,12 @@
             updateSorting(sortPrice, sortName, sortOffer);
         });
 
-
         $('.sort-name-btn').on('click', function() {
             var sortName = $(this).data('sort-name');
             var sortPrice = getUrlParameter('sort_price');
             var sortOffer = getUrlParameter('sort_offer');
             updateSorting(sortPrice, sortName, sortOffer);
         });
-
 
         $('.sort-offer-btn').on('click', function() {
             var sortOffer = $(this).data('sort-offer');
@@ -391,16 +378,13 @@
             window.location.href = url.toString();
         }
 
-
         $('#resetSortingBtn').on('click', function() {
             resetSortingFilters();
         });
 
-
         function resetSortingFilters() {
             var url = new URL(window.location.href);
             var params = url.searchParams;
-
 
             params.delete('sort_price');
             params.delete('sort_name');
@@ -408,7 +392,6 @@
 
             window.location.href = url.toString();
         }
-
 
         function updateResetButtonAppearance() {
             var sortPrice = getUrlParameter('sort_price');
@@ -431,28 +414,21 @@
     });
 </script>
 
-
-
-
-
-
 <style>
     /* Estilo para el precio original (tachado) */
     .precio-original {
         color: #ff0000;
-        /* Rojo */
         font-size: 0.9em;
     }
 
-    /* Estilo para el precio con descuento (en grande y resaltado) */
+    /* Estilo para el precio con descuento */
     .precio-con-descuento {
         color: #28a745;
-        /* Verde */
         font-size: 1.2em;
         font-weight: bold;
     }
 
-    /* Estilo para el precio normal (sin descuento) */
+    /* Estilo para el precio normal */
     .precio-normal {
         color: #333;
         font-size: 1.2em;
@@ -466,12 +442,6 @@
         padding: 5px 10px;
         border-radius: 5px;
         display: inline-block;
-    }
-
-    /* Cambia el color de text-muted a rojo */
-    .text-muted {
-        color: #ff0000 !important;
-        /* Rojo */
     }
 
     /* Estilos para las tarjetas de productos */
@@ -529,6 +499,9 @@
 
     .image img {
         border-radius: 8px;
+        max-width: 100px;
+        max-height: 100px;
+        object-fit: cover;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     }
 
@@ -544,14 +517,12 @@
     #gridViewBtn.active i,
     #listViewBtn.active i {
         color: #005f7f;
-        /* Color activo */
     }
 
     #gridViewBtn i,
     #listViewBtn i {
         font-size: 1.5em;
         color: #666;
-        /* Color inactivo */
     }
 
     /* Animaciones */
@@ -588,21 +559,18 @@
         }
     }
 
-
     .pagination-container {
         display: flex;
         flex-direction: row;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
-        /* Permite que los elementos se ajusten en una nueva línea si es necesario */
     }
 
     .pagination-info {
         font-size: 0.9em;
         color: #555;
         order: 1;
-        /* Orden normal */
     }
 
     .pagination-links {
@@ -610,9 +578,7 @@
         justify-content: center;
         align-items: center;
         order: 2;
-        /* Orden normal */
         flex-wrap: wrap;
-        /* Permite que los elementos se ajusten en una nueva línea si es necesario */
     }
 
     @media (max-width: 576px) {
@@ -622,19 +588,68 @@
 
         .pagination-info {
             order: 2;
-            /* Mueve el texto abajo del paginador */
             margin-top: 10px;
-            /* Añade un margen superior para separar el texto del paginador */
         }
 
         .pagination-links {
             order: 1;
-            /* Mueve el paginador arriba del texto */
             margin-bottom: 5px;
-            /* Añade un margen inferior para separar el paginador del texto */
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        /* Asegurar que el nav tenga suficiente margen y se ajuste */
+        .pagination-links nav {
+            width: 100%;
+        }
+
+        .pagination-links .pagination {
+            justify-content: center;
+        }
+
+        .product-description {
+            display: none;
+        }
+
+        .card-title {
+            font-size: 1em;
+        }
+
+        .card-img-top {
+            max-height: 150px;
+        }
+
+        .btn-group {
+            margin-bottom: 10px;
+            width: 100%;
+        }
+
+        .btn-group .btn {
+            font-size: 0.9em;
+            padding: 5px 10px;
+            flex: 1;
+        }
+
+        .filter-section h5 {
+            font-size: 1em;
+        }
+
+        .filter-section .d-flex span {
+            font-size: 0.8em;
+        }
+
+        .filter-section input[type="range"] {
+            height: 1.2rem;
+        }
+
+        .sidebars h4 {
+            font-size: 1.2em;
+        }
+
+        .sidebars {
+            padding: 10px;
         }
     }
-
 
     .filter-section .d-flex span {
         font-size: 0.9em;
@@ -665,7 +680,6 @@
         color: #fff;
     }
 
-
     /* Estilos para el botón de restablecer ordenamiento */
     #resetSortingBtn {
         display: flex;
@@ -689,5 +703,28 @@
         background-color: #6c757d;
         color: #fff;
         border-color: #6c757d;
+    }
+
+    /* Estilos adicionales para el paginador responsivo */
+    .pagination {
+        flex-wrap: nowrap;
+    }
+
+    @media (max-width: 576px) {
+        .pagination {
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .pagination li {
+            white-space: nowrap;
+        }
+
+        /* Opcional: Ajustar el tamaño de los enlaces de paginación */
+        .pagination li a, .pagination li span {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+        }
     }
 </style>

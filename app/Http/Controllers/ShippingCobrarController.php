@@ -4,27 +4,62 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\Auth;
 class ShippingCobrarController extends Controller
 {
-    public function handleCobrarShipping($request, $userId, $totalPrice)
+
+    private $user_id = 0;
+    private $cart_id = 0;
+
+    public function __construct()
     {
-        // Obtener todas las direcciones del usuario
+        if (Auth::check()) {
+            $this->user_id = Auth::id();
+            $this->cart_id = $this->getIdCart();
+        }
+    }
+
+    private function getIdCart()
+    {
+        $cart = DB::table('carts')
+            ->select('id')
+            ->where('user_id', $this->user_id)
+            ->where('status', '1')
+            ->first();
+
+        return $cart ? $cart->id : null;
+    }
+
+    public function handleCobrarShipping(Request $request, $userId, $totalCart)
+    {
         $direcciones = DB::table('users_address')
             ->where('user_id', $userId)
             ->where('status', 1)
             ->get();
-
-        // Validar las direcciones (puedes agregar lógica adicional si es necesario)
+    
         foreach ($direcciones as $direccion) {
-            $direccion->esValida = true; // Asumimos que todas las direcciones son válidas
+            $direccion->esValida = true; // Aplica tu lógica para validar la dirección
         }
-
+    
+        // Filtrar productos no elegibles
+        $nonEligibleCobrarShipping = collect();
+        if ($this->cart_id) {
+            $nonEligibleCobrarShipping = DB::table('cart_items')
+                ->join('itemsdb', 'cart_items.no_s', '=', 'itemsdb.no_s')
+                ->where('cart_items.cart_id', $this->cart_id)
+                ->where('itemsdb.allow_cobrar_shipping', 0)
+                ->select('itemsdb.nombre as product_name', 'itemsdb.no_s as product_code')
+                ->get();
+        }
+    
         return [
             'direcciones' => $direcciones,
-            'totalCart' => $totalPrice,
+            'totalCart' => $totalCart,
+            'nonEligibleCobrarShipping' => $nonEligibleCobrarShipping,
         ];
     }
+    
+    
 
     public function actualizarEnvio(Request $request)
     {

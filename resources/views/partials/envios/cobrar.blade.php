@@ -1,6 +1,21 @@
 @if (!empty($cobrarShippingData['direcciones']))
     <div class="container my-5">
+        <!-- Productos no elegibles -->
+        @if ($cobrarShippingData['nonEligibleCobrarShipping']->isNotEmpty())
+            <div class="alert alert-warning non-eligible-alert">
+                <h5><i class="fa-solid fa-triangle-exclamation"></i> Productos no elegibles para Envío por Cobrar</h5>
+                <p>Los siguientes productos en su carrito no pueden ser enviados mediante este método:</p>
+                <ul>
+                    @foreach ($cobrarShippingData['nonEligibleCobrarShipping'] as $item)
+                        <li>{{ $item->product_name }} (Código: {{ $item->product_code }})</li>
+                    @endforeach
+                </ul>
+                <p>Por favor, seleccione otro método de envío para estos productos o elimínelos del carrito.</p>
+            </div>
+        @endif
+
         <div class="row">
+            <!-- Selección de dirección -->
             <div class="col-md-6">
                 <div id="direccion-container" class="mb-4 p-4 bg-white rounded shadow-sm border">
                     <h5 class="mb-4 text-primary"><i class="bi bi-geo-alt-fill me-2"></i>Seleccione su dirección</h5>
@@ -27,16 +42,14 @@
                 </div>
             </div>
 
+            <!-- Información de Envío -->
             <div id="envio-info" class="col-md-6">
                 <div id="envio-info-bloque" class="mb-4 p-4 bg-white rounded shadow-sm border">
                     <h5 class="mb-4 text-primary"><i class="bi bi-info-circle-fill me-2"></i>Información de Envío</h5>
                     <p id="envio-info-texto" class="mb-3 text-muted">
                         Por favor seleccione una dirección.
                     </p>
-                    <p class="fw-bold"><strong>Total del carrito:</strong>
-                        ${{ number_format($cobrarShippingData['totalCart'], 2, '.', ',') }} MXN</p>
                 </div>
-
             </div>
         </div>
     </div>
@@ -46,6 +59,7 @@
         <p class="text-muted">Por favor, seleccione otro método de envío.</p>
     </div>
 @endif
+
 
 <script>
     $(document).ready(function() {
@@ -87,3 +101,31 @@
         });
     });
 </script>
+<style>
+.non-eligible-alert {
+    background-color: #fff4f4;
+    border: 1px solid #f5c2c7;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    color: #842029;
+}
+
+.non-eligible-alert h5 {
+    margin-bottom: 10px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.non-eligible-alert ul {
+    list-style-type: disc;
+    padding-left: 20px;
+    margin: 0;
+}
+
+.non-eligible-alert ul li {
+    margin-bottom: 5px;
+}
+
+
+</style>

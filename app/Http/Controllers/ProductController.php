@@ -391,9 +391,9 @@ class ProductController extends Controller
             $userId = auth()->id();
             $no_s = $request->input('no_s');
             $quantity = $request->input('quantity');
-    
+
             $cart = DB::table('carts')->where('user_id', $userId)->where('status', 1)->first();
-    
+
             if (!$cart) {
                 $cartId = DB::table('carts')->insertGetId([
                     'user_id' => $userId,
@@ -403,32 +403,32 @@ class ProductController extends Controller
             } else {
                 $cartId = $cart->id;
             }
-    
+
             $cartItem = DB::table('cart_items')
                 ->where('cart_id', $cartId)
                 ->where('no_s', $no_s)
                 ->first();
-    
+
             $producto = DB::table('itemsdb')->where('no_s', $no_s)->first();
             if (!$producto) {
                 return response()->json(['error' => 'Producto no encontrado'], 404);
             }
-    
+
             $inventario = DB::table('inventario')->where('no_s', $producto->no_s)->first();
             $cantidadDisponible = $inventario ? $inventario->cantidad_disponible : 0;
-    
+
             $cantidadEnCarrito = DB::table('cart_items')
                 ->where('cart_id', $cartId)
                 ->where('no_s', $no_s)
                 ->sum('quantity');
             $cantidadRequerida = $cantidadEnCarrito + $quantity;
-    
+
             if ($cantidadDisponible < $cantidadRequerida) {
                 return response()->json(['error' => 'No puedes añadir más de este producto. Stock insuficiente.'], 400);
             }
-    
+
             $tasa_iva = $producto->grupo_iva == 'IVA16' ? 0.16 : 0;
-    
+
             if ($cartItem) {
                 DB::table('cart_items')
                     ->where('cart_id', $cartId)
@@ -449,9 +449,9 @@ class ProductController extends Controller
                     'updated_at' => now(),
                 ]);
             }
-    
+
             $cantidadRestante = $cantidadDisponible - ($cantidadEnCarrito + $quantity);
-    
+
             return response()->json([
                 'message' => 'Producto añadido al carrito correctamente',
                 'stock_restante' => $cantidadRestante,
@@ -461,7 +461,7 @@ class ProductController extends Controller
             return response()->json(['error' => 'Ocurrió un error al añadir el producto al carrito. ' . $e->getMessage()], 500);
         }
     }
-    
+
     public function updateQuantity(Request $request)
     {
         $userId = auth()->id();
@@ -519,7 +519,10 @@ class ProductController extends Controller
         if ($mantenimiento == 'true') {
             return redirect(route('mantenimento'));
         }
-
+        // // Validar que el término de búsqueda no esté vacío
+        // if (!$request->has('search') || trim($request->input('search')) === '') {
+        //     return redirect()->back()->with('error', 'Por favor, ingrese un término de búsqueda válido.');
+        // }
         $maxPriceInDatabase = DB::table('itemsdb')->max('precio_unitario_IVAinc');
         $precioFinalExpression = DB::raw('CASE WHEN descuento > 0 THEN precio_con_descuento ELSE precio_unitario_IVAinc END');
         $query = DB::table('itemsdb')
@@ -882,6 +885,7 @@ class ProductController extends Controller
             'totalSinIVA' => $totalSinIVA,
             'ivaTotal' => $ivaTotal,
             'totalFinal' => $totalFinal,
+            'cobrarShippingData'
         ]);
     }
 
@@ -1010,7 +1014,7 @@ class ProductController extends Controller
         $descuento_pedido = (float) $descuento_productos_pedido + $envio_descuento_pedido;
         $iva_pedido = (float) $iva_productos_pedido + $envio_iva_pedido;
         $total_pedido = $subtotal_pedido - $descuento_pedido + $iva_pedido;
-    //    dd($total_pedido, $subtotal_pedido, $descuento_pedido, $iva_pedido);
+        //    dd($total_pedido, $subtotal_pedido, $descuento_pedido, $iva_pedido);
         // dd($subtotal_pedido,$descuento_pedido,$iva_pedido,$total_pedido);
         $activeShippingMethods = DB::table('shipping_methods')
             ->where('is_active', 1)
@@ -1060,7 +1064,7 @@ class ProductController extends Controller
         $nonEligibleCobrarShipping = $cartItems->filter(function ($item) {
             return empty($item->allow_cobrar_shipping);
         });
-    
+
         $variables_compartidas = [
             'cartItems' => $cartItems,
             'eligibleCartItems' => $eligibleCartItems,
@@ -1087,6 +1091,9 @@ class ProductController extends Controller
             'shippingCostIVA' => $envio_iva_pedido,
             'paqueteriaShippingData' => $paqueteriaShippingData,
             'cobrarShippingData' => $cobrarShippingData,
+
+
+
         ];
 
         return view('carrito', $variables_compartidas);

@@ -35,6 +35,7 @@ use App\Http\Controllers\UserOrderController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Mail;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -46,11 +47,15 @@ use Illuminate\Support\Facades\Mail;
 |
  */
 
+
 Route::fallback(function () {
     return response()->view('errors.404', [], 404);
 });
 
 Route::group(['middleware' => ['web']], function () {
+    Route::get('/paqueteruta', [PaqueteExpressController::class, 'getRequestCotizador'])->name('pq');
+
+
     Route::get('/', [ProductosDestacadosController::class, 'index'])->name('home');
     Route::any('/mantenimiento', [ProductosDestacadosController::class, 'maintenance'])->name('mantenimento');
     Route::get('/producto/{id}', [ProductController::class, 'show'])->name('producto.detalle');

@@ -62,8 +62,8 @@
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
             aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        </button> 
+        <div class="collapse navbar-collapse " id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-md-0">
                 <li class="nav-item dropdown megamenu" id="categoryMenuItem">
                     <a class="nav-link dropdown-toggle active" href="#" id="navbarDropdownMenuLink" role="button"
@@ -89,19 +89,20 @@
 
                 <li class="nav-item me-2 w-100">
                     <form action="{{ route('product.search') }}" method="GET" class="d-flex position-relative w-100"
-                        role="search" id="custom-search-form">
-                        <input id="custom-search" name="search" class="form-control me-2 w-100" type="search"
-                            placeholder="Buscar productos..." aria-label="Search" autocomplete="off">
-                        <button id="btnsearch" class="btn btn-outline-success g-recaptcha"
-                            data-sitekey="{{ config('recapcha.site_key') }}" data-callback='onSubmit'
-                            data-action='custom-search-form' type="submit">
-                            <i class="bi bi-search"></i>
-                        </button>
-                        <div id="custom-search-results" class="position-absolute bg-white w-100 shadow rounded mt-1 p-2"
-                            style="display:none; max-height: 400px; overflow-y: auto; z-index: 999; width: 200%;">
-                            <ul id="custom-results-list" class="list-unstyled mb-0"></ul>
-                        </div>
-                    </form>
+                    role="search" id="custom-search-form" onsubmit="return validateSearch();">
+                    <input id="custom-search" name="search" class="form-control me-2 w-100" type="search"
+                        placeholder="Buscar productos..." aria-label="Search" autocomplete="off">
+                    <button id="btnsearch" class="btn btn-outline-success g-recaptcha"
+                        data-sitekey="{{ config('recapcha.site_key') }}" data-callback='onSubmit'
+                        data-action='custom-search-form' type="submit">
+                        <i class="bi bi-search"></i>
+                    </button>
+                    <div id="custom-search-results" class="position-absolute bg-white w-100 shadow rounded mt-1 p-2"
+                        style="display:none; max-height: 400px; overflow-y: auto; z-index: 999; width: 200%;">
+                        <ul id="custom-results-list" class="list-unstyled mb-0"></ul>
+                    </div>
+                </form>
+                
                 </li>
 
                 @if (Auth::check() == true)
@@ -122,7 +123,7 @@
                         @endif
                     </a>
                     
-                        <div class="dropdown-menu dropdown-menu-end p-4 shadow-lg border-0 rounded"
+                        <div class="dropdown-menu dropdown-menu-end dropi p-4 shadow-lg border-0 rounded"
                             aria-labelledby="userDropdown" style="min-width: 300px;">
                             <form id="logout-form" action="{{ route('logout') }}" method="POST">
                                 @csrf
@@ -235,8 +236,23 @@
     </div>
 </nav>
 
+<script>
+    function validateSearch() {
+        const searchInput = document.getElementById('custom-search');
+        const searchValue = searchInput.value.trim();
+
+        if (searchValue === "") {
+            
+            searchInput.focus(); // Coloca el cursor en el campo de búsqueda
+            return false; // Cancela el envío del formulario
+        }
+
+        return true; // Permite el envío del formulario si la validación es correcta
+    }
+</script>
 
 <script>
+    
     $(document).ready(function() {
         loadCategorias();
 
@@ -277,7 +293,7 @@
                                     subcategoriaContent += '</ul></div>';
                                 }
                                 subcategoriaContent +=
-                                    '<div class="col-md-3"><ul class="list-unstyled">';
+                                    '<div class="col-md-12"><ul class="list-unstyled">';
                                 colIndex++;
                             }
 
@@ -687,3 +703,102 @@
         color: white;
     }
 </style>
+
+<style>
+
+
+    /* Estilo para el navbar */
+.navbar-custom {
+    background-color: #005f7f;
+    position: sticky; /* Navbar fijo en la parte superior */
+    top: 0;
+    z-index: 9999; /* Siempre visible sobre otros elementos */
+    width: 100%;
+}
+
+/* Estilo para la sección colapsable del navbar */
+.collapse-navbar {
+    max-height: 400px; 
+    overflow-y: auto;
+    overflow-x: hidden; 
+}
+
+/* Scrollbar personalizado dentro del navbar */
+.collapse-navbar::-webkit-scrollbar {
+    width: 8px; /* Ancho del scrollbar */
+}
+
+.collapse-navbar::-webkit-scrollbar-thumb {
+    background-color: #007bff; /* Color del scrollbar */
+    border-radius: 4px; /* Bordes redondeados */
+}
+
+.collapse-navbar::-webkit-scrollbar-track {
+    background: #f1f1f1; /* Fondo del contenedor del scrollbar */
+}
+
+/* Deshabilitar scroll de la página cuando el navbar está desplegado */
+body.navbar-open {
+    overflow: hidden; /* No permitir scroll de la página */
+}
+
+.dropi{
+background: #005f7fea;
+}
+</style>
+
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+    const navbarToggler = document.querySelector(".navbar-toggler");
+    const navbarCollapse = document.querySelector("#navbarSupportedContent");
+    const body = document.body;
+    const megamenuContent = document.querySelector(".megamenu-content");
+
+    navbarToggler.addEventListener("click", function () {
+        // Usamos un pequeño delay para esperar a que Bootstrap maneje la clase 'show'
+        setTimeout(() => {
+            const navbarIsOpen = navbarCollapse.classList.contains("show");
+            if (navbarIsOpen) {
+                body.classList.add("navbar-open"); // Deshabilitar scroll de la página
+            } else {
+                body.classList.remove("navbar-open"); // Habilitar scroll de la página
+            }
+        }, 300); // Ajusta este tiempo según la animación de Bootstrap
+    });
+
+    // Cerrar el navbar si haces clic fuera del menú
+    document.addEventListener("click", function (e) {
+        if (!navbarCollapse.contains(e.target) && !navbarToggler.contains(e.target)) {
+            body.classList.remove("navbar-open");
+            navbarCollapse.classList.remove("show"); // Cierra el navbar manualmente
+        }
+    });
+
+    // Evitar que el scroll en el megamenu afecte el scroll del body
+    if (megamenuContent) {
+        megamenuContent.addEventListener('touchmove', function (e) {
+            e.stopPropagation();
+        }, { passive: false });
+
+        megamenuContent.addEventListener('wheel', function (e) {
+            e.stopPropagation();
+        }, { passive: false });
+    }
+
+    // Manejar el scroll dentro del megamenu
+    const handleScroll = (e) => {
+        const { scrollTop, scrollHeight, clientHeight } = e.target;
+        if (scrollTop + clientHeight >= scrollHeight) {
+            e.target.scrollTop = scrollHeight - clientHeight;
+        }
+    };
+
+    if (megamenuContent) {
+        megamenuContent.addEventListener('scroll', handleScroll);
+    }
+});
+
+
+</script>

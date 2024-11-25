@@ -119,7 +119,51 @@
                             </div>
                         @endforeach
 
-
+                        @if (
+                            !$producto->allow_paqueteria_shipping ||
+                                !$producto->allow_store_pickup ||
+                                !$producto->allow_local_shipping ||
+                                !$producto->allow_cobrar_shipping)
+                            <div class="professional-alert-container">
+                                <div class="professional-alert">
+                                    <div class="professional-alert-icon">
+                                        <i class="fa-solid fa-triangle-exclamation"></i>
+                                    </div>
+                                    <div class="professional-alert-content">
+                                        <h5 class="professional-alert-title">Restricciones de Envío</h5>
+                                        <p class="professional-alert-description">Este producto tiene limitaciones en
+                                            el/los métodos de envío siguientes:</p>
+                                            <ul class="professional-alert-list">
+                                                @if (!$producto->allow_paqueteria_shipping)
+                                                <li>
+                                                    <i class="fa-solid fa-box"></i> 
+                                                    No disponible para <strong>Envío por Paquetería.</strong>
+                                                </li>
+                                                @endif
+                                                @if (!$producto->allow_store_pickup)
+                                                <li>
+                                                    <i class="fa-solid fa-store"></i> 
+                                                    No disponible para <strong>Recoger en Tienda.</strong>
+                                                </li>
+                                                @endif
+                                                @if (!$producto->allow_local_shipping)
+                                                <li>
+                                                    <i class="fa-solid fa-truck"></i> 
+                                                    No disponible para <strong>Envío Local.</strong>
+                                                </li>
+                                                @endif
+                                                @if (!$producto->allow_cobrar_shipping)
+                                                <li>
+                                                    <i class="fa-solid fa-money-bill-wave"></i> 
+                                                    No disponible para <strong>Envío por Cobrar.</strong>
+                                                </li>
+                                                @endif
+                                            </ul>
+                                            
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
                         @if ($cantidadDisponible > 0)
                             <div class="row mb-4">
                                 <div class="col-md-4 col-6 mb-3">
@@ -142,8 +186,8 @@
                                         <div class="toast-container position-fixed bottom-0 end-0 p-3"
                                             style="z-index: 1055;">
                                             <div id="stockAlertToast"
-                                                class="toast align-items-center text-bg-danger border-0" role="alert"
-                                                aria-live="assertive" aria-atomic="true">
+                                                class="toast align-items-center text-bg-danger border-0"
+                                                role="alert" aria-live="assertive" aria-atomic="true">
                                                 <div class="d-flex">
                                                     <div class="toast-body">
                                                         No se puede añadir esa cantidad porque supera el límite de
@@ -527,12 +571,84 @@
 <style>
     #cart-notification {
 
-        background-color: #38c172; /* Verde */
+        background-color: #38c172;
+        /* Verde */
         color: white;
-        padding: 10px; /* Reducido para un cuadro más compacto */
+        padding: 10px;
+        /* Reducido para un cuadro más compacto */
         border-radius: 5px;
         z-index: 1000;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
-    </style>
-    
+</style>
+<style>
+    .professional-alert-container {
+        margin-top: 20px;
+        padding: 20px;
+        background: linear-gradient(to right, #f7f7f7, #e4e4e4);
+        /* Fondo degradado */
+        border: 1px solid #d6d6d6;
+        /* Borde suave */
+        border-radius: 10px;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        /* Sombra suave */
+        display: flex;
+        align-items: center;
+        font-family: 'Arial', sans-serif;
+    }
+
+    .professional-alert {
+        display: flex;
+        align-items: flex-start;
+        width: 100%;
+        gap: 15px;
+    }
+
+    .professional-alert-icon {
+        font-size: 40px;
+        color: #ff6b6b;
+        /* Ícono en rojo suave */
+        flex-shrink: 0;
+    }
+
+    .professional-alert-content {
+        flex: 1;
+        color: #333;
+    }
+
+    .professional-alert-title {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 8px;
+        color: #ff3e3e;
+        /* Título en rojo oscuro */
+    }
+
+    .professional-alert-description {
+        font-size: 14px;
+        color: #555;
+        margin-bottom: 12px;
+    }
+
+    .professional-alert-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .professional-alert-list li {
+        margin-bottom: 10px;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #444;
+        /* Texto principal */
+    }
+
+    .professional-alert-list i {
+        font-size: 18px;
+        color: #4caf50;
+        /* Ícono verde para contraste */
+    }
+</style>

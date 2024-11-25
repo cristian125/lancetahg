@@ -8,22 +8,55 @@ use Illuminate\Support\Facades\DB;
 
 class StorePickupController extends ProductController
 {
+    private $user_id = 0;
+    private $cart_id = 0;
 
+    public function __construct()
+    {
+        if (Auth::check()) {
+            $this->user_id = Auth::id();
+            $this->cart_id = $this->getCartId();
+        }
+    }
+
+    private function getCartId()
+    {
+        $cart = DB::table('carts')
+            ->select('id')
+            ->where('user_id', $this->user_id)
+            ->where('status', '1') // Carrito activo
+            ->first();
+
+        return $cart ? $cart->id : null;
+    }
     public function handleStorePickup(Request $request, $userId)
     {
         // Obtener las tiendas desde la base de datos
         $tiendas = DB::table('tiendas')->get();
-
+    
         // Obtener la configuración del calendario desde la base de datos para la tienda seleccionada
         $calendarioConfig = DB::table('config_calendario')
             ->where('tienda_id', $tiendas->first()->id)
             ->first();
-
+    
+        // Filtrar productos no elegibles
+        $nonEligibleStorePickup = collect();
+        if ($this->cart_id) {
+            $nonEligibleStorePickup = DB::table('cart_items')
+                ->join('itemsdb', 'cart_items.no_s', '=', 'itemsdb.no_s')
+                ->where('cart_items.cart_id', $this->cart_id)
+                ->where('itemsdb.allow_store_pickup', 0)
+                ->select('itemsdb.nombre as product_name', 'itemsdb.no_s as product_code')
+                ->get();
+        }
+    
         return [
             'tiendas' => $tiendas,
             'calendarioConfig' => $calendarioConfig,
+            'nonEligibleStorePickup' => $nonEligibleStorePickup,
         ];
     }
+    
     public function saveStorePickup(Request $request)
     {
         $userId = auth()->id();

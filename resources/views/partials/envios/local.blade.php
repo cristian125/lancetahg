@@ -1,5 +1,25 @@
 @if (!empty($localShippingData['direcciones']))
     <div class="container my-5">
+
+        @if ($nonEligibleLocalShipping->isNotEmpty())
+        <div class="non-eligible-alert alert alert-warning">
+            <div class="alert-icon">
+                <i class="fa-solid fa-exclamation-triangle"></i>
+            </div>
+            <div class="alert-content">
+                <h5 class="alert-title">Productos no disponibles para Envío Local</h5>
+                <p>Estimado cliente, los siguientes productos en su carrito no son elegibles para el método de Envío Local:</p>
+                <ul>
+                    @foreach ($nonEligibleLocalShipping as $item)
+                        <li>{{ $item->product_name }} (Código: {{ $item->product_code }})</li>
+                    @endforeach
+                </ul>
+                <p>Le invitamos a explorar otras opciones de envío que se ajusten a sus necesidades. Estamos comprometidos en ofrecerle la mejor experiencia de compra posible.</p>
+            </div>
+        </div>
+    @endif
+    
+
         <div class="row">
             <!-- Columna izquierda: Seleccione su dirección -->
             <div class="col-md-6">
@@ -9,8 +29,9 @@
                         @foreach ($localShippingData['direcciones'] as $direccion)
                             <div
                                 class="form-check mb-3 {{ $direccion->esLocal ? '' : 'text-muted opacity-50 not-selectable' }}">
-                                <input class="form-check-input me-2 direccion-radio" type="radio" name="direccionEnvio"
-                                    value="{{ $direccion->id }}" data-codigopostal="{{ $direccion->codigo_postal }}"
+                                <input class="form-check-input me-2 direccion-radio" type="radio"
+                                    name="direccionEnvio" value="{{ $direccion->id }}"
+                                    data-codigopostal="{{ $direccion->codigo_postal }}"
                                     data-costoenvio="{{ $direccion->costoEnvio }}"
                                     @unless ($direccion->esLocal)
                                     disabled="disabled"
@@ -65,7 +86,7 @@
 
 
 
- <script>
+<script>
     $(document).ready(function() {
         // Evento cuando se selecciona una dirección
         $('#direccion-selector-container input[name="direccionEnvio"]').on('change', function() {
@@ -97,12 +118,15 @@
 
                     $('#shipping-info-text').html(result);
                     $('#shipping-info-text strong').html(
-                        '<strong>Total del carrito:</strong> $' + data.totalCart.toFixed(2) + ' MXN');
+                        '<strong>Total del carrito:</strong> $' + data.totalCart
+                        .toFixed(2) + ' MXN');
 
                     $('#SelectMethod').remove();
                     let div = '';
-                    div += '<div id="SelectMethod" class="mb-4 p-3 bg-light rounded shadow-sm">';
-                    div += '<button id="addShippmentMethod" class="btn btn-primary form-control"><i class="fa fa-cart-arrow-down"></i> Seleccionar</button>';
+                    div +=
+                        '<div id="SelectMethod" class="mb-4 p-3 bg-light rounded shadow-sm">';
+                    div +=
+                        '<button id="addShippmentMethod" class="btn btn-primary form-control"><i class="fa fa-cart-arrow-down"></i> Seleccionar</button>';
                     div += '</div>';
                     $('#shipping-info').append(div);
 
@@ -164,35 +188,38 @@
         direccionRadios.forEach(radio => {
             radio.addEventListener('change', function() {
                 const direccionId = this.value;
-                const direccionSeleccionada = this.closest('label').querySelector('strong').textContent;
-                const calleYColonia = this.closest('label').querySelector('div').childNodes[2].textContent.trim();
+                const direccionSeleccionada = this.closest('label').querySelector('strong')
+                    .textContent;
+                const calleYColonia = this.closest('label').querySelector('div').childNodes[2]
+                    .textContent.trim();
 
                 // Actualiza el mensaje de dirección seleccionada
-                mensajeDireccion.innerHTML = `<i class="bi bi-check-circle-fill"></i> Dirección seleccionada: ${direccionSeleccionada} ${calleYColonia}.`;
+                mensajeDireccion.innerHTML =
+                    `<i class="bi bi-check-circle-fill"></i> Dirección seleccionada: ${direccionSeleccionada} ${calleYColonia}.`;
                 mensajeDireccion.classList.remove('text-danger');
                 mensajeDireccion.classList.add('text-success');
 
                 // Hacer una solicitud AJAX para obtener el nuevo costo de envío
                 fetch(`/actualizar-envio`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    body: JSON.stringify({
-                        direccion_id: direccionId,
-                        total_cart: totalCartElement.innerText
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector(
+                                'meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        body: JSON.stringify({
+                            direccion_id: direccionId,
+                            total_cart: totalCartElement.innerText
+                        })
                     })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    
-                })
-                .catch(error => console.error('Error:', error));
+                    .then(response => response.json())
+                    .then(data => {
+
+                    })
+                    .catch(error => console.error('Error:', error));
             });
         });
     });
-   
 </script>
 
 <style>

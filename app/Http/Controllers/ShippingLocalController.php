@@ -275,6 +275,14 @@ class ShippingLocalController extends Controller
             }
         }
     
+        // Filtrar productos no elegibles para Envío Local
+        $nonEligibleLocalShipping = DB::table('cart_items')
+            ->join('itemsdb', 'cart_items.no_s', '=', 'itemsdb.no_s')
+            ->where('cart_items.cart_id', $this->id)
+            ->where('itemsdb.allow_local_shipping', 0) // Productos no elegibles
+            ->select('itemsdb.nombre as product_name', 'itemsdb.no_s as product_code')
+            ->get();
+    
         // Retornar los datos relevantes como array
         return [
             'direcciones' => $direcciones,
@@ -282,8 +290,10 @@ class ShippingLocalController extends Controller
             'costoEnvio' => $costoEnvio,
             'totalCart' => $totalPrice,
             'minimoCompra' => $minimoCompra,
+
         ];
     }
+    
     
 
 }

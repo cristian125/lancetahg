@@ -1,6 +1,19 @@
+
 @if (!empty($paqueteriaShippingData['direcciones']))
     <div class="container my-5">
-
+<!-- Productos no elegibles -->
+@if ($paqueteriaShippingData['nonEligiblePaqueteriaShipping']->isNotEmpty())
+<div class="alert alert-warning non-eligible-alert">
+    <h5><i class="fa-solid fa-triangle-exclamation"></i> Productos no elegibles para Envío por Paquetería</h5>
+    <p>Los siguientes productos en su carrito no pueden ser enviados mediante este método:</p>
+    <ul>
+        @foreach ($paqueteriaShippingData['nonEligiblePaqueteriaShipping'] as $item)
+            <li>{{ $item->product_name }} (Código: {{ $item->product_code }})</li>
+        @endforeach
+    </ul>
+    <p>Por favor, seleccione otro método de envío para estos productos o elimínelos del carrito.</p>
+</div>
+@endif
         <div class="row">
             <!-- Columna izquierda: Seleccione su dirección -->
             <div class="col-md-6 ">

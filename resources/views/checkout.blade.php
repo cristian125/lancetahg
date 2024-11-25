@@ -2,7 +2,7 @@
 
 @section('body')
 
-    <div class="container">
+    <div class="container my-4">
 
         <!-- Mostrar mensajes de éxito o error -->
         @if (session('message'))
@@ -22,49 +22,36 @@
                 <i class="bi bi-exclamation-triangle-fill"></i> {{ $error }}
             </div>
         @else
-            <div class="container my-4 p-4 border rounded bg-light shadow-sm">
+            <div class="container p-4 border rounded bg-light shadow-sm">
                 <div class="row">
                     <div class="col-12 text-center">
-                        <h2 class="display-4 font-weight-bold text-primary mb-5">Confirmación de Envío</h2>
+                        <h2 class="display-6 font-weight-bold text-primary mb-5">Confirmación de Envío</h2>
                     </div>
                 </div>
-                <!-- Div que contiene el iframe y el formulario de pago, dentro de un contenedor con sombra -->
-                <div class="container">
-                    <div id="paymentSection" style="display: none;">
-                        <!-- Loader que se muestra mientras se carga el iframe -->
-                        <div id="loader" class="loader"></div>
-                        <div class="row">
-                            <div class="col-12">
-                                <h3 class="text-center mt-5 border border-success">FORMULARIO DE PAGO</h3>
-                                <iframe name="paymentFrame" id="paymentFrame" width="100%" height="800px"
-                                    style="border:none;"></iframe>
-                                <form id="paymentForm" method="POST" action="{{ env('PAYMENT_URL') }}"
-                                    target="paymentFrame">
-                                    @csrf
-                                    <input type="hidden" name="oid" value="{{ $paymentData['oid'] }}" />
-                                    <input type="hidden" name="chargetotal" value="{{ $paymentData['chargetotal'] }}" />
-                                    <input type="hidden" name="checkoutoption"
-                                        value="{{ $paymentData['checkoutoption'] }}" />
-                                    <input type="hidden" name="currency" value="{{ $paymentData['currency'] }}" />
-                                    <input type="hidden" name="hash_algorithm"
-                                        value="{{ $paymentData['hash_algorithm'] }}" />
-                                    <input type="hidden" name="hashExtended" value="{{ $paymentData['hashExtended'] }}" />
-                                    <input type="hidden" name="parentUri" value="{{ $paymentData['parentUri'] }}" />
-                                    <input type="hidden" name="responseFailURL"
-                                        value="{{ $paymentData['responseFailURL'] }}" />
-                                    <input type="hidden" name="responseSuccessURL"
-                                        value="{{ $paymentData['responseSuccessURL'] }}" />
-                                    <input type="hidden" name="storename" value="{{ $paymentData['storename'] }}" />
-                                    <input type="hidden" name="timezone" value="{{ $paymentData['timezone'] }}" />
-                                    <input type="hidden" name="txndatetime" value="{{ $paymentData['txndatetime'] }}" />
-                                    <input type="hidden" name="txntype" value="{{ $paymentData['txntype'] }}" />
-                                </form>
-                            </div>
+
+                <!-- Sección del iframe y formulario de pago (se oculta inicialmente) -->
+                <div class="container" id="paymentSection" style="display: none;">
+                    <!-- Loader que se muestra mientras se carga el iframe -->
+                    <div id="loader" class="loader"></div>
+                    <div class="row">
+                        <div class="col-12">
+                            <h3 class="text-center mt-5 border border-success">FORMULARIO DE PAGO</h3>
+                            <iframe name="paymentFrame" id="paymentFrame" width="100%" height="800px" style="border:none;"></iframe>
+                            <form id="paymentForm" method="POST" action="{{ env('PAYMENT_URL') }}" target="paymentFrame">
+                                @csrf
+                                @isset($paymentData)
+                                    @foreach ($paymentData as $key => $value)
+                                        <input type="hidden" name="{{ $key }}" value="{{ $value }}" />
+                                    @endforeach
+                                @endisset
+                            </form>
                         </div>
                     </div>
                 </div>
 
-                <div class="row">
+                <!-- Inicio del contenido principal -->
+                <div class="row" id="mainContent">
+                    <!-- Columna izquierda: Resumen de Compra -->
                     <div class="col-md-6 mb-4">
                         <div class="card shadow-lg border-0 rounded">
                             <div class="card-header bg-success text-white text-uppercase font-weight-bold">
@@ -93,17 +80,16 @@
                                         <div class="d-flex justify-content-between">
                                             <strong>Importe:</strong>
                                             @if ($item->discount > 0)
-                                                <span class="text-muted" style="text-decoration: line-through;">
-                                                    ${{ number_format(($item->unit_price * $item->quantity)*(1+$item->vat), 2, '.', ',') }}
-                                                    MXN
-                                                </span>
-                                                <br>
-                                                <strong>${{ number_format($item->final_price, 2, '.', ',') }}
-                                                    MXN</strong>
-                                                <br><span class="text-danger">Descuento: {{ $item->discount }}%</span>
+                                                <div class="text-end">
+                                                    <span class="text-muted" style="text-decoration: line-through;">
+                                                        ${{ number_format(($item->unit_price * $item->quantity)*(1+$item->vat), 2, '.', ',') }} MXN
+                                                    </span>
+                                                    <br>
+                                                    <strong>${{ number_format($item->final_price, 2, '.', ',') }} MXN</strong>
+                                                    <br><span class="text-danger">Descuento: {{ $item->discount }}%</span>
+                                                </div>
                                             @else
-                                                <strong>${{ number_format($item->final_price, 2, '.', ',') }}
-                                                    MXN</strong>
+                                                <strong>${{ number_format($item->final_price, 2, '.', ',') }} MXN</strong>
                                             @endif
                                         </div>
 
@@ -121,7 +107,7 @@
                                     </div>
                                 @endforeach
 
-                                <!-- Resumen de totales generales en formato de columnas con estilo mejorado -->
+                                <!-- Resumen de totales generales -->
                                 <div class="table-responsive mt-4 shadow-sm">
                                     <table class="table table-hover table-striped table-borderless align-middle">
                                         <thead class="thead-light">
@@ -137,11 +123,8 @@
                                             <tr class="text-center">
                                                 <td><strong>IVA 16%</strong></td>
                                                 <td>${{ number_format($totalConIVA / 1.16, 2, '.', ',') }} MXN</td>
-                                                <td>${{ number_format($totalConIVA - $totalConIVA / 1.16, 2, '.', ',') }}
-                                                    MXN
-                                                </td>
-                                                <td><strong>${{ number_format($totalConIVA, 2, '.', ',') }} MXN</strong>
-                                                </td>
+                                                <td>${{ number_format($totalConIVA - $totalConIVA / 1.16, 2, '.', ',') }} MXN</td>
+                                                <td><strong>${{ number_format($totalConIVA, 2, '.', ',') }} MXN</strong></td>
                                             </tr>
 
                                             <!-- Fila para productos con IVA 0% -->
@@ -149,8 +132,7 @@
                                                 <td><strong>IVA 0%</strong></td>
                                                 <td>${{ number_format($totalSinIVA, 2, '.', ',') }} MXN</td>
                                                 <td>$0.00 MXN</td>
-                                                <td><strong>${{ number_format($totalSinIVA, 2, '.', ',') }} MXN</strong>
-                                                </td>
+                                                <td><strong>${{ number_format($totalSinIVA, 2, '.', ',') }} MXN</strong></td>
                                             </tr>
 
                                             <!-- Fila para costo de envío -->
@@ -161,17 +143,12 @@
                                                 @if ($shippment->ShipmentMethod === 'EnvioPorCobrar')
                                                     <td class="bg-warning text-dark text-center p-3 rounded shadow-sm">
                                                         <i class="bi bi-exclamation-circle-fill text-danger me-2"></i>
-                                                        <strong>El costo de envío aún no a sido calculado y deberá ser
-                                                            pagado al
-                                                            recibirlo en su domicilio</strong>
+                                                        <strong>El costo de envío aún no ha sido calculado y deberá ser pagado al recibirlo en su domicilio</strong>
                                                     </td>
                                                 @else
-                                                    <td><strong>${{ number_format($shippingCost, 2, '.', ',') }}
-                                                            MXN</strong>
-                                                    </td>
+                                                    <td><strong>${{ number_format($shippingCost, 2, '.', ',') }} MXN</strong></td>
                                                 @endif
                                             </tr>
-
 
                                             <!-- Fila para importe total final -->
                                             <tr class="text-center bg-warning font-weight-bold">
@@ -180,8 +157,7 @@
                                                 <td></td>
                                                 @if ($shippment->ShipmentMethod === 'EnvioPorCobrar')
                                                     <td class="text-danger">
-                                                        <strong>${{ number_format($totalFinal - $shippingCost, 2, '.', ',') }}
-                                                            MXN</strong>
+                                                        <strong>${{ number_format($totalFinal - $shippingCost, 2, '.', ',') }} MXN</strong>
                                                     </td>
                                                 @else
                                                     <td class="text-danger">
@@ -194,9 +170,9 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> <!-- Cierre de la columna izquierda -->
 
-                    <!-- Detalles del Envío -->
+                    <!-- Columna derecha: Detalles del Envío -->
                     <div class="col-md-6 mb-4">
                         <div class="card shadow-lg border-0 rounded">
                             <div class="card-header bg-primary text-white text-uppercase font-weight-bold">
@@ -231,7 +207,6 @@
                                         </li>
                                         <li class="list-group-item"><strong>Nombre de Contacto:</strong> {{ $shippment->contactName }}</li>
                                         <li class="list-group-item"><strong>Teléfono de Contacto:</strong> {{ $shippment->contactPhone }}</li>
-                                        
                                     @else
                                         <!-- Mostrar los detalles de envío a domicilio -->
                                         <li class="list-group-item"><strong>Dirección:</strong>
@@ -257,36 +232,31 @@
                                         @if ($shippment->ShipmentMethod === 'EnvioPorCobrar')
                                             <li class="list-group-item bg-warning text-dark rounded shadow-sm">
                                                 <i class="bi bi-exclamation-circle-fill text-danger me-2"></i>
-                                                <strong>Nota Importante:</strong> El costo de envío será calculado y cobrado
-                                                al
-                                                momento de la entrega por la empresa de paquetería.
+                                                <strong>Nota Importante:</strong> El costo de envío será calculado y cobrado al momento de la entrega por la empresa de paquetería.
                                             </li>
                                         @endif
                                     @endif
                                 </ul>
                             </div>
                         </div>
-                    </div>
-                </div>
+                    </div> <!-- Cierre de la columna derecha -->
+                </div> <!-- Cierre de la fila principal -->
 
                 <!-- Botón para Proceder al Pago -->
                 <div class="row">
                     <div class="col-12 text-center">
-                        <button id="proceedToPaymentBtn" class="btn btn-primary btn-xl fw-normal shadow-lg py-3 px-5 my-4"
-                                style="font-size: 1.5rem; border-radius: 8px;"
-                                data-bs-toggle="modal" data-bs-target="#paymentMethodModal">
+                        <button id="proceedToPaymentBtn" class="btn btn-primary btn-lg fw-normal shadow-lg py-3 px-5 my-4 w-100" data-bs-toggle="modal" data-bs-target="#paymentMethodModal">
                             <i class="bi bi-credit-card me-2"></i> Proceder al Pago
                         </button>
                     </div>
-
                 </div>
             </div>
         @endif
     </div>
+
     <!-- Modal para seleccionar el método de pago -->
-    <div class="modal fade" id="paymentMethodModal" tabindex="-1" aria-labelledby="paymentMethodModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+    <div class="modal fade" id="paymentMethodModal" tabindex="-1" aria-labelledby="paymentMethodModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Seleccione Método de Pago</h5>
@@ -294,48 +264,17 @@
                 </div>
                 <div class="modal-body payment-modal">
                     <div class="list-group">
-                        <a href="#" class="list-group-item list-group-item-action payment-option"
-                            data-payment-method="Tarjeta de Débito">
+                        <a href="#" class="list-group-item list-group-item-action payment-option" data-payment-method="Tarjeta de Débito">
                             <i class="bi bi-credit-card"></i> Tarjeta de Débito
                         </a>
-                        <a href="#" class="list-group-item list-group-item-action payment-option"
-                            data-payment-method="Tarjeta de Crédito">
+                        <a href="#" class="list-group-item list-group-item-action payment-option" data-payment-method="Tarjeta de Crédito">
                             <i class="bi bi-credit-card-2-front"></i> Tarjeta de Crédito
                         </a>
-                        <a href="#" class="list-group-item list-group-item-action payment-option"
-                            data-payment-method="Monedero">
+                        <a href="#" class="list-group-item list-group-item-action payment-option" data-payment-method="Monedero">
                             <i class="bi bi-wallet2"></i> Monedero
                         </a>
                     </div>
                 </div>
-
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal para seleccionar el método de pago -->
-    <div class="modal fade" id="paymentMethodModal" tabindex="-1" aria-labelledby="paymentMethodModalLabel"
-        aria-hidden="true">
-        <!-- ... (contenido del modal) ... -->
-    </div>
-
-    <!-- Sección del iframe y formulario de pago -->
-    <div class="container mt-5" id="paymentSection" style="display: none;">
-        <!-- Loader que se muestra mientras se carga el iframe -->
-        <div id="loader" class="loader"></div>
-        <div class="row">
-            <div class="col-12">
-                <h3 class="text-center mt-5 border border-success">FORMULARIO DE PAGO</h3>
-                <iframe name="paymentFrame" id="paymentFrame" width="100%" height="800px"
-                    style="border:none;"></iframe>
-                <form id="paymentForm" method="POST" action="{{ env('PAYMENT_URL') }}" target="paymentFrame">
-                    @csrf
-                    @isset($paymentData)
-                    @foreach ($paymentData as $key => $value)
-                        <input type="hidden" name="{{ $key }}" value="{{ $value }}" />
-                    @endforeach
-                    @endisset
-                </form>
             </div>
         </div>
     </div>
@@ -350,8 +289,7 @@
                     var selectedPaymentMethod = this.getAttribute('data-payment-method');
 
                     // Cerrar el modal
-                    var paymentMethodModal = bootstrap.Modal.getInstance(document.getElementById(
-                        'paymentMethodModal'));
+                    var paymentMethodModal = bootstrap.Modal.getInstance(document.getElementById('paymentMethodModal'));
                     paymentMethodModal.hide();
 
                     // Enviar el método de pago al servidor
@@ -369,12 +307,8 @@
                         .then(data => {
                             if (data.success) {
                                 // Mostrar la sección de pago con el iframe y el loader
-                                document.querySelectorAll('.container > .row').forEach(function(
-                                    row) {
-                                    row.style.display = 'none';
-                                });
-                                document.getElementById('paymentSection').style.display =
-                                    'block';
+                                document.getElementById('mainContent').style.display = 'none';
+                                document.getElementById('paymentSection').style.display = 'block';
                                 document.getElementById('loader').style.display = 'block';
 
                                 // Enviar automáticamente el formulario de pago
@@ -399,7 +333,10 @@
 
     <style>
         .loader {
-            position: relative;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             width: 2.5em;
             height: 2.5em;
             transform: rotate(165deg);
@@ -431,17 +368,14 @@
                 width: 0.5em;
                 box-shadow: 1em -0.5em rgba(225, 20, 98, 0.75), -1em 0.5em rgba(111, 202, 220, 0.75);
             }
-
             35% {
                 width: 2.5em;
                 box-shadow: 0 -0.5em rgba(225, 20, 98, 0.75), 0 0.5em rgba(111, 202, 220, 0.75);
             }
-
             70% {
                 width: 0.5em;
                 box-shadow: -1em -0.5em rgba(225, 20, 98, 0.75), 1em 0.5em rgba(111, 202, 220, 0.75);
             }
-
             100% {
                 box-shadow: 1em -0.5em rgba(225, 20, 98, 0.75), -1em 0.5em rgba(111, 202, 220, 0.75);
             }
@@ -452,26 +386,17 @@
                 height: 0.5em;
                 box-shadow: 0.5em 1em rgba(61, 184, 143, 0.75), -0.5em -1em rgba(233, 169, 32, 0.75);
             }
-
             35% {
                 height: 2.5em;
                 box-shadow: 0.5em 0 rgba(61, 184, 143, 0.75), -0.5em 0 rgba(233, 169, 32, 0.75);
             }
-
             70% {
                 height: 0.5em;
                 box-shadow: 0.5em -1em rgba(61, 184, 143, 0.75), -0.5em 1em rgba(233, 169, 32, 0.75);
             }
-
             100% {
                 box-shadow: 0.5em 1em rgba(61, 184, 143, 0.75), -0.5em -1em rgba(233, 169, 32, 0.75);
             }
-        }
-
-        .loader {
-            position: absolute;
-            top: calc(50% - 1.25em);
-            left: calc(50% - 1.25em);
         }
 
         .payment-modal {

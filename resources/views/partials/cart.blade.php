@@ -1283,6 +1283,7 @@
         });
 
         $('#acceptTermsBtn').on('click', function() {
+            localStorage.setItem('termsAccepted', 'true'); // Para referencia local
             $('#termsModal').modal('hide');
             $('#paymentForm').submit();
         });
@@ -1461,6 +1462,19 @@
         display: inline-block;
         width: 30%;
     }
+    @media (max-width: 900px) {
+        #proceedToPaymentBtn {
+            background-color: #28a745;
+        border-color: #28a745;
+        font-size: 1.25rem;
+        padding: 15px 30px;
+        text-transform: uppercase;
+        transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        display: inline-block;
+        width: 100%;
+    }
+}
 
 
     #proceedToPaymentBtn:hover {

@@ -16,7 +16,8 @@
 
         .container-xl {
             border-radius: 10px;
-            box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2); /* Sombra más suave */
+            box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+            /* Sombra más suave */
             max-width: 1200px;
             margin: 0 auto;
             overflow: hidden;
@@ -50,14 +51,19 @@
         img {
             max-width: 50%;
             height: auto;
-            border-radius: 10px; /* Borde redondeado para el GIF */
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* Sombra alrededor del GIF */
-            border: 3px solid #03587C; /* Borde del mismo color que el fondo */
+            border-radius: 10px;
+            /* Borde redondeado para el GIF */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            /* Sombra alrededor del GIF */
+            border: 3px solid #03587C;
+            /* Borde del mismo color que el fondo */
         }
     </style>
 </head>
 
 <body>
+
+
     <div class="container-xl bg-lanceta1">
         <img src="{{ asset('storage/logos/logolhg.png') }}" alt="Sitio en Construcción">
         <div class="bg-white">

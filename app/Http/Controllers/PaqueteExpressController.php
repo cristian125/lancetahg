@@ -42,7 +42,8 @@ class PaqueteExpressController extends ProductController
 
     private function getIdCart()
     {
-        $queryCarts = DB::table('carts')->select('id')->where('user_id', $this->user_id)->get();
+        $queryCarts = DB::table('carts')->select('id')->where(['user_id'=>$this->user_id,'status'=>1])->get();
+        // dd($queryCarts);
         return $queryCarts[0]->id;
     }
 
@@ -50,10 +51,14 @@ class PaqueteExpressController extends ProductController
     {
 
         $total = 0;
-        $queryCartItems = DB::table('cart_items')->select('final_price', 'quantity')->where('cart_id', $this->id)->get();
-
+        $queryCartItems = DB::table('cart_items')
+        ->leftJoin('itemsdb', 'itemsdb.no_s', '=', 'cart_items.no_s')
+        ->select('cart_items.amount', 'cart_items.quantity')
+        ->where(['cart_items.cart_id'=>$this->id,'itemsdb.allow_paqueteria_shipping'=>1])
+        ->get();
+        // dd($this->id);
         foreach ($queryCartItems as $queryCartItem) {
-            $totalLine = floatval($queryCartItem->final_price) * intval($queryCartItem->quantity);
+            $totalLine = floatval($queryCartItem->amount);// * intval($queryCartItem->quantity);
             $total += $totalLine;
         }
 
@@ -72,10 +77,16 @@ class PaqueteExpressController extends ProductController
             // Si no hay un carrito activo, termina la función.
             return;
         }
-    
+        
+
+
         // Obtener las dimensiones de los artículos en el carrito activo
         $dimensions = DB::table('cart_items')
-            ->join('items_unidades', 'cart_items.no_s', '=', 'items_unidades.item_no')
+            ->leftjoin('itemsdb','itemsdb.no_s','=','cart_items.no_s')
+            ->leftjoin('items_unidades', function($join){
+                $join->on('itemsdb.no_s','=','items_unidades.item_no')
+                ->on('items_unidades.unit_of_measure', '=', 'itemsdb.unidad_medida_venta');
+            })            
             ->select(
                 'items_unidades.length',
                 'items_unidades.width',
@@ -83,7 +94,7 @@ class PaqueteExpressController extends ProductController
                 'items_unidades.weight',
                 DB::raw('sum(cart_items.quantity) as quantity')
             )
-            ->where('cart_items.cart_id', $cart->id)
+            ->where(['cart_items.cart_id'=>$cart->id,'itemsdb.allow_paqueteria_shipping'=>1])
             ->groupBy(
                 'items_unidades.length',
                 'items_unidades.width',
@@ -91,7 +102,8 @@ class PaqueteExpressController extends ProductController
                 'items_unidades.weight'
             )
             ->get();
-    
+
+        // dd($dimensions);
         $totalLength = 0; // Largo total en cm
         $maxWidth = 0; // Ancho máximo en cm
         $maxHeight = 0; // Alto máximo en cm
@@ -137,9 +149,13 @@ class PaqueteExpressController extends ProductController
         $this->alto_pedido = $maxHeight;
     }
     
-    private function getRequestCotizador($id, $address_id = null)
+    // public function getRequestCotizador(Request $request)
+    public function getRequestCotizador($id,$address_id=null)
     {
-        $this->id = $id;
+
+        // $this->id = $request->id;
+        // $id=$request->id;
+        // $address_id= $request->address_id;
         $this->__construct($id);
 
         if ($address_id == null) {
