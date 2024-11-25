@@ -10,7 +10,7 @@
                         <li>{{ $item->product_name }} (Código: {{ $item->product_code }})</li>
                     @endforeach
                 </ul>
-                <p>Por favor, seleccione otro método de envío para estos productos o elimínelos del carrito.</p>
+                <p>Le sugerimos considerar otro método de envío para que todos los productos de su carrito puedan ser entregados.</p>
             </div>
         @endif
 

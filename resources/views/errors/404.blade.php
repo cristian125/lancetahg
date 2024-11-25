@@ -48,7 +48,7 @@
     @endphp
     @if ($mantenimiento == true)
         <script>
-            location.href = "{{ route('mantenimiento') }}";
+            location.href = "{{ route('mantenimento') }}";
         </script>
     @endif
     <div class="error-container">

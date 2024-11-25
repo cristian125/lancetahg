@@ -91,8 +91,8 @@
 
 <body>
     @php
-    use App\Http\Controllers\ProductosDestacadosController;
-                $mantenimiento = ProductosDestacadosController::checkMaintenance();
+        use App\Http\Controllers\ProductosDestacadosController;
+        $mantenimiento = ProductosDestacadosController::checkMaintenance();
         if ($mantenimiento == 'true') {
             return redirect(route('mantenimento'));
         }

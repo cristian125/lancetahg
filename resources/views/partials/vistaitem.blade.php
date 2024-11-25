@@ -1,6 +1,7 @@
 <section class="py-5">
     <div class="container">
         <div class="row gx-5">
+
             <aside class="col-lg-6 ">
                 <div id="main-image-container"
                     class="border rounded-4 mb-3 d-flex justify-content-center align-items-center"
@@ -133,33 +134,33 @@
                                         <h5 class="professional-alert-title">Restricciones de Envío</h5>
                                         <p class="professional-alert-description">Este producto tiene limitaciones en
                                             el/los métodos de envío siguientes:</p>
-                                            <ul class="professional-alert-list">
-                                                @if (!$producto->allow_paqueteria_shipping)
+                                        <ul class="professional-alert-list">
+                                            @if (!$producto->allow_paqueteria_shipping)
                                                 <li>
-                                                    <i class="fa-solid fa-box"></i> 
+                                                    <i class="fa-solid fa-box"></i>
                                                     No disponible para <strong>Envío por Paquetería.</strong>
                                                 </li>
-                                                @endif
-                                                @if (!$producto->allow_store_pickup)
+                                            @endif
+                                            @if (!$producto->allow_store_pickup)
                                                 <li>
-                                                    <i class="fa-solid fa-store"></i> 
+                                                    <i class="fa-solid fa-store"></i>
                                                     No disponible para <strong>Recoger en Tienda.</strong>
                                                 </li>
-                                                @endif
-                                                @if (!$producto->allow_local_shipping)
+                                            @endif
+                                            @if (!$producto->allow_local_shipping)
                                                 <li>
-                                                    <i class="fa-solid fa-truck"></i> 
+                                                    <i class="fa-solid fa-truck"></i>
                                                     No disponible para <strong>Envío Local.</strong>
                                                 </li>
-                                                @endif
-                                                @if (!$producto->allow_cobrar_shipping)
+                                            @endif
+                                            @if (!$producto->allow_cobrar_shipping)
                                                 <li>
-                                                    <i class="fa-solid fa-money-bill-wave"></i> 
+                                                    <i class="fa-solid fa-money-bill-wave"></i>
                                                     No disponible para <strong>Envío por Cobrar.</strong>
                                                 </li>
-                                                @endif
-                                            </ul>
-                                            
+                                            @endif
+                                        </ul>
+
                                     </div>
                                 </div>
                             </div>
@@ -207,6 +208,10 @@
                                         data-nos="{{ $producto->no_s }}" class="btn btn-primary shadow-0">
                                         <i class="me-1 fa fa-shopping-basket"></i> Añadir al carrito
                                     </button>
+                                    <!-- Contenedor para la notificación -->
+                                    <div id="cart-notification" style="display: none;">
+                                        <p>Añadido al carrito</p>
+                                    </div>
 
                                     @if (Auth::check())
                                         <button id="show-cart" class="btn btn-danger shadow-0 p-2">
@@ -214,10 +219,6 @@
                                         </button>
                                     @endif
                                 </form>
-                                <!-- Contenedor para la notificación -->
-                                <div id="cart-notification" style="display: none;">
-                                    <p>Producto añadido al carrito</p>
-                                </div>
                             @else
                                 <p class="text-danger"></p>
                         @endif
@@ -337,7 +338,7 @@
 
 </section>
 
-<script>
+{{-- <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Identificar elementos del DOM
         const qtyInput = document.getElementById('qty');
@@ -427,6 +428,96 @@
             // Por ejemplo, si utilizas un formulario, puedes enviarlo aquí
             // document.getElementById('add-to-cart-form').submit();
         });
+    });
+</script> --}}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Identificar elementos del DOM
+        const qtyInput = document.getElementById('qty');
+        const quantityInputHidden = document.getElementById('quantity-input');
+        const addButton = document.querySelector('.btn-add-qty');
+        const removeButton = document.querySelector('.btn-remove-qty');
+        const addToCartButton = document.getElementById('add-to-cart');
+        const stockAlertToastElement = document.getElementById('stockAlertToast');
+        const stockAlertToast = stockAlertToastElement ? new bootstrap.Toast(stockAlertToastElement) : null;
+        const notification = document.getElementById('cart-notification');
+
+        // Límite de cantidades
+        const maxQty = parseInt(qtyInput.getAttribute('max')) || 1;
+        const minQty = parseInt(qtyInput.getAttribute('min')) || 1;
+
+        // Función para ajustar la cantidad
+        function sanitizeQuantity(value) {
+            return Math.min(Math.max(value, minQty), maxQty);
+        }
+
+        // Actualizar cantidad
+        function updateQuantity(change) {
+            let currentQty = parseInt(qtyInput.value) || minQty;
+            currentQty = sanitizeQuantity(currentQty + change);
+            qtyInput.value = currentQty;
+
+            // Actualizar el input hidden si existe
+            if (quantityInputHidden) {
+                quantityInputHidden.value = currentQty;
+            }
+
+            // Mostrar alerta si se excede el máximo
+            if (stockAlertToast) {
+                if (currentQty >= maxQty && change > 0) {
+                    stockAlertToast.show();
+                } else {
+                    stockAlertToast.hide();
+                }
+            }
+
+            updateAddToCartButton();
+        }
+
+        // Habilitar o deshabilitar botón de "Añadir al carrito"
+        function updateAddToCartButton() {
+            const currentQty = parseInt(qtyInput.value) || 0;
+            addToCartButton.disabled = currentQty < minQty || currentQty > maxQty || isNaN(currentQty);
+        }
+
+        // Escuchar clic en botón "+"
+        addButton.addEventListener('click', function() {
+            updateQuantity(1);
+        });
+
+        // Escuchar clic en botón "-"
+        removeButton.addEventListener('click', function() {
+            updateQuantity(-1);
+        });
+
+        // Validar entrada manual
+        qtyInput.addEventListener('input', function() {
+            let currentQty = parseInt(qtyInput.value) || minQty;
+            currentQty = sanitizeQuantity(currentQty);
+            qtyInput.value = currentQty;
+
+            // Actualizar el input hidden si existe
+            if (quantityInputHidden) {
+                quantityInputHidden.value = currentQty;
+            }
+
+            updateAddToCartButton();
+        });
+
+        // Escuchar clic en el botón "Añadir al carrito"
+        addToCartButton.addEventListener('click', function(event) {
+            // Mostrar la notificación
+            const notification = document.getElementById('cart-notification');
+            notification.style.display = 'block';
+
+            // Ocultar la notificación después de 2 segundos (2000 milisegundos)
+            setTimeout(function() {
+                notification.style.display = 'none';
+            }, 2000);
+        });
+
+        // Inicializar estado del botón "Añadir al carrito"
+        updateAddToCartButton();
     });
 </script>
 
@@ -569,17 +660,20 @@
     }
 </style>
 <style>
-    #cart-notification {
+#cart-notification {
+    position: fixed;
+    top: 75%;
+    right: 25%;
+    background-color: #38c172; /* Color verde */
+    color: white;
+    padding: 15px;
+    border-radius: 15px;
+    max-height: 50px;
+    z-index: 1000;
+    display: none; /* Oculto por defecto */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
 
-        background-color: #38c172;
-        /* Verde */
-        color: white;
-        padding: 10px;
-        /* Reducido para un cuadro más compacto */
-        border-radius: 5px;
-        z-index: 1000;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
 </style>
 <style>
     .professional-alert-container {

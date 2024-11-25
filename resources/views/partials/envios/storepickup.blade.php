@@ -1,23 +1,25 @@
 <div class="mb-4 p-4 bg-white rounded shadow-lg">
     <h4 class="mb-3 text-success"><i class="bi bi-shop"></i> Seleccione la tienda para recoger</h4>
-    <!-- Productos no elegibles -->
-    @if ($storePickupData['nonEligibleStorePickup']->isNotEmpty())
+<!-- Productos no elegibles -->
+@if ($storePickupData['nonEligibleStorePickup']->isNotEmpty())
     <div class="alert alert-warning non-eligible-alert">
         <h5><i class="fa-solid fa-triangle-exclamation"></i> Productos no elegibles para Recoger en Tienda</h5>
-        <p>Los siguientes productos en su carrito no pueden ser recogidos en tienda:</p>
+        <p>Estimado cliente, los siguientes productos en su carrito no están disponibles para la opción de entrega en tienda:</p>
         <ul>
             @foreach ($storePickupData['nonEligibleStorePickup'] as $item)
                 <li>{{ $item->product_name }} (Código: {{ $item->product_code }})</li>
             @endforeach
         </ul>
-        <p>Te invitamos a explorar otros métodos de envío disponibles para estos productos y continuar disfrutando de tu experiencia de compra con nosotros.</p>
+        <p>Le sugerimos considerar otro método de envío para que todos los productos de su carrito puedan ser entregados.</p>
     </div>
 @endif
+
 
     <!-- Fecha y hora de recogida -->
     <div class="bg-light p-4 rounded mb-4 border border-danger">
         <h6 class="text-primary"><i class="bi bi-calendar"></i> Fecha y hora de recogida</h6>
-        <p class="text-muted">La tienda se pondrá en contacto con usted para coordinar la fecha y hora de recogida una vez que el pedido esté completo.</p>
+        <p class="text-muted">La tienda se pondrá en contacto con usted para coordinar la fecha y hora de recogida una
+            vez que el pedido esté completo.</p>
     </div>
 
     <!-- Selector de tienda -->
@@ -39,8 +41,10 @@
     <!-- Detalles de la tienda -->
     <div class="bg-light p-3 rounded mb-4">
         <h6 class="text-primary">Detalles de la Tienda</h6>
-        <p><strong>Dirección:</strong> <span class="store-address">{{ $storePickupData['tiendas']->first()->direccion }}</span></p>
-        <p><strong>Teléfono:</strong> <span class="store-phone">{{ $storePickupData['tiendas']->first()->telefono }}</span></p>
+        <p><strong>Dirección:</strong> <span
+                class="store-address">{{ $storePickupData['tiendas']->first()->direccion }}</span></p>
+        <p><strong>Teléfono:</strong> <span
+                class="store-phone">{{ $storePickupData['tiendas']->first()->telefono }}</span></p>
         <p><strong>Horario:</strong>
             <span class="store-hours">
                 Lunes a Viernes: {{ $storePickupData['tiendas']->first()->horario_semana }}<br>
@@ -51,21 +55,23 @@
 
     <!-- Mapa de la tienda -->
     <div class="bg-light p-3 rounded mb-4">
-        <iframe id="store-map" src="{{ $storePickupData['tiendas']->first()->google_maps_url }}" width="100%" height="360"
-            style="border:0;" allowfullscreen="" loading="lazy"
+        <iframe id="store-map" src="{{ $storePickupData['tiendas']->first()->google_maps_url }}" width="100%"
+            height="360" style="border:0;" allowfullscreen="" loading="lazy"
             referrerpolicy="no-referrer-when-downgrade"></iframe>
     </div>
 
     <!-- Sección de Confirmación -->
     <div id="payment-section" class="bg-light p-4 rounded text-center shadow-sm">
-        <form id="storePickupForm" action="{{ route('storepickup.save') }}" method="POST" class="d-flex flex-column align-items-center">
+        <form id="storePickupForm" action="{{ route('storepickup.save') }}" method="POST"
+            class="d-flex flex-column align-items-center">
             @csrf
             <input type="hidden" name="store_id" id="store_id">
-    
-            <button type="submit" class="btn btn-lg btn-success shadow-sm px-5 py-3 d-flex align-items-center justify-content-center mb-4">
+
+            <button type="submit"
+                class="btn btn-lg btn-success shadow-sm px-5 py-3 d-flex align-items-center justify-content-center mb-4">
                 <i class="bi bi-check me-2"></i> Confirmar Recogida en Tienda
             </button>
-    
+
             <p class="mb-3 text-muted">
                 Para este método de entrega no es necesario realizar un pago adicional.
                 <a href="#" data-bs-toggle="modal" data-bs-target="#enviosModal">Más información</a>
@@ -94,43 +100,44 @@
 
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const tiendaSelector = document.getElementById('tienda-selector');
-    const direccionElement = document.querySelector('.store-address');
-    const telefonoElement = document.querySelector('.store-phone');
-    const horarioElement = document.querySelector('.store-hours');
-    const storeMapIframe = document.getElementById('store-map'); // Referencia al iframe
-    const paymentSection = document.getElementById('payment-section');
-    const storeIdInput = document.getElementById('store_id');
+    document.addEventListener('DOMContentLoaded', function() {
+        const tiendaSelector = document.getElementById('tienda-selector');
+        const direccionElement = document.querySelector('.store-address');
+        const telefonoElement = document.querySelector('.store-phone');
+        const horarioElement = document.querySelector('.store-hours');
+        const storeMapIframe = document.getElementById('store-map'); // Referencia al iframe
+        const paymentSection = document.getElementById('payment-section');
+        const storeIdInput = document.getElementById('store_id');
 
-    // Mostrar la sección de pago siempre, sin depender de la fecha y la hora
-    paymentSection.style.display = 'block';
+        // Mostrar la sección de pago siempre, sin depender de la fecha y la hora
+        paymentSection.style.display = 'block';
 
-    // Actualizar la información de la tienda seleccionada
-    tiendaSelector.addEventListener('change', function() {
-        const selectedOption = this.options[this.selectedIndex];
-        
-        // Actualizar la dirección, teléfono y horarios en el HTML
-        direccionElement.innerText = selectedOption.getAttribute('data-direccion');
-        telefonoElement.innerText = selectedOption.getAttribute('data-telefono');
-        horarioElement.innerHTML = `
+        // Actualizar la información de la tienda seleccionada
+        tiendaSelector.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+
+            // Actualizar la dirección, teléfono y horarios en el HTML
+            direccionElement.innerText = selectedOption.getAttribute('data-direccion');
+            telefonoElement.innerText = selectedOption.getAttribute('data-telefono');
+            horarioElement.innerHTML = `
             Lunes a Viernes: ${selectedOption.getAttribute('data-horario-semana')}<br>
             Sábado: ${selectedOption.getAttribute('data-horario-sabado')}
         `;
 
-        // Actualizar la URL del iframe de Google Maps
-        const googleMapsUrl = selectedOption.getAttribute('data-google-maps-url');
-        storeMapIframe.src = googleMapsUrl;
+            // Actualizar la URL del iframe de Google Maps
+            const googleMapsUrl = selectedOption.getAttribute('data-google-maps-url');
+            storeMapIframe.src = googleMapsUrl;
 
-        // Actualizar el input oculto con el ID de la tienda seleccionada
-        storeIdInput.value = tiendaSelector.value;
+            // Actualizar el input oculto con el ID de la tienda seleccionada
+            storeIdInput.value = tiendaSelector.value;
+        });
     });
-});
 
 
     // Configuración del calendario interactivo
     pickupDateInput.addEventListener('input', function() {
-        const selectedDate = new Date(this.value + 'T00:00:00'); // Ajuste de fecha para evitar problemas de sincronización
+        const selectedDate = new Date(this.value +
+        'T00:00:00'); // Ajuste de fecha para evitar problemas de sincronización
         const day = selectedDate.getUTCDay(); // Obtener el día correcto usando UTC
         dateErrorElement.style.display = 'none'; // Ocultar el mensaje de error
 
@@ -203,74 +210,74 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 
-document.addEventListener('DOMContentLoaded', function() {
-    const tiendaSelector = document.getElementById('tienda-selector');
-    const pickupDateInput = document.getElementById('pickup-date');
-    const pickupTimeInput = document.getElementById('pickup-time');
+    document.addEventListener('DOMContentLoaded', function() {
+        const tiendaSelector = document.getElementById('tienda-selector');
+        const pickupDateInput = document.getElementById('pickup-date');
+        const pickupTimeInput = document.getElementById('pickup-time');
 
-    const storeIdInput = document.getElementById('store_id');
-    const pickupDateHiddenInput = document.getElementById('pickup_date_hidden');
-    const pickupTimeHiddenInput = document.getElementById('pickup_time_hidden');
+        const storeIdInput = document.getElementById('store_id');
+        const pickupDateHiddenInput = document.getElementById('pickup_date_hidden');
+        const pickupTimeHiddenInput = document.getElementById('pickup_time_hidden');
 
-    // Actualizar inputs ocultos cuando se cambia tienda, fecha o hora
-    tiendaSelector.addEventListener('change', function() {
-        storeIdInput.value = tiendaSelector.value;
+        // Actualizar inputs ocultos cuando se cambia tienda, fecha o hora
+        tiendaSelector.addEventListener('change', function() {
+            storeIdInput.value = tiendaSelector.value;
+        });
+
+        pickupDateInput.addEventListener('change', function() {
+            pickupDateHiddenInput.value = pickupDateInput.value;
+        });
+
+        pickupTimeInput.addEventListener('change', function() {
+            pickupTimeHiddenInput.value = pickupTimeInput.value;
+        });
     });
-
-    pickupDateInput.addEventListener('change', function() {
-        pickupDateHiddenInput.value = pickupDateInput.value;
-    });
-
-    pickupTimeInput.addEventListener('change', function() {
-        pickupTimeHiddenInput.value = pickupTimeInput.value;
-    });
-});
-
 </script>
 
 <style>
-#tienda-selector {
-    font-size: 1rem;
-    padding: 10px;
-    border-radius: 5px;
-    border: 2px solid #007bff;
-    background-color: #f9f9f9;
-    transition: border-color 0.3s ease, background-color 0.3s ease;
-}
+    #tienda-selector {
+        font-size: 1rem;
+        padding: 10px;
+        border-radius: 5px;
+        border: 2px solid #007bff;
+        background-color: #f9f9f9;
+        transition: border-color 0.3s ease, background-color 0.3s ease;
+    }
 
-#tienda-selector:focus {
-    border-color: #0056b3;
-    background-color: #e0f0ff;
-}
+    #tienda-selector:focus {
+        border-color: #0056b3;
+        background-color: #e0f0ff;
+    }
 
-.store-address, .store-phone, .store-hours {
-    font-size: 1rem;
-    color: #333;
-}
+    .store-address,
+    .store-phone,
+    .store-hours {
+        font-size: 1rem;
+        color: #333;
+    }
 
-iframe#store-map {
-    border: 1px solid #007bff;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    margin-top: 15px;
-}
+    iframe#store-map {
+        border: 1px solid #007bff;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        margin-top: 15px;
+    }
 
-#payment-section button {
-    font-size: 1.2rem;
-    font-weight: bold;
-    background-color: #28a745;
-    border: none;
-    color: white;
-    border-radius: 10px;
-    transition: background-color 0.3s ease;
-}
+    #payment-section button {
+        font-size: 1.2rem;
+        font-weight: bold;
+        background-color: #28a745;
+        border: none;
+        color: white;
+        border-radius: 10px;
+        transition: background-color 0.3s ease;
+    }
 
-#payment-section button:hover {
-    background-color: #218838;
-}
+    #payment-section button:hover {
+        background-color: #218838;
+    }
 
-#payment-section p.text-muted {
-    font-size: 0.9rem;
-}
-
+    #payment-section p.text-muted {
+        font-size: 0.9rem;
+    }
 </style>
