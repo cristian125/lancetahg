@@ -1072,7 +1072,7 @@
             }
         });
     });
-
+    
     function verificarExistenciasEnTiendas() {
         fetch('{{ route('verificarExistencias') }}', {
                 method: 'GET',

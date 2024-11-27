@@ -111,6 +111,7 @@ class ShippingPaqueteriaController extends Controller
         $body = $response->getBody()->getContents();
         $data = json_decode($body, true);
         return response()->json($data);
+
     }
 
     public function addPaqueteriaMethod(Request $request)

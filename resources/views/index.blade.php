@@ -45,7 +45,7 @@
                 });
             }
 
-            function addProductToCart(productId, no_s, token) {
+            function addProductToCart(productId, no_s, token, clickedButton) {
                 $.ajax({
                     type: "POST",
                     url: "/cart/add",
@@ -62,9 +62,7 @@
                         if (data.status === 401) {
                             showLoginPopover(clickedButton);
                         } else {
-                            alert(
-                                'Ocurrió un error al añadir el producto al carrito. Intente de nuevo.'
-                                );
+                            showMaxStockPopover(clickedButton);
                         }
                     }
                 });
@@ -76,21 +74,32 @@
 
             function showLoginPopover(button) {
                 button.popover({
-                    content: 'Por favor inicie sesión para agregar el producto al carrito.',
+                    content: 'Inicia Sesión para añadir al carrito.',
                     placement: 'bottom',
                     trigger: 'focus',
                     customClass: 'popover-danger bg-danger fw-bold'
                 }).popover('show');
             }
 
+
             function showMaxStockPopover(button) {
+                if (!(button instanceof jQuery)) {
+                    button = $(button); // Convierte el elemento en un objeto jQuery si no lo es
+                }
+
                 button.popover({
                     content: 'No puedes añadir más productos de los que hay en stock.',
                     placement: 'bottom',
                     trigger: 'focus',
                     customClass: 'popover-warning bg-warning fw-bold'
                 }).popover('show');
+
+                // Oculta automáticamente después de 3 segundos
+                setTimeout(() => {
+                    button.popover('dispose');
+                }, 3000);
             }
+
         });
     </script>
 @endsection

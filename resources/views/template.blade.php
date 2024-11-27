@@ -93,17 +93,13 @@
     @php
         use App\Http\Controllers\ProductosDestacadosController;
         $mantenimiento = ProductosDestacadosController::checkMaintenance();
-        if ($mantenimiento == 'true') {
+        if ($mantenimiento == true) {
             return redirect(route('mantenimento'));
         }
     @endphp
-    @isset($_GET['m'])
-        @if ($_GET['m'] != 0)
-            @include('partials.navbar')
-        @endif
-    @else
+    @if (request('m') !== '0')
         @include('partials.navbar')
-    @endisset
+    @endif
     @if ($modalActivo && $modalImagen)
         <div id="modalAviso" class="modal fade" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg" style="margin-top: 10vh;">

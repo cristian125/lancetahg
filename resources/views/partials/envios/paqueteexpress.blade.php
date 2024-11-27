@@ -13,6 +13,8 @@
     </ul>
     <p>Le sugerimos considerar otro método de envío para que todos los productos de su carrito puedan ser entregados.</p>
 </div>
+
+
 @endif
         <div class="row">
             <!-- Columna izquierda: Seleccione su dirección -->
@@ -147,7 +149,7 @@
                             $('#shipping-info-text-paqueteria').html(errorMessage);
                             $('input[name="direccionEnvioPaqueteria"][value="' + direccionId +
                                 '"]').prop('disabled',
-                                true); // Deshabilitar la dirección con error
+                                true); 
                         }
                     },
                     error: function(error) {

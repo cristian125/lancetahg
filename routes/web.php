@@ -53,8 +53,8 @@ Route::fallback(function () {
 });
 
 Route::group(['middleware' => ['web']], function () {
-    Route::get('/paqueteruta', [PaqueteExpressController::class, 'getRequestCotizador'])->name('pq');
-
+    Route::get('/paqueteruta', [PaqueteExpressController::class, 'getRequestCotizadorRequest'])->name('pq');
+    Route::get('/verify-email/{token}', [RegisterController::class, 'verifyEmail'])->name('verify.email')->middleware('throttle:5,3');
 
     Route::get('/', [ProductosDestacadosController::class, 'index'])->name('home');
     Route::any('/mantenimiento', [ProductosDestacadosController::class, 'maintenance'])->name('mantenimento');
@@ -70,8 +70,10 @@ Route::group(['middleware' => ['web']], function () {
     Route::post('/eliminar-imagen', [ItemController::class, 'eliminarImagen'])->name('eliminar.imagen');
     Route::post('/clientes-distinguido', [ClienteDistinguidoController::class, 'store'])->name('cliente.distinguido.store');
     Route::get('/register', [RegisterController::class, 'showRegistrationForm']);
-    Route::post('/register', [RegisterController::class, 'register'])->name('register')->middleware('throttle:5,3');;
-    Route::post('/login', [LoginController::class, 'login'])->name('login')->middleware('throttle:5,3');;
+    Route::post('/register', [RegisterController::class, 'register'])->name('register')->middleware('throttle:5,3');
+    // Route::post('/register', [RegisterController::class, 'register'])->name('register');
+    // Route::post('/login', [LoginController::class, 'login'])->name('login');
+    Route::post('/login', [LoginController::class, 'login'])->name('login')->middleware('throttle:5,3');
     Route::get('/producto/img/{id}', [ProductController::class, 'getImage'])->name('producto.imagen');
     Route::get('/ajax-search', [ProductController::class, 'ajaxSearch'])->name('ajax.search');
     Route::get('/search-result', [ProductController::class, 'search'])->name('product.search');
@@ -124,6 +126,7 @@ Route::group(['middleware' => ['web']], function () {
 /***
  * Cuentas
  */
+
 Route::group(['middleware' => ['web', 'auth']], function () {
     Route::get('/cuenta', [AccountController::class, 'index'])->name('cuenta');
     Route::post('/cuenta/direccion/agregar', [AccountController::class, 'agregarDireccion'])->name('cuenta.direccion.agregar');
@@ -149,6 +152,7 @@ Route::group(['middleware' => ['auth', 'web']], function () {
     Route::post('/cart/remove', [ProductController::class, 'removeFromCart'])->name('cart.remove');
     Route::any('/carrito', [ProductController::class, 'showCart'])->name('cart.show');
     Route::post('/cart/add-multiple', [ProductController::class, 'addMultipleToCart']);
+    Route::post('/cart/get-available-stock', [ProductController::class, 'getAvailableStock']);
     Route::post('/cart/check-stock', [ProductosDestacadosController::class, 'checkStock']);
     Route::post('/cart/update-quantity', [ProductController::class, 'updateQuantity'])->name('cart.updateQuantity');
     Route::post('/cart/update', [ShippingLocalController::class, 'actualizarEnvio'])->name('cart.actualizarEnvio');

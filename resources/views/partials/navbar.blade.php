@@ -62,7 +62,7 @@
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
             aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
-        </button> 
+        </button>
         <div class="collapse navbar-collapse " id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-md-0">
                 <li class="nav-item dropdown megamenu" id="categoryMenuItem">
@@ -89,20 +89,23 @@
 
                 <li class="nav-item me-2 w-100">
                     <form action="{{ route('product.search') }}" method="GET" class="d-flex position-relative w-100"
-                    role="search" id="custom-search-form" onsubmit="return validateSearch();">
-                    <input id="custom-search" name="search" class="form-control me-2 w-100" type="search"
-                        placeholder="Buscar productos..." aria-label="Search" autocomplete="off">
-                    <button id="btnsearch" class="btn btn-outline-success g-recaptcha"
-                        data-sitekey="{{ config('recapcha.site_key') }}" data-callback='onSubmit'
-                        data-action='custom-search-form' type="submit">
-                        <i class="bi bi-search"></i>
-                    </button>
-                    <div id="custom-search-results" class="position-absolute bg-white w-100 shadow rounded mt-1 p-2"
-                        style="display:none; max-height: 400px; overflow-y: auto; z-index: 999; width: 200%;">
-                        <ul id="custom-results-list" class="list-unstyled mb-0"></ul>
-                    </div>
-                </form>
-                
+                        role="search" id="custom-search-form" onsubmit="return validateSearch();">
+
+                        <input id="custom-search" name="search" class="form-control me-2 w-100" type="search"
+                            placeholder="Buscar productos..." aria-label="Search" autocomplete="off">
+                        <button id="btnsearch" class="btn btn-outline-success g-recaptcha"
+                            data-sitekey="{{ config('recapcha.site_key') }}" data-callback='onSubmit'
+                            data-action='custom-search-form' type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+                        <div id="custom-search-results" class="position-absolute bg-white w-100 shadow rounded mt-1 p-2"
+                            style="display:none; max-height: 400px; overflow-y: auto; z-index: 999; width: 200%;">
+                            <ul id="custom-results-list" class="list-unstyled mb-0"></ul>
+                        </div>
+
+                    </form>
+
+
                 </li>
 
                 @if (Auth::check() == true)
@@ -112,17 +115,17 @@
 
                     <li class="nav-item dropdown me-3">
                         <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown"
-                        role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-person-fill me-2"></i>
-                        @if ($userData && $userData->tratamiento !== 'NA')
-                            {{ $userData->tratamiento }} {{ $userData->nombre }} {{ $userData->apellido_paterno }}
-                        @elseif ($userData)
-                            {{ $userData->nombre }} {{ $userData->apellido_paterno }}
-                        @else
-                            {{ Auth::user()->name }}
-                        @endif
-                    </a>
-                    
+                            role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-fill me-2"></i>
+                            @if ($userData && $userData->tratamiento !== 'NA')
+                                {{ $userData->tratamiento }} {{ $userData->nombre }} {{ $userData->apellido_paterno }}
+                            @elseif ($userData)
+                                {{ $userData->nombre }} {{ $userData->apellido_paterno }}
+                            @else
+                                {{ Auth::user()->name }}
+                            @endif
+                        </a>
+
                         <div class="dropdown-menu dropdown-menu-end dropi p-4 shadow-lg border-0 rounded"
                             aria-labelledby="userDropdown" style="min-width: 300px;">
                             <form id="logout-form" action="{{ route('logout') }}" method="POST">
@@ -206,32 +209,30 @@
                         </div>
                     </li>
                 @endif
-                <div id="btnCart" class="nav-item dropdown position-relative d-flex align-items-center">
-                    <a class="nav-link" href="#" id="navbarDropdownCart" role="button"
-                        data-bs-toggle="dropdown" aria-expanded="false">
-                        <img src="{{ asset('storage/iconos/carrito.png') }}" alt="Carrito de Compras"
-                            style="height: 30px;">
-                    </a>
-                    <span id="cart-item-count" class="badge bg-danger ms-2"
-                        style="display: none; font-size: 12px;">0</span> <!-- Contador de items -->
-                    <div class="dropdown-menu dropdown-menu-end p-4" aria-labelledby="navbarDropdownCart">
-                        <div id="cart-items" class="list-group">
-                        </div>
-                        <div class="d-grid gap-2 mt-2">
-                            <button id="verCarrito"
-                                class="btn btn-primary d-flex align-items-center justify-content-center">
-                                <i class="bi bi-bag-check-fill me-2"></i> Ver Carrito
-                            </button>
-                        </div>
-                        <form id="verCarritoForm" action="{{ route('cart.show') }}" method="POST"
-                            style="display: none;">
-                            @csrf
-                            <input type="hidden" name="recaptcha_token" id="recaptchaToken">
-                        </form>
-                    </div>
-                </div>
+
 
             </ul>
+
+        </div>
+        <div id="btnCart" class="nav-item dropdown position-relative d-flex align-items-center">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownCart" role="button"
+                data-bs-toggle="dropdown" aria-expanded="false">
+                <img src="{{ asset('storage/iconos/carrito.png') }}" alt="Carrito de Compras" style="height: 30px;">
+            </a>
+            <span id="cart-item-count" class="badge bg-danger ms-2" style="display: none; font-size: 12px;">0</span>
+            <div class="dropdown-menu dropdown-menu-end p-4" aria-labelledby="navbarDropdownCart">
+                <div id="cart-items" class="list-group">
+                </div>
+                <div class="d-grid gap-2 mt-2">
+                    <button id="verCarrito" class="btn btn-primary d-flex align-items-center justify-content-center">
+                        <i class="bi bi-bag-check-fill me-2"></i> Ver Carrito
+                    </button>
+                </div>
+                <form id="verCarritoForm" action="{{ route('cart.show') }}" method="POST" style="display: none;">
+                    @csrf
+                    <input type="hidden" name="recaptcha_token" id="recaptchaToken">
+                </form>
+            </div>
         </div>
     </div>
 </nav>
@@ -242,17 +243,16 @@
         const searchValue = searchInput.value.trim();
 
         if (searchValue === "") {
-            
-            searchInput.focus(); // Coloca el cursor en el campo de búsqueda
-            return false; // Cancela el envío del formulario
+
+            searchInput.focus();
+            return false;
         }
 
-        return true; // Permite el envío del formulario si la validación es correcta
+        return true;
     }
 </script>
 
 <script>
-    
     $(document).ready(function() {
         loadCategorias();
 
@@ -334,63 +334,77 @@
                 }
             });
         }
+
+        $('#navbarDropdownMenuLink').on('click', function(e) {
+            e.preventDefault();
+            $('.megamenu-content').toggle();
+        });
+
+
+        $(document).on('click', function(event) {
+            var $target = $(event.target);
+            if (!$target.closest('#categoryMenuItem').length && !$target.closest('.megamenu-content')
+                .length) {
+                $('.megamenu-content').hide();
+            }
+        });
         $('#login-dropdown .nav-link').on('click', function() {
-            // console.log($(this).children('.dropdown-menu'));
+
             $(this).parent().children('.dropdown-menu').toggle();
         });
 
         function initializeSubmenuBehavior() {
-    const categoryLinks = document.querySelectorAll(".category-item");
+            const categoryLinks = document.querySelectorAll(".category-item");
 
-    categoryLinks.forEach((link) => {
-        let isFirstClick = true; // Controlar si es el primer clic
-        const targetSubmenu = document.querySelector(link.getAttribute("data-target"));
+            categoryLinks.forEach((link) => {
+                let isFirstClick = true;
+                const targetSubmenu = document.querySelector(link.getAttribute("data-target"));
 
-        // Para dispositivos móviles
-        link.addEventListener("click", function (e) {
-            if (window.innerWidth <= 900) { // Sólo para pantallas móviles
-                e.preventDefault(); // Evitar redirección predeterminada
 
-                if (isFirstClick) {
-                    // Mostrar u ocultar el submenu en el primer clic
-                    if (targetSubmenu) {
-                        targetSubmenu.style.display = targetSubmenu.style.display === "block" ? "none" : "block";
+                link.addEventListener("click", function(e) {
+                    if (window.innerWidth <= 900) {
+                        e.preventDefault();
+
+                        if (isFirstClick) {
+
+                            if (targetSubmenu) {
+                                targetSubmenu.style.display = targetSubmenu.style.display ===
+                                    "block" ? "none" : "block";
+                            }
+                            isFirstClick = false;
+                        } else {
+
+                            window.location.href = link.getAttribute("href");
+                        }
                     }
-                    isFirstClick = false; // Cambiar el estado
-                } else {
-                    // Segundo clic redirige
-                    window.location.href = link.getAttribute("href");
-                }
-            }
-        });
+                });
 
-        // Para computadoras (hover abre submenu)
-        link.addEventListener("mouseenter", function () {
-            if (window.innerWidth > 900 && targetSubmenu) { // Solo en escritorio
-                targetSubmenu.style.display = "block";
-            }
-        });
 
-        // Ocultar el submenu cuando el mouse sale
-        if (targetSubmenu) {
-            targetSubmenu.addEventListener("mouseleave", function () {
-                if (window.innerWidth > 900) { // Solo en escritorio
-                    targetSubmenu.style.display = "none";
+                link.addEventListener("mouseenter", function() {
+                    if (window.innerWidth > 900 && targetSubmenu) {
+                        targetSubmenu.style.display = "block";
+                    }
+                });
+
+
+                if (targetSubmenu) {
+                    targetSubmenu.addEventListener("mouseleave", function() {
+                        if (window.innerWidth > 900) {
+                            targetSubmenu.style.display = "none";
+                        }
+                    });
                 }
+
+                document.addEventListener("click", function(event) {
+                    if (!link.contains(event.target) && !targetSubmenu.contains(event.target)) {
+                        if (targetSubmenu) {
+                            targetSubmenu.style.display = "none";
+                        }
+                        isFirstClick = true;
+                    }
+                });
             });
         }
-
-        // Restablecer la lógica de clic al hacer clic fuera
-        document.addEventListener("click", function (event) {
-            if (!link.contains(event.target) && !targetSubmenu.contains(event.target)) {
-                if (targetSubmenu) {
-                    targetSubmenu.style.display = "none";
-                }
-                isFirstClick = true; // Restablecer clic en móviles
-            }
-        });
-    });
-}
 
     });
 </script>
@@ -398,26 +412,32 @@
 <script>
     $(document).ready(function() {
         let typingTimer;
-        const typingInterval = 300; // Espera de 0.3 segundos
+        const typingInterval = 300;
 
-        // Configurar búsqueda AJAX al escribir en el input
-        $('#custom-search').on('keyup', function(e) {
-            if (e.keyCode === 13) return; // Permitir el envío de formulario con Enter
 
+        $(document).click(function(event) {
+            var $target = $(event.target);
+            if (!$target.closest('#custom-search-form').length && !$target.closest(
+                    '#custom-search-results').length) {
+                $('#custom-search-results').hide();
+            }
+        });
+
+
+        $('#custom-search').on('input', function(e) {
             clearTimeout(typingTimer);
             let searchWord = $(this).val().trim();
 
             if (searchWord.length > 2) {
                 typingTimer = setTimeout(function() {
-                    executeSearch(
-                        searchWord); // Enviar el valor del input al ejecutar la búsqueda
+                    executeSearch(searchWord);
                 }, typingInterval);
             } else {
                 $('#custom-search-results').hide();
             }
         });
 
-        // Ejecutar búsqueda AJAX
+
         function executeSearch(query) {
             $.ajax({
                 type: "GET",
@@ -436,44 +456,44 @@
             });
         }
 
-        // Mostrar resultados de búsqueda
+
         function displaySearchResults(products) {
             const $resultsList = $('#custom-results-list');
-            $resultsList.empty(); // Limpiar resultados anteriores
+            $resultsList.empty();
 
             if (products.length === 0) {
                 $resultsList.append('<li class="text-center">No se encontraron productos.</li>');
             } else {
                 products.forEach(function(product) {
                     let productHTML = `
-                    <li class="d-flex align-items-center mb-2" style="width: 100%;">
-                        <a href="/producto/${product.id}" class="d-flex w-100 text-decoration-none text-dark">
-                            <img src="${product.imagen_principal}" class="item-img me-2" alt="Producto">
-                            <div class="custom-product-info d-flex justify-content-between w-100">
-                                <div>
-                                    <p class="mb-0"><strong>${product.nombre}</strong></p>
-                                    <p class="mb-0">Código: ${product.no_s}</p>
-                                    ${product.descuento > 0 ? `<p class="mb-0 text-danger"><del>$${product.precio_unitario_IVAinc}</del> <strong>$${product.precio_final}</strong></p>` : `<p class="mb-0">Precio: $${product.precio_final}</p>`}
-                                </div>
-                                <button class="btn btn-primary btn-sm add-to-cart-btn" data-id="${product.id}"><i class="fas fa-cart-plus"></i></button>
+                <li class="d-flex align-items-center mb-2" style="width: 100%;">
+                    <a href="/producto/${product.id}" class="d-flex w-100 text-decoration-none text-dark">
+                        <img src="${product.imagen_principal}" class="item-img me-2" alt="Producto">
+                        <div class="custom-product-info d-flex justify-content-between w-100">
+                            <div>
+                                <p class="mb-0"><strong>${product.nombre}</strong></p>
+                                <p class="mb-0">Código: ${product.no_s}</p>
+                                ${product.descuento > 0 ? `<p class="mb-0 text-danger"><del>$${product.precio_unitario_IVAinc}</del> <strong>$${product.precio_final}</strong></p>` : `<p class="mb-0">Precio: $${product.precio_final}</p>`}
                             </div>
-                        </a>
-                    </li>`;
+                            <button class="btn btn-primary btn-sm add-to-cart-btn" data-id="${product.id}"><i class="fas fa-cart-plus"></i></button>
+                        </div>
+                    </a>
+                </li>`;
                     $resultsList.append(productHTML);
                 });
 
                 $('#custom-search-results').show();
             }
 
-            // Manejar la adición al carrito
+
             $('.add-to-cart-btn').on('click', function(e) {
-                e.preventDefault(); // Prevenir la redirección
+                e.preventDefault();
                 const productId = $(this).data('id');
                 addToCart(productId);
             });
         }
 
-        // Función para añadir al carrito y recargar la página
+
         function addToCart(productId) {
             $.ajax({
                 type: "POST",
@@ -483,10 +503,10 @@
                     _token: $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function() {
-                    window.location.reload(); // Recargar la página para actualizar el carrito
+                    window.location.reload();
                 },
                 error: function() {
-                    alert("Error al añadir el producto al carrito.");
+                    alert("No se pueden añadir mas productos.");
                 }
             });
         }
@@ -507,65 +527,68 @@
 </script>
 
 <style>
-.megamenu-content {
-    display: none;
-    align-items: flex-start !important;
-}
+    .megamenu-content {
+        display: none;
+        align-items: flex-start !important;
+    }
 
-.submenu {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start !important;
-}
+    .submenu {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
 
-.megamenu-content .row {
-    align-items: flex-start !important;
-}
+    .megamenu-content .row {
+        align-items: flex-start !important;
+    }
 
-.megamenu-content .row > .col-md-3 {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start !important;
-    justify-content: flex-start !important;
-}
+    .megamenu-content .row>.col-md-3 {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start !important;
+        justify-content: flex-start !important;
+    }
 
-.submenu ul {
-    align-items: flex-start;
-    justify-content: flex-start;
-}
+    .submenu ul {
+        align-items: flex-start;
+        justify-content: flex-start;
+    }
 
 
     #custom-search {
         width: 400px !important;
     }
 
-    /* Para pantallas grandes (1200px o más) */
-@media (min-width: 1200px) {
-    #custom-search {
-        width: 420px !important; /* Ancho mayor para pantallas grandes */
-    }
-}
 
-/* Para pantallas medianas (entre 900px y 1199px) */
-@media (max-width: 1199px) and (min-width: 900px) {
-    #custom-search {
-        width: 320px !important; /* Ajustar a un ancho moderado */
-    }
-}
+    @media (min-width: 1200px) {
+        #custom-search {
+            width: 420px !important;
 
-/* Para pantallas pequeñas (entre 700px y 899px) */
-@media (max-width: 899px) and (min-width: 700px) {
-    #custom-search {
-        width: 220px !important; /* Ajustar a un ancho más pequeño */
+        }
     }
-}
 
-/* Para pantallas muy pequeñas (menos de 700px) */
-@media (max-width: 699px) {
-    #custom-search {
-        width: 120px !important; /* Reducir aún más el ancho */
+
+    @media (max-width: 1199px) and (min-width: 900px) {
+        #custom-search {
+            width: 320px !important;
+
+        }
     }
-}
+
+
+    @media (max-width: 899px) and (min-width: 700px) {
+        #custom-search {
+            width: 220px !important;
+
+        }
+    }
+
+    @media (max-width: 699px) {
+        #custom-search {
+            width: 120px !important;
+
+        }
+    }
 
     #custom-search-results {
         border: 1px solid #005f7fea;
@@ -705,100 +728,220 @@
 </style>
 
 <style>
+    .navbar-custom {
+        background-color: #005f7f;
+        position: sticky;
+
+        top: 0;
+        z-index: 9999;
+
+        width: 100%;
+    }
 
 
-    /* Estilo para el navbar */
-.navbar-custom {
-    background-color: #005f7f;
-    position: sticky; /* Navbar fijo en la parte superior */
-    top: 0;
-    z-index: 9999; /* Siempre visible sobre otros elementos */
-    width: 100%;
+    .collapse-navbar {
+        max-height: 400px;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+
+    .collapse-navbar::-webkit-scrollbar {
+        width: 8px;
+
+    }
+
+    .collapse-navbar::-webkit-scrollbar-thumb {
+        background-color: #007bff;
+
+        border-radius: 4px;
+
+    }
+
+    .collapse-navbar::-webkit-scrollbar-track {
+        background: #f1f1f1;
+
+    }
+
+
+    body.navbar-open {
+        overflow: hidden;
+        /* No permitir scroll de la página */
+    }
+
+    .dropi {
+        background: #005f7fea;
+    }
+
+    @media (max-width: 700px) and (orientation: landscape) {
+
+        /* Hacer scrollable el navbar collapse */
+        .navbar-collapse {
+            max-height: 80vh;
+            /* Ajusta según sea necesario */
+            overflow-y: auto;
+        }
+
+        /* Opcional: Estilizar el scrollbar */
+        .navbar-collapse::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .navbar-collapse::-webkit-scrollbar-thumb {
+            background-color: #007bff;
+            border-radius: 4px;
+        }
+
+        .navbar-collapse::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+    }
+
+    @media (max-width: 700px) {
+
+        /* Hacer scrollable el navbar collapse */
+        .navbar-collapse {
+            max-height: 80vh;
+            /* Ajusta según sea necesario */
+            overflow-y: auto;
+        }
+
+        /* Opcional: Estilizar el scrollbar */
+        .navbar-collapse::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .navbar-collapse::-webkit-scrollbar-thumb {
+            background-color: #007bff;
+            border-radius: 4px;
+        }
+
+        .navbar-collapse::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+    }
+</style>
+<style>
+/* Asegurar que el carrito esté alineado a la derecha */
+#btnCart {
+    /* No es necesario 'margin-left: auto;' ya que ya está fuera del contenedor colapsable */
 }
 
-/* Estilo para la sección colapsable del navbar */
-.collapse-navbar {
-    max-height: 400px; 
-    overflow-y: auto;
-    overflow-x: hidden; 
+/* Posicionar el carrito de manera fija en dispositivos móviles */
+@media (max-width: 992px) { /* Ajusta el breakpoint según tu diseño */
+    #btnCart {
+        position: fixed;
+
+        right: 60px; /* Ajusta para dejar espacio al botón toggler */
+        z-index: 1050; /* Asegura que esté por encima de otros elementos */
+    }
 }
 
-/* Scrollbar personalizado dentro del navbar */
-.collapse-navbar::-webkit-scrollbar {
-    width: 8px; /* Ancho del scrollbar */
+/* Mantener el carrito dentro del flujo del navbar en pantallas grandes */
+@media (min-width: 993px) {
+    #btnCart {
+        position: static;
+        /* 'margin-left: auto;' no es necesario si ya está posicionado correctamente */
+    }
 }
 
-.collapse-navbar::-webkit-scrollbar-thumb {
-    background-color: #007bff; /* Color del scrollbar */
-    border-radius: 4px; /* Bordes redondeados */
+/* Ajustar el tamaño del icono del carrito en pantallas pequeñas */
+@media (max-width: 992px) {
+    #btnCart img {
+        height: 25px; /* Reduce el tamaño si es necesario */
+    }
 }
 
-.collapse-navbar::-webkit-scrollbar-track {
-    background: #f1f1f1; /* Fondo del contenedor del scrollbar */
+/* Asegurar que el botón toggler no se sobreponga con el carrito */
+.navbar-toggler {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    z-index: 1051; /* Superior al carrito para evitar conflictos */
 }
 
-/* Deshabilitar scroll de la página cuando el navbar está desplegado */
-body.navbar-open {
-    overflow: hidden; /* No permitir scroll de la página */
+/* Opcional: Ajustar el posicionamiento en caso de conflictos */
+@media (max-width: 992px) {
+    /* Asegurar que el carrito y el toggler estén separados */
+    #btnCart,
+    .navbar-toggler {
+        /* Espaciado suficiente para evitar superposición */
+    }
 }
 
-.dropi{
-background: #005f7fea;
+
+/* Opcional: Estilizar el dropdown del carrito */
+#btnCart .dropdown-menu {
+    min-width: 250px; /* Ajusta según sea necesario */
 }
+
+/* Asegurar que el badge del carrito no se desborde */
+#cart-item-count {
+    position: absolute;
+    top: 5px;
+    right: -5px;
+}
+
+
 </style>
 
 
 <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const navbarToggler = document.querySelector(".navbar-toggler");
+        const navbarCollapse = document.querySelector("#navbarSupportedContent");
+        const body = document.body;
+        const megamenuContent = document.querySelector(".megamenu-content");
 
-document.addEventListener("DOMContentLoaded", function () {
-    const navbarToggler = document.querySelector(".navbar-toggler");
-    const navbarCollapse = document.querySelector("#navbarSupportedContent");
-    const body = document.body;
-    const megamenuContent = document.querySelector(".megamenu-content");
+        navbarToggler.addEventListener("click", function() {
+            // Usamos un pequeño delay para esperar a que Bootstrap maneje la clase 'show'
+            setTimeout(() => {
+                const navbarIsOpen = navbarCollapse.classList.contains("show");
+                if (navbarIsOpen) {
+                    body.classList.add("navbar-open"); // Deshabilitar scroll de la página
+                } else {
+                    body.classList.remove("navbar-open"); // Habilitar scroll de la página
+                }
+            }, 300); // Ajusta este tiempo según la animación de Bootstrap
+        });
 
-    navbarToggler.addEventListener("click", function () {
-        // Usamos un pequeño delay para esperar a que Bootstrap maneje la clase 'show'
-        setTimeout(() => {
-            const navbarIsOpen = navbarCollapse.classList.contains("show");
-            if (navbarIsOpen) {
-                body.classList.add("navbar-open"); // Deshabilitar scroll de la página
-            } else {
-                body.classList.remove("navbar-open"); // Habilitar scroll de la página
+        // Cerrar el navbar si haces clic fuera del menú
+        document.addEventListener("click", function(e) {
+            if (!navbarCollapse.contains(e.target) && !navbarToggler.contains(e.target)) {
+                body.classList.remove("navbar-open");
+                navbarCollapse.classList.remove("show"); // Cierra el navbar manualmente
             }
-        }, 300); // Ajusta este tiempo según la animación de Bootstrap
-    });
+        });
 
-    // Cerrar el navbar si haces clic fuera del menú
-    document.addEventListener("click", function (e) {
-        if (!navbarCollapse.contains(e.target) && !navbarToggler.contains(e.target)) {
-            body.classList.remove("navbar-open");
-            navbarCollapse.classList.remove("show"); // Cierra el navbar manualmente
+        // Evitar que el scroll en el megamenu afecte el scroll del body
+        if (megamenuContent) {
+            megamenuContent.addEventListener('touchmove', function(e) {
+                e.stopPropagation();
+            }, {
+                passive: false
+            });
+
+            megamenuContent.addEventListener('wheel', function(e) {
+                e.stopPropagation();
+            }, {
+                passive: false
+            });
+        }
+
+        // Manejar el scroll dentro del megamenu
+        const handleScroll = (e) => {
+            const {
+                scrollTop,
+                scrollHeight,
+                clientHeight
+            } = e.target;
+            if (scrollTop + clientHeight >= scrollHeight) {
+                e.target.scrollTop = scrollHeight - clientHeight;
+            }
+        };
+
+        if (megamenuContent) {
+            megamenuContent.addEventListener('scroll', handleScroll);
         }
     });
-
-    // Evitar que el scroll en el megamenu afecte el scroll del body
-    if (megamenuContent) {
-        megamenuContent.addEventListener('touchmove', function (e) {
-            e.stopPropagation();
-        }, { passive: false });
-
-        megamenuContent.addEventListener('wheel', function (e) {
-            e.stopPropagation();
-        }, { passive: false });
-    }
-
-    // Manejar el scroll dentro del megamenu
-    const handleScroll = (e) => {
-        const { scrollTop, scrollHeight, clientHeight } = e.target;
-        if (scrollTop + clientHeight >= scrollHeight) {
-            e.target.scrollTop = scrollHeight - clientHeight;
-        }
-    };
-
-    if (megamenuContent) {
-        megamenuContent.addEventListener('scroll', handleScroll);
-    }
-});
-
-
 </script>

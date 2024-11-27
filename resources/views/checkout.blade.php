@@ -22,7 +22,7 @@
                 <i class="bi bi-exclamation-triangle-fill"></i> {{ $error }}
             </div>
         @else
-            <div class="container p-4 border rounded bg-light shadow-sm">
+            {{-- <div class="container p-4 border rounded bg-light shadow-sm"> --}}
                 <div class="row">
                     <div class="col-12 text-center">
                         <h2 class="display-6 font-weight-bold text-primary mb-5">Confirmación de Envío</h2>
@@ -108,8 +108,8 @@
                                 @endforeach
 
                                 <!-- Resumen de totales generales -->
-                                <div class="table-responsive mt-4 shadow-sm">
-                                    <table class="table table-hover table-striped table-borderless align-middle">
+                                <div class="table-responsive mt-4">
+                                    <table class="table table-hover table-striped table-borderless align-middle w-100">
                                         <thead class="thead-light">
                                             <tr class="text-center bg-primary text-white">
                                                 <th scope="col">Tipo de IVA</th>
@@ -119,23 +119,18 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <!-- Fila para productos con IVA 16% -->
                                             <tr class="text-center">
                                                 <td><strong>IVA 16%</strong></td>
                                                 <td>${{ number_format($totalConIVA / 1.16, 2, '.', ',') }} MXN</td>
                                                 <td>${{ number_format($totalConIVA - $totalConIVA / 1.16, 2, '.', ',') }} MXN</td>
                                                 <td><strong>${{ number_format($totalConIVA, 2, '.', ',') }} MXN</strong></td>
                                             </tr>
-
-                                            <!-- Fila para productos con IVA 0% -->
                                             <tr class="text-center">
                                                 <td><strong>IVA 0%</strong></td>
                                                 <td>${{ number_format($totalSinIVA, 2, '.', ',') }} MXN</td>
                                                 <td>$0.00 MXN</td>
                                                 <td><strong>${{ number_format($totalSinIVA, 2, '.', ',') }} MXN</strong></td>
                                             </tr>
-
-                                            <!-- Fila para costo de envío -->
                                             <tr class="text-center">
                                                 <td><strong>Costo de Envío</strong></td>
                                                 <td></td>
@@ -149,8 +144,6 @@
                                                     <td><strong>${{ number_format($shippingCost, 2, '.', ',') }} MXN</strong></td>
                                                 @endif
                                             </tr>
-
-                                            <!-- Fila para importe total final -->
                                             <tr class="text-center bg-warning font-weight-bold">
                                                 <td><strong>Importe Total (con IVA)</strong></td>
                                                 <td></td>
@@ -168,6 +161,7 @@
                                         </tbody>
                                     </table>
                                 </div>
+                                
                             </div>
                         </div>
                     </div> <!-- Cierre de la columna izquierda -->
@@ -250,7 +244,7 @@
                         </button>
                     </div>
                 </div>
-            </div>
+            {{-- </div> --}}
         @endif
     </div>
 
@@ -279,59 +273,88 @@
         </div>
     </div>
 
-    <!-- Scripts -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Manejar la selección del método de pago en el modal
-            document.querySelectorAll('.payment-option').forEach(function(element) {
-                element.addEventListener('click', function(e) {
+            document.querySelectorAll('.payment-option').forEach(function (element) {
+                element.addEventListener('click', function (e) {
                     e.preventDefault();
                     var selectedPaymentMethod = this.getAttribute('data-payment-method');
-
+    
                     // Cerrar el modal
                     var paymentMethodModal = bootstrap.Modal.getInstance(document.getElementById('paymentMethodModal'));
                     paymentMethodModal.hide();
-
+    
                     // Enviar el método de pago al servidor
                     fetch("{{ route('update.payment.method') }}", {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                payment_method: selectedPaymentMethod
-                            })
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                // Mostrar la sección de pago con el iframe y el loader
-                                document.getElementById('mainContent').style.display = 'none';
-                                document.getElementById('paymentSection').style.display = 'block';
-                                document.getElementById('loader').style.display = 'block';
-
-                                // Enviar automáticamente el formulario de pago
-                                document.getElementById('paymentForm').submit();
-                            } else {
-                                alert('Error al actualizar el método de pago: ' + data.message);
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            alert('Ocurrió un error al procesar su solicitud.');
-                        });
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            payment_method: selectedPaymentMethod,
+                        }),
+                    })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        if (data.success) {
+                            // Ocultar el botón "Proceder al Pago"
+                            document.getElementById('proceedToPaymentBtn').style.display = 'none';
+    
+                            // Mostrar la sección de pago con el iframe y el loader
+                            document.getElementById('mainContent').style.display = 'none';
+                            document.getElementById('paymentSection').style.display = 'block';
+                            document.getElementById('loader').style.display = 'block';
+    
+                            // Enviar automáticamente el formulario de pago
+                            document.getElementById('paymentForm').submit();
+                        } else {
+                            alert('Error al actualizar el método de pago: ' + data.message);
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);
+                        alert('Ocurrió un error al procesar su solicitud.');
+                    });
                 });
             });
-
+    
             // Detectar cuándo el iframe ha terminado de cargar y ocultar el loader
-            document.getElementById('paymentFrame').onload = function() {
+            document.getElementById('paymentFrame').onload = function () {
                 document.getElementById('loader').style.display = 'none';
             };
         });
     </script>
+    
 
     <style>
+        /* Hacer que la tabla sea totalmente visible en pantallas pequeñas */
+.table-responsive {
+    overflow-x: visible !important; /* Permitir que la tabla se adapte sin scroll horizontal */
+}
+
+.table th,
+.table td {
+    white-space: normal; /* Evitar que el contenido se divida en varias líneas */
+    font-size: 14px; /* Ajustar el tamaño del texto para pantallas pequeñas */
+}
+
+@media (max-width: 768px) {
+    .table th,
+    .table td {
+        font-size: 12px; /* Reducir el tamaño del texto para pantallas más pequeñas */
+    }
+
+    .table thead th {
+        font-size: 13px; /* Tamaño más pequeño para los encabezados */
+    }
+
+    .table-responsive {
+        margin-bottom: 1rem; /* Espacio adicional en pantallas pequeñas */
+    }
+}
+
         .loader {
             position: absolute;
             top: 50%;

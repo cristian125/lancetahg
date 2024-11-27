@@ -115,10 +115,10 @@ class PaymentController extends Controller
         $paymentStatus = $responseData['status'] ?? 'FALLADO';
 
         // // // Validar el hash de la respuesta para asegurarse de que sea válido
-        // if (!$this->validateResponseHash($responseData)) {
-        //     Log::warning('Hash de respuesta inválido:', $responseData);
-        //     return redirect()->route('payment.fail')->with('error', 'Respuesta inválida. Por favor, contacte con soporte.');
-        // }
+        if (!$this->validateResponseHash($responseData)) {
+            Log::warning('Hash de respuesta inválido:', $responseData);
+            return redirect()->route('payment.fail')->with('error', 'Respuesta inválida. Por favor, contacte con soporte.');
+        }
 
         // Registrar la solicitud del pago como éxito
         $this->logPaymentRequest($responseData, 'success');
@@ -626,43 +626,52 @@ class PaymentController extends Controller
 
     public function handleFail(Request $request)
     {
-
         $responseData = $request->all();
-        // dd($responseData);
 
+        // Log de la transacción fallida
         $this->logPaymentRequest($responseData, 'fail');
 
-        $errorCodes = [];
-        try {
-            $errorCodes = json_decode(file_get_contents(storage_path('app/response_codes.json')), true);
-        } catch (\Exception $e) {
-            $error = 'Error al procesar la respuesta. Por favor, contacte con soporte.';
+        // Obtener los códigos de error desde config
+        $errorCodes = config('response_codes');
+
+        // Verifica si se cargó correctamente
+        if (empty($errorCodes)) {
+            \Log::error('No se cargaron los códigos de error desde la configuración.');
+            $error = 'Error en la configuración de códigos de respuesta. Por favor, contacte con soporte.';
             return view('fail', compact('error', 'responseData'));
-            // return redirect()->route('payment.fail')->with('error', 'Error al procesar la respuesta. Por favor, contacte con soporte.');
         }
 
-        if (!$this->validateResponseHash($responseData)) {
-            $error = 'Respuesta inválida. Por favor, contacte con soporte.';
-            return view('fail', compact('error', 'responseData'));
-            // return redirect()->route('payment.fail')->with('error', 'Respuesta inválida. Por favor, contacte con soporte.');
-        }
+        // Obtener el código de error y asegurarte de que no tenga espacios en blanco
+        $errorCode = isset($responseData['fail_rc']) ? trim($responseData['fail_rc']) : '00';
 
-        $errorCode = $responseData['fail_rc'] ?? '00';
-
+        // Obtener detalles del código de error
         $errorDetails = $errorCodes[$errorCode] ?? [
             'error_msg_translation' => 'Error desconocido.',
             'severity' => 'Desconocida',
         ];
 
-        \Log::info('Transacción fallida', [
-            'oid' => $responseData['oid'] ?? 'No OID',
+        // Registrar información para depuración
+        \Log::info('Detalles del código de error', [
             'error_code' => $errorCode,
-            'error_message' => $errorDetails['error_msg_translation'],
-            'fail_reason' => $responseData['fail_reason'] ?? 'No especificado',
+            'error_details' => $errorDetails,
         ]);
-        $error = 'Transacción rechazada.';
+
+        // Determinar el mensaje de error para mostrar
+        if (isset($errorDetails['severity'])) {
+            if ($errorDetails['severity'] === 'Hard') {
+                $error = 'Transacción rechazada. Por favor, contacte con su banco.';
+            } elseif ($errorDetails['severity'] === 'Soft') {
+                $error = 'Transacción rechazada. Por favor, inténtelo de nuevo.';
+            } else {
+                $error = 'Transacción rechazada. Por favor, inténtelo de nuevo.';
+            }
+        } else {
+            $error = 'Error desconocido. Por favor, contacte con soporte.';
+        }
+
+        // Retornar la vista con el error
         return view('fail', compact('error', 'responseData'));
-        // return redirect()->route('payment.fail')->with('error', 'Transacción rechazada. ' . $errorDetails['error_msg_translation']);
+
     }
 
     private function validateResponseHash(array $responseData): bool

@@ -1,7 +1,6 @@
 <section class="py-5">
     <div class="container">
         <div class="row gx-5">
-
             <aside class="col-lg-6 ">
                 <div id="main-image-container"
                     class="border rounded-4 mb-3 d-flex justify-content-center align-items-center"
@@ -103,71 +102,27 @@
                             </dd>
                         </div>
                         <hr />
-
-                        @foreach ($groupedProducts as $grupoDescripcion => $productos)
-                            <div class="mb-3">
-                                <label for="product-variants-{{ $loop->index }}">{{ $grupoDescripcion }}:</label>
-                                <select id="product-variants-{{ $loop->index }}"
-                                    class="form-select product-variant-select">
-                                    @foreach ($atributosProducto->where('grupo_descripcion', $grupoDescripcion) as $atributoActual)
-                                        <option value="{{ $producto->id }}" selected>
-                                            {{ $atributoActual->atributo_nombre }} (Actual)</option>
-                                    @endforeach
-                                    @foreach ($productos as $prod)
-                                        <option value="{{ $prod->id }}">{{ $prod->atributo_nombre }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        @endforeach
-
-                        @if (
-                            !$producto->allow_paqueteria_shipping ||
-                                !$producto->allow_store_pickup ||
-                                !$producto->allow_local_shipping ||
-                                !$producto->allow_cobrar_shipping)
-                            <div class="professional-alert-container">
-                                <div class="professional-alert">
-                                    <div class="professional-alert-icon">
-                                        <i class="fa-solid fa-triangle-exclamation"></i>
-                                    </div>
-                                    <div class="professional-alert-content">
-                                        <h5 class="professional-alert-title">Restricciones de Envío</h5>
-                                        <p class="professional-alert-description">Este producto tiene limitaciones en
-                                            el/los métodos de envío siguientes:</p>
-                                        <ul class="professional-alert-list">
-                                            @if (!$producto->allow_paqueteria_shipping)
-                                                <li>
-                                                    <i class="fa-solid fa-box"></i>
-                                                    No disponible para <strong>Envío por Paquetería.</strong>
-                                                </li>
-                                            @endif
-                                            @if (!$producto->allow_store_pickup)
-                                                <li>
-                                                    <i class="fa-solid fa-store"></i>
-                                                    No disponible para <strong>Recoger en Tienda.</strong>
-                                                </li>
-                                            @endif
-                                            @if (!$producto->allow_local_shipping)
-                                                <li>
-                                                    <i class="fa-solid fa-truck"></i>
-                                                    No disponible para <strong>Envío Local.</strong>
-                                                </li>
-                                            @endif
-                                            @if (!$producto->allow_cobrar_shipping)
-                                                <li>
-                                                    <i class="fa-solid fa-money-bill-wave"></i>
-                                                    No disponible para <strong>Envío por Cobrar.</strong>
-                                                </li>
-                                            @endif
-                                        </ul>
-
-                                    </div>
+                        
+                            @foreach ($groupedProducts as $grupoDescripcion => $productos)
+                                <div class="mb-3">
+                                    <label for="product-variants-{{ $loop->index }}">{{ $grupoDescripcion }}:</label>
+                                    <select id="product-variants-{{ $loop->index }}"
+                                        class="form-select product-variant-select">
+                                        @foreach ($atributosProducto->where('grupo_descripcion', $grupoDescripcion) as $atributoActual)
+                                            <option value="{{ $producto->id }}" selected>
+                                                {{ $atributoActual->atributo_nombre }} (Actual)</option>
+                                        @endforeach
+                                        @foreach ($productos as $prod)
+                                            <option value="{{ $prod->id }}">{{ $prod->atributo_nombre }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
-                            </div>
-                        @endif
+                            @endforeach
+
                         @if ($cantidadDisponible > 0)
                             <div class="row mb-4">
                                 <div class="col-md-4 col-6 mb-3">
+                                    @if (Auth::check())
                                     <label class="mb-2 d-block">Cantidad</label>
                                     <div class="input-group mb-3" style="width: 170px;">
                                         <div class="input-group mb-3" style="width: 170px;">
@@ -183,12 +138,12 @@
                                                 <i class="bi bi-plus"></i>
                                             </button>
                                         </div>
-
+@endif
                                         <div class="toast-container position-fixed bottom-0 end-0 p-3"
                                             style="z-index: 1055;">
                                             <div id="stockAlertToast"
-                                                class="toast align-items-center text-bg-danger border-0"
-                                                role="alert" aria-live="assertive" aria-atomic="true">
+                                                class="toast align-items-center text-bg-danger border-0" role="alert"
+                                                aria-live="assertive" aria-atomic="true">
                                                 <div class="d-flex">
                                                     <div class="toast-body">
                                                         No se puede añadir esa cantidad porque supera el límite de
@@ -202,16 +157,15 @@
                                         </div>
                                     </div>
                                 </div>
-
+                                <div id="cart-notification" class="notification-popup" style="display: none;">
+                                    Producto añadido al carrito.
+                                </div>
+                                
                                 <form action="{{ env('APP_URL') }}/producto/{{ $id }}" method="GET">
                                     <button id="add-to-cart" data-id="{{ $producto->id }}"
                                         data-nos="{{ $producto->no_s }}" class="btn btn-primary shadow-0">
                                         <i class="me-1 fa fa-shopping-basket"></i> Añadir al carrito
                                     </button>
-                                    <!-- Contenedor para la notificación -->
-                                    <div id="cart-notification" style="display: none;">
-                                        <p>Añadido al carrito</p>
-                                    </div>
 
                                     @if (Auth::check())
                                         <button id="show-cart" class="btn btn-danger shadow-0 p-2">
@@ -219,6 +173,10 @@
                                         </button>
                                     @endif
                                 </form>
+                                <!-- Contenedor para la notificación -->
+                                <div id="cart-notification" class="notification-popup" style="display: none;">
+                                    Producto añadido al carrito.
+                                </div>
                             @else
                                 <p class="text-danger"></p>
                         @endif
@@ -331,14 +289,11 @@
         </div>
     </div>
 
-    <!-- Contenedor para la notificación -->
-    <div id="cart-notification" style="display: none;">
-        <p>Producto añadido al carrito</p>
-    </div>
 
 </section>
 
-{{-- <script>
+<script>
+ 
     document.addEventListener('DOMContentLoaded', function() {
         // Identificar elementos del DOM
         const qtyInput = document.getElementById('qty');
@@ -403,123 +358,156 @@
         updateAddToCartButton();
     });
 </script>
-
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const addToCartButton = document.getElementById('add-to-cart');
-        const qtyInput = document.getElementById('qty');
-        const maxQty = parseInt(qtyInput.getAttribute('max')) || 1;
-        const notification = document.getElementById('cart-notification');
+    
 
-        addToCartButton.addEventListener('click', function(event) {
-            event.preventDefault(); // Prevenir el comportamiento por defecto si es necesario
-            const currentQty = parseInt(qtyInput.value) || 1;
+    function addToCart(productId, no_s, quantity, currentStock) {
+    let token = $('meta[name="csrf-token"]').attr("content");
 
-            if (currentQty < maxQty) {
-                // Mostrar notificación de "Producto añadido"
-                notification.style.display = 'block';
-                // Ocultar la notificación después de 2 segundos (opcional)
-                setTimeout(function() {
-                    notification.style.display = 'none';
-                }, 2000);
-            }
+    $.ajax({
+        type: "POST",
+        url: "/cart/add-multiple",
+        data: {
+            no_s: no_s,
+            quantity: quantity,
+            _token: token,
+        },
+        dataType: "json",
+        success: function (response) {
+            updateCartCount();
+            loadCartItems();
 
-            // Aquí puedes agregar la lógica para añadir el producto al carrito
-            // Por ejemplo, si utilizas un formulario, puedes enviarlo aquí
-            // document.getElementById('add-to-cart-form').submit();
-        });
-    });
-</script> --}}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Identificar elementos del DOM
-        const qtyInput = document.getElementById('qty');
-        const quantityInputHidden = document.getElementById('quantity-input');
-        const addButton = document.querySelector('.btn-add-qty');
-        const removeButton = document.querySelector('.btn-remove-qty');
-        const addToCartButton = document.getElementById('add-to-cart');
-        const stockAlertToastElement = document.getElementById('stockAlertToast');
-        const stockAlertToast = stockAlertToastElement ? new bootstrap.Toast(stockAlertToastElement) : null;
-        const notification = document.getElementById('cart-notification');
+            if (response.stock_restante !== undefined) {
+                $(".stock-info")
+                    .text(`${response.stock_restante} en stock`)
+                    .data("stock", response.stock_restante);
 
-        // Límite de cantidades
-        const maxQty = parseInt(qtyInput.getAttribute('max')) || 1;
-        const minQty = parseInt(qtyInput.getAttribute('min')) || 1;
-
-        // Función para ajustar la cantidad
-        function sanitizeQuantity(value) {
-            return Math.min(Math.max(value, minQty), maxQty);
-        }
-
-        // Actualizar cantidad
-        function updateQuantity(change) {
-            let currentQty = parseInt(qtyInput.value) || minQty;
-            currentQty = sanitizeQuantity(currentQty + change);
-            qtyInput.value = currentQty;
-
-            // Actualizar el input hidden si existe
-            if (quantityInputHidden) {
-                quantityInputHidden.value = currentQty;
-            }
-
-            // Mostrar alerta si se excede el máximo
-            if (stockAlertToast) {
-                if (currentQty >= maxQty && change > 0) {
-                    stockAlertToast.show();
-                } else {
-                    stockAlertToast.hide();
+                if (response.stock_restante <= 0) {
+                    $("#add-to-cart").prop("disabled", true);
+                    $(".stock-info")
+                        .text("No hay stock disponible")
+                        .removeClass("text-success")
+                        .addClass("text-danger");
                 }
             }
 
-            updateAddToCartButton();
-        }
-
-        // Habilitar o deshabilitar botón de "Añadir al carrito"
-        function updateAddToCartButton() {
-            const currentQty = parseInt(qtyInput.value) || 0;
-            addToCartButton.disabled = currentQty < minQty || currentQty > maxQty || isNaN(currentQty);
-        }
-
-        // Escuchar clic en botón "+"
-        addButton.addEventListener('click', function() {
-            updateQuantity(1);
-        });
-
-        // Escuchar clic en botón "-"
-        removeButton.addEventListener('click', function() {
-            updateQuantity(-1);
-        });
-
-        // Validar entrada manual
-        qtyInput.addEventListener('input', function() {
-            let currentQty = parseInt(qtyInput.value) || minQty;
-            currentQty = sanitizeQuantity(currentQty);
-            qtyInput.value = currentQty;
-
-            // Actualizar el input hidden si existe
-            if (quantityInputHidden) {
-                quantityInputHidden.value = currentQty;
+            // Mostrar notificación de éxito
+            showNotification("Producto añadido al carrito.");
+        },
+        error: function (data) {
+            if (data.status === 401) {
+                showLoginPopover();
+            } else if (data.responseJSON && data.responseJSON.error) {
+                // Mostrar el mensaje dinámico desde el backend
+                showMaxStockPopover(data.responseJSON.error);
+            } else {
+                showMaxStockPopover();
             }
-
-            updateAddToCartButton();
-        });
-
-        // Escuchar clic en el botón "Añadir al carrito"
-        addToCartButton.addEventListener('click', function(event) {
-            // Mostrar la notificación
-            const notification = document.getElementById('cart-notification');
-            notification.style.display = 'block';
-
-            // Ocultar la notificación después de 2 segundos (2000 milisegundos)
-            setTimeout(function() {
-                notification.style.display = 'none';
-            }, 2000);
-        });
-
-        // Inicializar estado del botón "Añadir al carrito"
-        updateAddToCartButton();
+        },
     });
+}
+
+    $("#add-to-cart").on("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        let productId = $(this).data("id");
+        let no_s = $(this).data("nos");
+        let quantity = parseInt($("#qty").val());
+        let currentStock = parseInt($(".stock-info").data("stock"));
+
+        addToCart(productId, no_s, quantity, currentStock);
+    });
+
+    $("#show-cart").on("click", function (e) {
+        e.preventDefault();
+        $(location).prop("href", "/carrito");
+    });
+
+    function showLoginPopover() {
+        $("#add-to-cart")
+            .popover({
+                content:
+                    "Por favor inicie sesión para agregar el producto al carrito.",
+                placement: "bottom",
+                trigger: "focus",
+                customClass: "popover-danger bg-danger fw-bold",
+            })
+            .popover("show");
+    }
+
+    function showMaxStockPopover(message = "No puedes añadir más productos de los que hay en stock.") {
+    $("#add-to-cart")
+        .popover({
+            content: message, // Mensaje dinámico
+            placement: "bottom",
+            trigger: "focus",
+            customClass: "popover-warning bg-warning fw-bold",
+        })
+        .popover("show");
+
+    // Ocultar automáticamente después de 3 segundos
+    setTimeout(() => {
+        $("#add-to-cart").popover("dispose");
+    }, 3000);
+}
+    function updateCartCount() {
+        $.ajax({
+            type: "GET",
+            url: "/get-cart-items",
+            dataType: "json",
+            success: function (data) {
+                let totalItems = 0;
+
+                $.each(data.items, function (index, item) {
+                    totalItems += item.quantity;
+                });
+
+                if (totalItems > 0) {
+                    $("#cart-item-count").text(totalItems).show();
+                } else {
+                    $("#cart-item-count").hide();
+                }
+                
+            },
+            error: function () {
+                console.log("Error al cargar los items del carrito.");
+            },
+        });
+    }
 </script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const qtyInput = document.getElementById('qty');
+    const addToCartButton = document.getElementById('add-to-cart');
+    const notification = document.getElementById('cart-notification');
+    const stockMessage = document.querySelector('.stock-message');
+    const stockIndicator = document.querySelector('.stock-indicator');
+
+    notification.style.display = 'none';
+
+
+    function showNotification(message) {
+        notification.textContent = message;
+        notification.classList.add('show');
+        notification.style.display = 'block';
+
+        // Ocultar después de 2 segundos
+        setTimeout(() => {
+            notification.classList.add('hide');
+        }, 2000);   
+
+        // Eliminar clases y ocultar después de 2.5 segundos
+        setTimeout(() => {
+            notification.style.display = 'none';
+            notification.classList.remove('show', 'hide');
+        }, 2500);
+    }
+
+
+});
+
+</script>
+
 
 
 <script>
@@ -659,90 +647,6 @@
         font-size: 16px;
     }
 </style>
-<style>
-#cart-notification {
-    position: fixed;
-    top: 75%;
-    right: 25%;
-    background-color: #38c172; /* Color verde */
-    color: white;
-    padding: 15px;
-    border-radius: 15px;
-    max-height: 50px;
-    z-index: 1000;
-    display: none; /* Oculto por defecto */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
 
-</style>
-<style>
-    .professional-alert-container {
-        margin-top: 20px;
-        padding: 20px;
-        background: linear-gradient(to right, #f7f7f7, #e4e4e4);
-        /* Fondo degradado */
-        border: 1px solid #d6d6d6;
-        /* Borde suave */
-        border-radius: 10px;
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-        /* Sombra suave */
-        display: flex;
-        align-items: center;
-        font-family: 'Arial', sans-serif;
-    }
 
-    .professional-alert {
-        display: flex;
-        align-items: flex-start;
-        width: 100%;
-        gap: 15px;
-    }
 
-    .professional-alert-icon {
-        font-size: 40px;
-        color: #ff6b6b;
-        /* Ícono en rojo suave */
-        flex-shrink: 0;
-    }
-
-    .professional-alert-content {
-        flex: 1;
-        color: #333;
-    }
-
-    .professional-alert-title {
-        font-size: 18px;
-        font-weight: bold;
-        margin-bottom: 8px;
-        color: #ff3e3e;
-        /* Título en rojo oscuro */
-    }
-
-    .professional-alert-description {
-        font-size: 14px;
-        color: #555;
-        margin-bottom: 12px;
-    }
-
-    .professional-alert-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-
-    .professional-alert-list li {
-        margin-bottom: 10px;
-        font-size: 14px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        color: #444;
-        /* Texto principal */
-    }
-
-    .professional-alert-list i {
-        font-size: 18px;
-        color: #4caf50;
-        /* Ícono verde para contraste */
-    }
-</style>

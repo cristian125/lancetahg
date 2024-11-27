@@ -72,12 +72,12 @@ class PaqueteExpressController extends ProductController
             ->where('user_id', auth()->id())
             ->where('status', 1)
             ->first();
-    
+
         if (!$cart) {
             // Si no hay un carrito activo, termina la función.
             return;
         }
-        
+
 
 
         // Obtener las dimensiones de los artículos en el carrito activo
@@ -86,7 +86,7 @@ class PaqueteExpressController extends ProductController
             ->leftjoin('items_unidades', function($join){
                 $join->on('itemsdb.no_s','=','items_unidades.item_no')
                 ->on('items_unidades.unit_of_measure', '=', 'itemsdb.unidad_medida_venta');
-            })            
+            })
             ->select(
                 'items_unidades.length',
                 'items_unidades.width',
@@ -110,7 +110,7 @@ class PaqueteExpressController extends ProductController
         $totalWeight = 0; // Peso total en KG
         $totalVolume = 0; // Volumen total en m³
         $pesoVolumetrico = 0; // Peso volumétrico en m³
-    
+
         foreach ($dimensions as $dimension) {
             // Dimensiones en cm
             $length = floatval($dimension->length);
@@ -118,38 +118,48 @@ class PaqueteExpressController extends ProductController
             $height = floatval($dimension->height);
             $weight = floatval($dimension->weight); // Peso del item
             $quantity = floatval($dimension->quantity);
-    
+
             // Acumula el peso total sumando el peso de cada item multiplicado por su cantidad
             $totalWeight += $weight * $quantity;
-    
+
             // Acumular el largo total sumando el largo de cada item multiplicado por su cantidad
             $totalLength += $length * $quantity;
-    
+
             // Tomar el máximo ancho y alto (ya que no se suman como el largo)
             $maxWidth = max($maxWidth, $width);
             $maxHeight = max($maxHeight, $height);
-    
+
             // Calcular volumen de este item en metros cúbicos (dimensiones en metros)
             $volumenItem = ($length / 100) * ($width / 100) * ($height / 100) * $quantity;
-    
+
             // Sumar al volumen total
             $totalVolume += $volumenItem;
         }
-    
+
         // Calcular el peso volumétrico (dividiendo el volumen total entre 5000)
         $pesoVolumetrico = $totalVolume / 5000;
-    
+
         // Asignar los valores calculados a las propiedades
         $this->peso_pedido = $totalWeight;
         $this->volumen_pedido = $totalVolume;
         $this->peso_volumetrico = $pesoVolumetrico;
-    
+
         $this->largo_pedido = $totalLength;
         $this->ancho_pedido = $maxWidth;
         $this->alto_pedido = $maxHeight;
     }
-    
-    // public function getRequestCotizador(Request $request)
+
+    public function getRequestCotizadorRequest(Request $request)
+    {
+        // $this->id = $request->id;
+        $id=$request->id;
+        $address_id= $request->address_id;
+        // $this->__construct($id);
+
+        $json_request = json_decode($this->getRequestCotizador($id,$address_id)->getContent());
+        return response()->json($json_request);
+    }
+
     public function getRequestCotizador($id,$address_id=null)
     {
 
@@ -329,7 +339,7 @@ class PaqueteExpressController extends ProductController
 
     public function showRequestCotizador(Request $request)
     {
-        
+
         $id = $request->id;
         $address_id = $request->id;
 
@@ -344,7 +354,7 @@ class PaqueteExpressController extends ProductController
 
         // Si es otra cosa (por ejemplo, un array o stdClass), devolverlo como JSON
         return response($response->getContent(), 200, ['Content-Type' => 'json']);
-        
+
     }
 
     public function sendRequestCotizadorPaqueteExpress(Request $request)

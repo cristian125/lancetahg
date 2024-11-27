@@ -38,13 +38,14 @@ class ProductController extends Controller
 
         $userId = auth()->id();
         $cantidadEnCarrito = DB::table('cart_items')
-            ->join('carts', 'cart_items.cart_id', '=', 'carts.id')
-            ->where('carts.user_id', $userId)
-            ->where('cart_items.no_s', $producto->no_s)
-            ->sum('cart_items.quantity');
+        ->join('carts', 'cart_items.cart_id', '=', 'carts.id')
+        ->where('carts.user_id', $userId)
+        ->where('carts.status', 1) // Solo el carrito activo
+        ->where('cart_items.no_s', $producto->no_s)
+        ->sum('cart_items.quantity');
 
         $cantidadDisponible -= $cantidadEnCarrito;
-
+        $cantidadDisponible = max($cantidadDisponible, 0);
         $codigoProducto = str_pad($producto->no_s, 6, "0", STR_PAD_LEFT);
         $imagenPrincipal = asset("storage/itemsview/default.jpg");
 
@@ -314,7 +315,8 @@ class ProductController extends Controller
     {
         $userId = auth()->id();
         $requestedQuantity = $request->input('quantity', 1);
-
+    
+        // Verificar o crear un carrito activo para el usuario
         $cart = DB::table('carts')->where('user_id', $userId)->where('status', 1)->first();
         if (!$cart) {
             $cartId = DB::table('carts')->insertGetId([
@@ -325,43 +327,46 @@ class ProductController extends Controller
         } else {
             $cartId = $cart->id;
         }
-
+    
+        // Verificar producto e inventario
         $producto = DB::table('itemsdb')->where('id', $request->id)->first();
         $inventario = DB::table('inventario')->where('no_s', $producto->no_s)->first();
-
+    
         if (!$producto || !$inventario || $inventario->cantidad_disponible <= 0) {
             return response()->json(['error' => 'Producto no disponible o stock agotado'], 400);
         }
-
-        if ($requestedQuantity > $inventario->cantidad_disponible) {
-            return response()->json([
-                'error' => 'Inventario insuficiente',
-                'suggested_quantity' => $inventario->cantidad_disponible,
-            ], 400);
-        }
-
+    
+        // Verificar si el producto ya está en el carrito
         $cartItem = DB::table('cart_items')
             ->where('cart_id', $cartId)
             ->where('no_s', $producto->no_s)
             ->first();
-
+    
+        $existingQuantityInCart = $cartItem->quantity ?? 0;
+        $totalQuantity = $existingQuantityInCart + $requestedQuantity;
+    
+        // Si el total supera el inventario disponible
+        if ($totalQuantity > $inventario->cantidad_disponible) {
+            $maxAdditional = $inventario->cantidad_disponible - $existingQuantityInCart;
+    
+            return response()->json([
+                'error' => 'Inventario insuficiente',
+                'suggested_quantity' => $maxAdditional > 0 ? $maxAdditional : 0,
+                'existing_quantity' => $existingQuantityInCart,
+            ], 400);
+        }
+    
+        // Procesar la adición al carrito
         $descuento = $producto->descuento ?? 0;
         $precioConDescuento = $producto->precio_unitario_IVAinc - ($producto->precio_unitario_IVAinc * ($descuento / 100));
         $tasa_iva = $producto->grupo_iva == 'IVA16' ? 0.16 : 0;
-
+    
         if ($cartItem) {
-            $newQuantity = $cartItem->quantity + $requestedQuantity;
-            if ($newQuantity > $inventario->cantidad_disponible) {
-                return response()->json([
-                    'error' => 'Inventario insuficiente',
-                    'suggested_quantity' => $inventario->cantidad_disponible - $cartItem->quantity,
-                ], 400);
-            }
             DB::table('cart_items')
                 ->where('cart_id', $cartId)
                 ->where('no_s', $producto->no_s)
                 ->update([
-                    'quantity' => $newQuantity,
+                    'quantity' => $totalQuantity,
                     'updated_at' => now(),
                 ]);
         } else {
@@ -374,26 +379,31 @@ class ProductController extends Controller
                 'discount' => $descuento,
                 'quantity' => $requestedQuantity,
                 'vat' => $tasa_iva,
-                'unidad_medida_venta' => $producto->unidad_medida_venta, // Agregar unidad de medida de itemsdb
+                'unidad_medida_venta' => $producto->unidad_medida_venta,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
         }
-
+    
+        // Eliminar métodos de envío antiguos para forzar actualización
         DB::table('cart_shippment')->where('cart_id', $cartId)->delete();
-
-        return response()->json(['message' => 'Producto añadido al carrito con descuento y método de envío eliminado.']);
+    
+        return response()->json(['message' => 'Producto añadido al carrito correctamente.']);
     }
+    
 
+    
     public function addMultipleToCart(Request $request)
     {
         try {
             $userId = auth()->id();
             $no_s = $request->input('no_s');
-            $quantity = $request->input('quantity');
-
+    
+            $quantity = (int) $request->input('quantity');
+    
+            // Obtener o crear el carrito activo del usuario
             $cart = DB::table('carts')->where('user_id', $userId)->where('status', 1)->first();
-
+    
             if (!$cart) {
                 $cartId = DB::table('carts')->insertGetId([
                     'user_id' => $userId,
@@ -403,32 +413,32 @@ class ProductController extends Controller
             } else {
                 $cartId = $cart->id;
             }
-
+    
             $cartItem = DB::table('cart_items')
                 ->where('cart_id', $cartId)
                 ->where('no_s', $no_s)
                 ->first();
-
+    
             $producto = DB::table('itemsdb')->where('no_s', $no_s)->first();
             if (!$producto) {
                 return response()->json(['error' => 'Producto no encontrado'], 404);
             }
-
+    
             $inventario = DB::table('inventario')->where('no_s', $producto->no_s)->first();
             $cantidadDisponible = $inventario ? $inventario->cantidad_disponible : 0;
-
-            $cantidadEnCarrito = DB::table('cart_items')
-                ->where('cart_id', $cartId)
-                ->where('no_s', $no_s)
-                ->sum('quantity');
+    
+            // Cantidad ya en el carrito
+            $cantidadEnCarrito = $cartItem ? $cartItem->quantity : 0;
+    
+            // Cantidad total requerida
             $cantidadRequerida = $cantidadEnCarrito + $quantity;
-
+    
             if ($cantidadDisponible < $cantidadRequerida) {
                 return response()->json(['error' => 'No puedes añadir más de este producto. Stock insuficiente.'], 400);
             }
-
+    
             $tasa_iva = $producto->grupo_iva == 'IVA16' ? 0.16 : 0;
-
+    
             if ($cartItem) {
                 DB::table('cart_items')
                     ->where('cart_id', $cartId)
@@ -444,23 +454,77 @@ class ProductController extends Controller
                     'final_price' => $producto->descuento > 0 ? $producto->precio_con_descuento : $producto->precio_unitario_IVAinc,
                     'quantity' => $quantity,
                     'vat' => $tasa_iva,
-                    'unidad_medida_venta' => $producto->unidad_medida_venta, // Agregar unidad de medida de itemsdb
+                    'unidad_medida_venta' => $producto->unidad_medida_venta,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
             }
-
-            $cantidadRestante = $cantidadDisponible - ($cantidadEnCarrito + $quantity);
-
+    
+            $cantidadRestante = $cantidadDisponible - $cantidadRequerida;
+    
+            // Obtener el total de items en el carrito
+            $cartItemCount = DB::table('cart_items')
+                ->where('cart_id', $cartId)
+                ->sum('quantity');
+    
             return response()->json([
                 'message' => 'Producto añadido al carrito correctamente',
                 'stock_restante' => $cantidadRestante,
+                'cart_count' => $cartItemCount,
             ], 200);
         } catch (\Exception $e) {
             Log::error($e->getMessage());
             return response()->json(['error' => 'Ocurrió un error al añadir el producto al carrito. ' . $e->getMessage()], 500);
         }
     }
+    
+    public function getAvailableStock(Request $request)
+    {
+        try {
+            $userId = auth()->id();
+            $no_s = $request->input('no_s');
+    
+            $producto = DB::table('itemsdb')->where('no_s', $no_s)->first();
+            if (!$producto) {
+                return response()->json(['error' => 'Producto no encontrado'], 404);
+            }
+    
+            $inventario = DB::table('inventario')->where('no_s', $no_s)->first();
+            $cantidadDisponible = $inventario ? $inventario->cantidad_disponible : 0;
+    
+            // Obtener el carrito activo del usuario
+            $cart = DB::table('carts')->where('user_id', $userId)->where('status', 1)->first();
+    
+            // Cantidad ya en el carrito
+            $cantidadEnCarrito = 0;
+            if ($cart) {
+                $cartItem = DB::table('cart_items')
+                    ->where('cart_id', $cart->id)
+                    ->where('no_s', $no_s)
+                    ->first();
+                $cantidadEnCarrito = $cartItem ? $cartItem->quantity : 0;
+            }
+    
+            $cantidadRestante = $cantidadDisponible - $cantidadEnCarrito;
+    
+            // Obtener el total de items en el carrito
+            $cartItemCount = 0;
+            if ($cart) {
+                $cartItemCount = DB::table('cart_items')
+                    ->where('cart_id', $cart->id)
+                    ->sum('quantity');
+            }
+    
+            return response()->json([
+                'stock_restante' => $cantidadRestante,
+                'cart_count' => $cartItemCount,
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return response()->json(['error' => 'Ocurrió un error al obtener el stock disponible.'], 500);
+        }
+    }
+    
 
     public function updateQuantity(Request $request)
     {
@@ -1095,7 +1159,7 @@ class ProductController extends Controller
 
 
         ];
-
+        
         return view('carrito', $variables_compartidas);
     }
 

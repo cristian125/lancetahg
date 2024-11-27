@@ -10,11 +10,22 @@
             $(document).ready(function() {
                 setTimeout(() => {
                     $('.alert').fadeOut('slow');
-                }, 5000);
+                }, 15000);
             });
         </script>
     @endif
+    @if (session('success'))
+        <div class="alert alert-success">
+            {{ session('success') }}
+        </div>
+    @endif
+    @if (session('error'))
+        <div class="alert alert-danger">
+            {{ session('error') }}
+        </div>
+    @endif
 </div>
+
 
 @if (Auth::check())
     @php
@@ -32,7 +43,6 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @else
-
             @if (!$userAddress)
                 <div id="profile-step-2" class="alert alert-info alert-dismissible fade show mb-3" role="alert">
                     <strong>¡Falta un paso más!</strong> Agregue su <a
@@ -165,12 +175,13 @@
                             </div>
                         @endif
 
-                        <a href="{{ url('/producto/' . $producto->id . '-' . preg_replace('/[^a-zA-Z0-9\-]/', '-', strtolower($producto->nombre))) }}" class="text-decoration-none">
+                        <a href="{{ url('/producto/' . $producto->id . '-' . preg_replace('/[^a-zA-Z0-9\-]/', '-', strtolower($producto->nombre))) }}"
+                            class="text-decoration-none">
 
 
 
                             <div>
-                            <img src="{{ $producto->imagen_principal }}" alt="{{ $producto->nombre }}">
+                                <img src="{{ $producto->imagen_principal }}" alt="{{ $producto->nombre }}">
                             </div>
                             <div class="overlay">
                                 <div class="overlay-text">
@@ -189,8 +200,10 @@
                             <p>{{ $producto->nombre }}<br><span class="marca">{{ $producto->marca }}</span></p>
                         </div>
                         <div class="product-info1">
-                            <span class="nprod">{{ ucwords(strtolower($producto->nombre)) }}<br /><span class="marca">{{ ucwords(strtolower($producto->marca)) }}</span></span>
-                            <span class="product-price">${{ number_format($producto->precio_final, 2, '.', ',') }} MXN</span>
+                            <span class="nprod">{{ ucwords(strtolower($producto->nombre)) }}<br /><span
+                                    class="marca">{{ ucwords(strtolower($producto->marca)) }}</span></span>
+                            <span class="product-price">${{ number_format($producto->precio_final, 2, '.', ',') }}
+                                MXN</span>
                         </div>
 
                     </div>
@@ -202,7 +215,6 @@
 
 
 <style>
-
     /* Estilos del carrusel */
     .carousel-custom-size {
         width: 100%;
@@ -223,7 +235,7 @@
         .carousel-custom-size {
             height: auto;
             width: 100%;
-           
+
         }
 
         .carousel-image {
@@ -234,9 +246,11 @@
     .offer-container img {
         width: 100%;
     }
+
     .marca {
         color: #838383;
     }
+
     .nprod {
         color: #252525;
     }

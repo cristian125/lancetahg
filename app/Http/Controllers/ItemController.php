@@ -275,8 +275,8 @@ class ItemController extends Controller
         $imageUrl = $request->input('image');
     
         // Parsear la URL de la imagen para obtener el path relativo en el almacenamiento
-        // En este caso, eliminamos la parte 'https://nas2.lancetahg.com/storage/' y nos quedamos con 'itemsview/001006/001006_3.jpg'
-        $imagePath = str_replace(url('storage') . '/', '', $imageUrl); // Esto quita 'https://nas2.lancetahg.com/storage/'
+
+        $imagePath = str_replace(url('storage') . '/', '', $imageUrl); 
     
         // Verificar si la imagen existe en el almacenamiento (dentro de 'storage/app/public')
         if (Storage::disk('public')->exists($imagePath)) {

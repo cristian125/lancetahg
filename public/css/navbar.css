@@ -34,6 +34,15 @@
     }
 }
 
+
+/* @media only screen and (max-width: 700px) and (orientation: landscape) {
+    .navbar-nav .dropdown-menu {
+        position: static!important;
+        float: none!important;
+        top: 50%!important;
+        overflow-y: auto!important;
+        max-height: 200px!important;
+    }} */
 /* Media Query para móviles */
 @media (max-width: 576px) {
     #custom-search-results {
@@ -55,9 +64,11 @@
     .navbar-nav .dropdown-menu {
         position: static;
         float: none;
+        top: 50%;
     }
     .megamenu-content {
         position: static;
+        overflow: scroll;
     }
     .item-img {
         width: 60px;
@@ -148,7 +159,7 @@ body.navbar-open {
 }
 
 /* Estilos específicos para el megamenu en dispositivos móviles */
-@media (max-width: 900px) {
+@media (max-width: 400px) {
     .megamenu-content {
         max-height: 80vh; /* 80% de la altura de la ventana */
         overflow-y: auto; /* Habilita scroll vertical */

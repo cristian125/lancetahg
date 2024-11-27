@@ -14,6 +14,7 @@ class User extends Model implements AuthenticatableContract
         'name',
         'email',
         'password',
+        'email_verified',
     ];
 
     // Si quieres añadir otros atributos relacionados con envíos, puedes agregarlos aquí:

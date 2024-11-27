@@ -499,8 +499,8 @@
 
     .image img {
         border-radius: 8px;
-        max-width: 100px;
-        max-height: 100px;
+        width: 100px;
+        height: 100px;
         object-fit: cover;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     }
