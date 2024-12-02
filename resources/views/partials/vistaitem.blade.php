@@ -102,83 +102,123 @@
                             </dd>
                         </div>
                         <hr />
-                        
-                            @foreach ($groupedProducts as $grupoDescripcion => $productos)
-                                <div class="mb-3">
-                                    <label for="product-variants-{{ $loop->index }}">{{ $grupoDescripcion }}:</label>
-                                    <select id="product-variants-{{ $loop->index }}"
-                                        class="form-select product-variant-select">
-                                        @foreach ($atributosProducto->where('grupo_descripcion', $grupoDescripcion) as $atributoActual)
-                                            <option value="{{ $producto->id }}" selected>
-                                                {{ $atributoActual->atributo_nombre }} (Actual)</option>
-                                        @endforeach
-                                        @foreach ($productos as $prod)
-                                            <option value="{{ $prod->id }}">{{ $prod->atributo_nombre }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            @endforeach
+
+                        @foreach ($groupedProducts as $grupoDescripcion => $productos)
+                            <div class="mb-3">
+                                <label for="product-variants-{{ $loop->index }}">{{ $grupoDescripcion }}:</label>
+                                <select id="product-variants-{{ $loop->index }}"
+                                    class="form-select product-variant-select">
+                                    @foreach ($atributosProducto->where('grupo_descripcion', $grupoDescripcion) as $atributoActual)
+                                        <option value="{{ $producto->id }}" selected>
+                                            {{ $atributoActual->atributo_nombre }} (Actual)</option>
+                                    @endforeach
+                                    @foreach ($productos as $prod)
+                                        <option value="{{ $prod->id }}">{{ $prod->atributo_nombre }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endforeach
 
                         @if ($cantidadDisponible > 0)
                             <div class="row mb-4">
                                 <div class="col-md-4 col-6 mb-3">
                                     @if (Auth::check())
-                                    <label class="mb-2 d-block">Cantidad</label>
-                                    <div class="input-group mb-3" style="width: 170px;">
+                                        <label class="mb-2 d-block">Cantidad</label>
                                         <div class="input-group mb-3" style="width: 170px;">
-                                            <button class="btn btn-primary border border-secondary px-3 btn-remove-qty"
-                                                type="button">
-                                                <i class="bi bi-dash"></i>
-                                            </button>
-                                            <input id="qty" name="quantity" type="number"
-                                                class="form-control text-center border border-secondary" value="1"
-                                                min="1" max="{{ $cantidadDisponible }}" />
-                                            <button class="btn btn-primary border border-secondary px-3 btn-add-qty"
-                                                type="button">
-                                                <i class="bi bi-plus"></i>
-                                            </button>
-                                        </div>
-@endif
-                                        <div class="toast-container position-fixed bottom-0 end-0 p-3"
-                                            style="z-index: 1055;">
-                                            <div id="stockAlertToast"
-                                                class="toast align-items-center text-bg-danger border-0" role="alert"
-                                                aria-live="assertive" aria-atomic="true">
-                                                <div class="d-flex">
-                                                    <div class="toast-body">
-                                                        No se puede añadir esa cantidad porque supera el límite de
-                                                        stock.
-                                                    </div>
-                                                    <button type="button"
-                                                        class="btn-close btn-close-white me-2 m-auto"
-                                                        data-bs-dismiss="toast" aria-label="Close"></button>
+                                            <div class="input-group mb-3" style="width: 170px;">
+                                                <button
+                                                    class="btn btn-primary border border-secondary px-3 btn-remove-qty"
+                                                    type="button">
+                                                    <i class="bi bi-dash"></i>
+                                                </button>
+                                                <input id="qty" name="quantity" type="number"
+                                                    class="form-control text-center border border-secondary"
+                                                    value="1" min="1" max="{{ $cantidadDisponible }}" />
+                                                <button class="btn btn-primary border border-secondary px-3 btn-add-qty"
+                                                    type="button">
+                                                    <i class="bi bi-plus"></i>
+                                                </button>
+                                            </div>
+                                    @endif
+                                    <div class="toast-container position-fixed bottom-0 end-0 p-3"
+                                        style="z-index: 1055;">
+                                        <div id="stockAlertToast"
+                                            class="toast align-items-center text-bg-danger border-0" role="alert"
+                                            aria-live="assertive" aria-atomic="true">
+                                            <div class="d-flex">
+                                                <div class="toast-body">
+                                                    No se puede añadir esa cantidad porque supera el límite de
+                                                    stock.
                                                 </div>
+                                                <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                                                    data-bs-dismiss="toast" aria-label="Close"></button>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div id="cart-notification" class="notification-popup" style="display: none;">
-                                    Producto añadido al carrito.
-                                </div>
-                                
-                                <form action="{{ env('APP_URL') }}/producto/{{ $id }}" method="GET">
-                                    <button id="add-to-cart" data-id="{{ $producto->id }}"
-                                        data-nos="{{ $producto->no_s }}" class="btn btn-primary shadow-0">
-                                        <i class="me-1 fa fa-shopping-basket"></i> Añadir al carrito
-                                    </button>
+                            </div>
+                            @php
+                                // Inicializar un array para métodos de envío restringidos
+                                $shippingRestrictions = [];
 
-                                    @if (Auth::check())
-                                        <button id="show-cart" class="btn btn-danger shadow-0 p-2">
-                                            <i class="me-1 fa fa-eye"></i> Ver carrito
-                                        </button>
-                                    @endif
-                                </form>
-                                <!-- Contenedor para la notificación -->
-                                <div id="cart-notification" class="notification-popup" style="display: none;">
-                                    Producto añadido al carrito.
+                                // Verificar cada tipo de envío y agregar al array si está restringido
+                                if (!$producto->allow_paqueteria_shipping) {
+                                    $shippingRestrictions[] = 'Paquetería';
+                                }
+
+                                if (!$producto->allow_local_shipping) {
+                                    $shippingRestrictions[] = 'Envío Local';
+                                }
+
+                                if (!$producto->allow_store_pickup) {
+                                    $shippingRestrictions[] = 'Recojer en Tienda';
+                                }
+                                if (!$producto->allow_cobrar_shipping) {
+                                    $shippingRestrictions[] = 'Envío por Cobrar';
+                                }
+                            @endphp
+
+                            @if (count($shippingRestrictions) > 0)
+                                <div class="alert alert-warning d-flex align-items-center" role="alert">
+                                    <svg class="flex-shrink-0 me-2" xmlns="http://www.w3.org/2000/svg" width="24"
+                                        height="24" fill="currentColor" class="bi bi-exclamation-triangle-fill"
+                                        viewBox="0 0 16 16">
+                                        <path
+                                            d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.437-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1-2.002.001A1 1 0 0 1 8.002 11z" />
+                                    </svg>
+                                    <div>
+                                        <strong>Atención:</strong> Este producto no está disponible para los siguientes
+                                        tipos de envío:
+                                        <ul class="mb-0">
+                                            @foreach ($shippingRestrictions as $method)
+                                                <li>{{ $method }}</li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
                                 </div>
-                            @else
-                                <p class="text-danger"></p>
+                            @endif
+                            <div id="cart-notification" class="notification-popup" style="display: none;">
+                                Producto añadido al carrito.
+                            </div>
+
+                            <form action="{{ env('APP_URL') }}/producto/{{ $id }}" method="GET">
+                                <button id="add-to-cart" data-id="{{ $producto->id }}"
+                                    data-nos="{{ $producto->no_s }}" class="btn btn-primary shadow-0">
+                                    <i class="me-1 fa fa-shopping-basket"></i> Añadir al carrito
+                                </button>
+
+                                @if (Auth::check())
+                                    <button id="show-cart" class="btn btn-danger shadow-0 p-2">
+                                        <i class="me-1 fa fa-eye"></i> Ver carrito
+                                    </button>
+                                @endif
+                            </form>
+                            <!-- Contenedor para la notificación -->
+                            <div id="cart-notification" class="notification-popup" style="display: none;">
+                                Producto añadido al carrito.
+                            </div>
+                        @else
+                            <p class="text-danger"></p>
                         @endif
                         <hr />
                         <div class="row">
@@ -252,7 +292,7 @@
                 <div class="item">
                     <div class="product-card2 bg-white rounded">
 
-                        <a href="{{ url('/producto/' . $recomendado->id . '-' . str_replace('/', '-', urlencode($recomendado->nombre))) }}"
+                        <a href="{{ url('/producto/' . $recomendado->id . '-' . preg_replace('/[^a-zA-Z0-9\-]/', '-', strtolower($recomendado->nombre))) }}"
                             class="text-decoration-none text-dark">
 
                             <div class="image-container" style="position: relative; overflow: hidden;">
@@ -293,7 +333,6 @@
 </section>
 
 <script>
- 
     document.addEventListener('DOMContentLoaded', function() {
         // Identificar elementos del DOM
         const qtyInput = document.getElementById('qty');
@@ -359,55 +398,53 @@
     });
 </script>
 <script>
-    
-
     function addToCart(productId, no_s, quantity, currentStock) {
-    let token = $('meta[name="csrf-token"]').attr("content");
+        let token = $('meta[name="csrf-token"]').attr("content");
 
-    $.ajax({
-        type: "POST",
-        url: "/cart/add-multiple",
-        data: {
-            no_s: no_s,
-            quantity: quantity,
-            _token: token,
-        },
-        dataType: "json",
-        success: function (response) {
-            updateCartCount();
-            loadCartItems();
+        $.ajax({
+            type: "POST",
+            url: "/cart/add-multiple",
+            data: {
+                no_s: no_s,
+                quantity: quantity,
+                _token: token,
+            },
+            dataType: "json",
+            success: function(response) {
+                updateCartCount();
+                loadCartItems();
 
-            if (response.stock_restante !== undefined) {
-                $(".stock-info")
-                    .text(`${response.stock_restante} en stock`)
-                    .data("stock", response.stock_restante);
-
-                if (response.stock_restante <= 0) {
-                    $("#add-to-cart").prop("disabled", true);
+                if (response.stock_restante !== undefined) {
                     $(".stock-info")
-                        .text("No hay stock disponible")
-                        .removeClass("text-success")
-                        .addClass("text-danger");
+                        .text(`${response.stock_restante} en stock`)
+                        .data("stock", response.stock_restante);
+
+                    if (response.stock_restante <= 0) {
+                        $("#add-to-cart").prop("disabled", true);
+                        $(".stock-info")
+                            .text("No hay stock disponible")
+                            .removeClass("text-success")
+                            .addClass("text-danger");
+                    }
                 }
-            }
 
-            // Mostrar notificación de éxito
-            showNotification("Producto añadido al carrito.");
-        },
-        error: function (data) {
-            if (data.status === 401) {
-                showLoginPopover();
-            } else if (data.responseJSON && data.responseJSON.error) {
-                // Mostrar el mensaje dinámico desde el backend
-                showMaxStockPopover(data.responseJSON.error);
-            } else {
-                showMaxStockPopover();
-            }
-        },
-    });
-}
+                // Mostrar notificación de éxito
+                showNotification("Producto añadido al carrito.");
+            },
+            error: function(data) {
+                if (data.status === 401) {
+                    showLoginPopover();
+                } else if (data.responseJSON && data.responseJSON.error) {
+                    // Mostrar el mensaje dinámico desde el backend
+                    showMaxStockPopover(data.responseJSON.error);
+                } else {
+                    showMaxStockPopover();
+                }
+            },
+        });
+    }
 
-    $("#add-to-cart").on("click", function (e) {
+    $("#add-to-cart").on("click", function(e) {
         e.preventDefault();
         e.stopPropagation();
         let productId = $(this).data("id");
@@ -418,7 +455,7 @@
         addToCart(productId, no_s, quantity, currentStock);
     });
 
-    $("#show-cart").on("click", function (e) {
+    $("#show-cart").on("click", function(e) {
         e.preventDefault();
         $(location).prop("href", "/carrito");
     });
@@ -426,8 +463,7 @@
     function showLoginPopover() {
         $("#add-to-cart")
             .popover({
-                content:
-                    "Por favor inicie sesión para agregar el producto al carrito.",
+                content: "Por favor inicie sesión para agregar el producto al carrito.",
                 placement: "bottom",
                 trigger: "focus",
                 customClass: "popover-danger bg-danger fw-bold",
@@ -436,29 +472,30 @@
     }
 
     function showMaxStockPopover(message = "No puedes añadir más productos de los que hay en stock.") {
-    $("#add-to-cart")
-        .popover({
-            content: message, // Mensaje dinámico
-            placement: "bottom",
-            trigger: "focus",
-            customClass: "popover-warning bg-warning fw-bold",
-        })
-        .popover("show");
+        $("#add-to-cart")
+            .popover({
+                content: message, // Mensaje dinámico
+                placement: "bottom",
+                trigger: "focus",
+                customClass: "popover-warning bg-warning fw-bold",
+            })
+            .popover("show");
 
-    // Ocultar automáticamente después de 3 segundos
-    setTimeout(() => {
-        $("#add-to-cart").popover("dispose");
-    }, 3000);
-}
+        // Ocultar automáticamente después de 3 segundos
+        setTimeout(() => {
+            $("#add-to-cart").popover("dispose");
+        }, 3000);
+    }
+
     function updateCartCount() {
         $.ajax({
             type: "GET",
             url: "/get-cart-items",
             dataType: "json",
-            success: function (data) {
+            success: function(data) {
                 let totalItems = 0;
 
-                $.each(data.items, function (index, item) {
+                $.each(data.items, function(index, item) {
                     totalItems += item.quantity;
                 });
 
@@ -467,45 +504,43 @@
                 } else {
                     $("#cart-item-count").hide();
                 }
-                
+
             },
-            error: function () {
+            error: function() {
                 console.log("Error al cargar los items del carrito.");
             },
         });
     }
 </script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const qtyInput = document.getElementById('qty');
-    const addToCartButton = document.getElementById('add-to-cart');
-    const notification = document.getElementById('cart-notification');
-    const stockMessage = document.querySelector('.stock-message');
-    const stockIndicator = document.querySelector('.stock-indicator');
+    document.addEventListener('DOMContentLoaded', function() {
+        const qtyInput = document.getElementById('qty');
+        const addToCartButton = document.getElementById('add-to-cart');
+        const notification = document.getElementById('cart-notification');
+        const stockMessage = document.querySelector('.stock-message');
+        const stockIndicator = document.querySelector('.stock-indicator');
 
-    notification.style.display = 'none';
-
-
-    function showNotification(message) {
-        notification.textContent = message;
-        notification.classList.add('show');
-        notification.style.display = 'block';
-
-        // Ocultar después de 2 segundos
-        setTimeout(() => {
-            notification.classList.add('hide');
-        }, 2000);   
-
-        // Eliminar clases y ocultar después de 2.5 segundos
-        setTimeout(() => {
-            notification.style.display = 'none';
-            notification.classList.remove('show', 'hide');
-        }, 2500);
-    }
+        notification.style.display = 'none';
 
 
-});
+        function showNotification(message) {
+            notification.textContent = message;
+            notification.classList.add('show');
+            notification.style.display = 'block';
 
+            // Ocultar después de 2 segundos
+            setTimeout(() => {
+                notification.classList.add('hide');
+            }, 2000);
+
+            // Eliminar clases y ocultar después de 2.5 segundos
+            setTimeout(() => {
+                notification.style.display = 'none';
+                notification.classList.remove('show', 'hide');
+            }, 2500);
+        }
+
+    });
 </script>
 
 
@@ -647,6 +682,3 @@ document.addEventListener('DOMContentLoaded', function() {
         font-size: 16px;
     }
 </style>
-
-
-

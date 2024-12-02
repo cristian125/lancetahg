@@ -205,6 +205,7 @@ class ProductController extends Controller
                 'cart_items.no_s',
                 'cart_items.description',
                 'cart_items.unit_price as price',
+                'cart_items.vat as vat',
                 'cart_items.discount',
                 'cart_items.final_price',
                 'cart_items.quantity',

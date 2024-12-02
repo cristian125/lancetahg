@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Http\Request;
 use Exception;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
@@ -39,7 +39,7 @@ class ProductController extends Controller
             Log::error('Error en fetchItems:', ['error' => $ex->getMessage()]);
             return response()->json(['message' => 'No se pudo actualizar.'], 500);
         }
-
+        
         return response()->json(['message' => 'Productos y precios actualizados exitosamente.'], 200);
     }
 
@@ -74,9 +74,15 @@ class ProductController extends Controller
         $productosData = $responseProductos->json();
         $preciosData = $responsePrecios->json();
 
+        // Validar si la API devolvió productos
+        if (empty($productosData)) {
+            Log::warning('La API no devolvió productos. No se realizaron cambios en los productos existentes.');
+            return response()->json(['message' => 'La API no devolvió productos. No se realizaron cambios.'], 200);
+        }
+
         $preciosMap = [];
         foreach ($preciosData as $precio) {
-            if (isset($precio['no'])) {  // Validar que el índice 'no' existe
+            if (isset($precio['no'])) { // Validar que el índice 'no' existe
                 $preciosMap[$precio['no']] = $precio['precio'];
             } else {
                 Log::warning('Precio omitido por falta de índice "no".', ['precio' => $precio]);
@@ -85,10 +91,9 @@ class ProductController extends Controller
 
         DB::beginTransaction();
 
-        // Desactivar todos los productos en `itemsdb`
-        DB::table('itemsdb')->update(['activo' => 0]);
+        // Guardar los productos activos provenientes de la API
+        $productosDesdeApi = [];
 
-        // Procesar productos y actualizar `itemsdb` directamente
         foreach ($productosData as $producto) {
             if (!isset($producto['no']) || !isset($preciosMap[$producto['no']])) {
                 Log::warning('Producto omitido por falta de "no" o precio.', ['producto' => $producto]);
@@ -96,6 +101,7 @@ class ProductController extends Controller
             }
 
             $numeroSerie = $producto['no'];
+            $productosDesdeApi[] = $numeroSerie;
 
             // Reunir los datos necesarios para actualizar `itemsdb`
             $updateData = [
@@ -130,8 +136,16 @@ class ProductController extends Controller
             ]);
         }
 
+        // Desactivar productos que no están en la API solo si llegaron productos desde la API
+        if (!empty($productosDesdeApi)) {
+            DB::table('itemsdb')
+                ->whereNotIn('no_s', $productosDesdeApi)
+                ->update(['activo' => 0]);
+        }
+
         DB::commit();
         $this->logApiImport('success', 'Productos importados y actualizados exitosamente en itemsdb.');
+        $this->desactivarProductosInvalidos();
         return response()->json(['message' => 'Productos y precios actualizados exitosamente.'], 200);
     }
 
@@ -229,7 +243,35 @@ class ProductController extends Controller
             'error_details' => $errorDetails,
             'request_time' => now(),
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
     }
+    
+protected function desactivarProductosInvalidos()
+{
+    // Seleccionar productos que no cumplen los requisitos
+    $productosInvalidos = DB::table('itemsdb')
+        ->whereNull('nombre') // Nombre vacío
+        ->orWhereNull('costo_unitario') // Costo unitario vacío
+        ->orWhereNull('precio_unitario') // Precio unitario vacío
+        ->orWhereNull('precio_unitario_IVAinc') // Precio con IVA vacío
+        ->select('no_s') // Seleccionar identificadores
+        ->get();
+
+    if ($productosInvalidos->isEmpty()) {
+        Log::info('No se encontraron productos inválidos para desactivar.');
+        return;
+    }
+
+    // Actualizar los productos inválidos para marcarlos como inactivos
+    DB::table('itemsdb')
+        ->whereIn('no_s', $productosInvalidos->pluck('no_s'))
+        ->update(['activo' => 0]);
+
+    // Log de productos desactivados
+    Log::info('Productos desactivados por datos incompletos:', [
+        'productos' => $productosInvalidos->pluck('no_s'),
+    ]);
+}
+
 }

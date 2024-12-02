@@ -585,19 +585,19 @@
 
     @media (max-width: 699px) {
         #custom-search {
-            width: 120px !important;
+            width: 100% !important;
 
         }
     }
 
     #custom-search-results {
         border: 1px solid #005f7fea;
-        max-width: 92% !important;
+        max-width: 35%;
         background: #00B398;
         max-height: 400px;
         overflow-y: auto;
-        z-index: 999;
-        position: absolute;
+        z-index: 99999!important;
+        position: fixed!important;
         top: 33px;
         text-align: left !important;
     }
@@ -773,7 +773,7 @@
         background: #005f7fea;
     }
 
-    @media (max-width: 700px) and (orientation: landscape) {
+    @media (max-width: 901px) and (orientation: landscape) {
 
         /* Hacer scrollable el navbar collapse */
         .navbar-collapse {
@@ -797,7 +797,7 @@
         }
     }
 
-    @media (max-width: 700px) {
+    @media (max-width: 801px) {
 
         /* Hacer scrollable el navbar collapse */
         .navbar-collapse {
@@ -822,71 +822,46 @@
     }
 </style>
 <style>
-/* Asegurar que el carrito esté alineado a la derecha */
-#btnCart {
-    /* No es necesario 'margin-left: auto;' ya que ya está fuera del contenedor colapsable */
-}
-
-/* Posicionar el carrito de manera fija en dispositivos móviles */
-@media (max-width: 992px) { /* Ajusta el breakpoint según tu diseño */
+    /* Posicionar el carrito y el contador correctamente */
     #btnCart {
-        position: fixed;
-
-        right: 60px; /* Ajusta para dejar espacio al botón toggler */
-        z-index: 1050; /* Asegura que esté por encima de otros elementos */
+        position: relative;
     }
-}
 
-/* Mantener el carrito dentro del flujo del navbar en pantallas grandes */
-@media (min-width: 993px) {
-    #btnCart {
-        position: static;
-        /* 'margin-left: auto;' no es necesario si ya está posicionado correctamente */
+    /* Ajustar el badge del carrito */
+    #cart-item-count {
+        position: absolute;
+        top: -5px; /* Ajusta según el diseño */
+        right: -10px; /* Ajusta según el diseño */
+        z-index: 1049; /* Debajo del toggler, pero sobre el carrito */
+        pointer-events: none; /* Evita que interfiera con los clics */
     }
-}
 
-/* Ajustar el tamaño del icono del carrito en pantallas pequeñas */
-@media (max-width: 992px) {
-    #btnCart img {
-        height: 25px; /* Reduce el tamaño si es necesario */
+    /* Ajustar el carrito en dispositivos móviles */
+    @media (max-width: 992px) {
+        #btnCart {
+            position: fixed;
+            
+            right: 60px; /* Espacio suficiente para el toggler */
+            z-index: 1050; /* Sobre el contenido */
+        }
+
+        .navbar-toggler {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 1051; /* Sobre el carrito */
+        }
+
+        #cart-item-count {
+            top: 0px; /* Ajustar si es necesario para el diseño móvil */
+            right: -5px; /* Ajustar para centrarlo sobre el ícono */
+        }
     }
-}
-
-/* Asegurar que el botón toggler no se sobreponga con el carrito */
-.navbar-toggler {
-    position: fixed;
-    top: 15px;
-    right: 15px;
-    z-index: 1051; /* Superior al carrito para evitar conflictos */
-}
-
-/* Opcional: Ajustar el posicionamiento en caso de conflictos */
-@media (max-width: 992px) {
-    /* Asegurar que el carrito y el toggler estén separados */
-    #btnCart,
-    .navbar-toggler {
-        /* Espaciado suficiente para evitar superposición */
-    }
-}
-
-
-/* Opcional: Estilizar el dropdown del carrito */
-#btnCart .dropdown-menu {
-    min-width: 250px; /* Ajusta según sea necesario */
-}
-
-/* Asegurar que el badge del carrito no se desborde */
-#cart-item-count {
-    position: absolute;
-    top: 5px;
-    right: -5px;
-}
-
-
 </style>
 
 
-<script>
+
+{{-- <script>
     document.addEventListener("DOMContentLoaded", function() {
         const navbarToggler = document.querySelector(".navbar-toggler");
         const navbarCollapse = document.querySelector("#navbarSupportedContent");
@@ -944,4 +919,67 @@
             megamenuContent.addEventListener('scroll', handleScroll);
         }
     });
+</script> --}}
+<script>
+
+document.addEventListener("DOMContentLoaded", function() {
+    const navbarCollapse = document.querySelector("#navbarSupportedContent");
+    const body = document.body;
+    const navbarToggler = document.querySelector(".navbar-toggler");
+    const megamenuContent = document.querySelector(".megamenu-content");
+
+    // Escuchar el evento cuando el navbar se muestra
+    navbarCollapse.addEventListener('shown.bs.collapse', function () {
+        body.classList.add("navbar-open");
+    });
+
+    // Escuchar el evento cuando el navbar se oculta
+    navbarCollapse.addEventListener('hidden.bs.collapse', function () {
+        body.classList.remove("navbar-open");
+    });
+
+    // Cerrar el navbar al hacer clic fuera de él
+    document.addEventListener("click", function(e) {
+        if (!navbarCollapse.contains(e.target) && !navbarToggler.contains(e.target)) {
+            const bsCollapse = new bootstrap.Collapse(navbarCollapse, {
+                toggle: false
+            });
+            bsCollapse.hide();
+        }
+    });
+
+    // Evitar que el scroll dentro del megamenu afecte el scroll del body
+    if (megamenuContent) {
+        megamenuContent.addEventListener('touchmove', function(e) {
+            e.stopPropagation();
+        }, { passive: false });
+
+        megamenuContent.addEventListener('wheel', function(e) {
+            e.stopPropagation();
+        }, { passive: false });
+    }
+});
+
+
 </script>
+
+<style>
+    /* Bloquear el scroll del body cuando el navbar está abierto */
+body.navbar-open {
+    overflow: hidden;
+}
+
+/* Asegurar que el navbar sea desplazable */
+.navbar-collapse {
+    /* overflow-y: auto; */
+    max-height: 100vh; /* Altura máxima igual a la altura de la ventana */
+}
+
+/* Ajustes específicos para dispositivos móviles */
+@media (max-width: 801px) {
+    .navbar-collapse {
+        max-height: 80vh; /* Puedes ajustar este valor según tus necesidades */
+    }
+}
+
+</style>

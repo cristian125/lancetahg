@@ -1,8 +1,10 @@
-@media (max-width: 700px) {
+@media (max-width: 1000px) {
     #btnCart .dropdown-menu {
         position: fixed; /* Controlar la posición del elemento */
 top: 7%;
+left : 0%;
        max-width: 100%;
+       max-height: 80%!important;
         width: 80%; /* Ajustar el ancho para pantallas más pequeñas */
         padding: 10px; /* Añadir algo de espacio interno */
         box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Mejorar el diseño */
@@ -14,9 +16,7 @@ top: 7%;
 
 
 
-
-
-@media (orientation: landscape) and(max-width: 700px) {
+@media (orientation: landscape) and(max-width: 1000px) {
     #btnCart .dropdown-menu {
 /* Controlar la posición del elemento */
 position: fixed !important;
@@ -32,94 +32,162 @@ width: 100% !important;
     }
 }
 
-
-
-/* Estilo para el contenedor del dropdown del carrito */
+/* Dropdown del carrito */
 #btnCart .dropdown-menu {
-    background-color: #005f7f; /* Fondo del dropdown */
-    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1); /* Sombra */
-    padding: 15px; /* Padding interno */
-    width: 620px; /* Ancho fijo */
-    max-height: 700px; /* Altura máxima */
-    overflow-y: auto; /* Scroll si el contenido excede la altura */
+    background-color: #005f7f;
+    box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.15);
+    padding: 10px!important;
+    width: 600px; /* Ancho fijo */
+    max-height: 600px; /* Limitar altura para scroll */
+    overflow-y: auto; /* Activar scroll si es necesario */
+    border-radius: 10px; /* Bordes redondeados */
+    transition: all 0.3s ease;
 }
 
+/* Contenedor de items del carrito */
 #cart-items {
-    max-height: 300px;
+    padding: 0px 10px;
+    max-height: 400px; /* Altura del área de items */
     overflow-x: hidden;
-    overflow-y: scroll;
+    overflow-y: auto; /* Scroll vertical */
 }
 
-/* Estilo para los items del carrito */
+/* Estilo de items del carrito */
 .cart-item {
-    display: flex; /* Flexbox para alinear el contenido */
-    align-items: center; /* Centrar verticalmente */
-    justify-content: space-between; /* Separar imagen y botón */
-    border-bottom: 1px solid #ddd; /* Separador entre items */
-    padding-bottom: 10px; /* Espaciado interno */
-    margin-bottom: 10px; /* Espacio entre items */
+    background: #ffffff;   
+    display: grid;
+    grid-template-columns: 80px 1fr 40px; /* Imagen, detalles, botón */
+    gap: 15px;
+    align-items: center; /* Centrar contenido verticalmente */
+    padding: 10px 10px;
+    border-bottom: 1px solid #f1f1f1; /* Separador sutil */
+    transition: background-color 0.3s ease;
 }
 
-/* Estilo de la imagen del producto */
+.cart-item:hover {
+    background-color: #00B398; /* Fondo al pasar el mouse */
+}
+
+/* Imagen del producto */
 .cart-item .item-img {
-    min-height: 64px;
-    width: 100px;
+    width: 80px;
+    height: 80px;
     background-position: center;
     background-repeat: no-repeat;
-    background-size: cover; /* Ajuste de la imagen */
-    border-radius: 5px;
+    background-size: cover;
+    border-radius: 8px; /* Bordes redondeados */
+    transition: transform 0.3s ease;
 }
 
-/* Estilo para la descripción del producto */
-.cart-item p {
+.cart-item .item-img:hover {
+    transform: scale(1.05); /* Efecto de zoom */
+}
+
+/* Detalles del producto */
+.cart-item .item-details {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+}
+
+.cart-item .item-details span {
     font-size: 14px;
+    font-weight: bold;
     color: #333;
-    margin: 0;
-    flex-grow: 1; /* La descripción ocupa el espacio restante */
-    padding-left: 10px; /* Espaciado entre la imagen y el texto */
 }
 
-/* Estilo del botón eliminar */
+.cart-item .item-details small {
+    font-size: 12px;
+    color: #000000;
+}
+
+/* Badge de descuento */
+.badge.bg-danger {
+    font-size: 12px;
+    padding: 5px 8px;
+    border-radius: 12px;
+    background-color: #ff6b6b;
+    color: #ffffff;
+}
+
+/* Botón eliminar */
 .remove-from-cart {
-    background-color: #dc3545;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8d7da;
     border: none;
-    color: white;
-    border-radius: 5px;
+    color: #dc3545;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
     font-size: 16px;
     cursor: pointer;
-    padding: 10px;
     transition: background-color 0.3s ease;
 }
 
 .remove-from-cart:hover {
-    background-color: #c0392b;
+    background-color: #dc3545;
+    color: #ffffff;
 }
 
-/* Personalización del scrollbar del dropdown y de los elementos del carrito */
-#btnCart .dropdown-menu::-webkit-scrollbar,
+/* Scroll personalizado */
 #cart-items::-webkit-scrollbar {
-    width: 8px; /* Ancho del scrollbar */
+    width: 8px;
 }
 
-#btnCart .dropdown-menu::-webkit-scrollbar-track,
-#cart-items::-webkit-scrollbar-track {
-    background: #26d2b6; /* Fondo del track */
-}
-
-#btnCart .dropdown-menu::-webkit-scrollbar-thumb,
 #cart-items::-webkit-scrollbar-thumb {
-    background-color: #ffffff; /* Color del pulgar */
-    border-radius: 8px; /* Bordes redondeados */
+    background-color: #ccc;
+    border-radius: 8px;
 }
 
-/* Estilo para los botones dentro del dropdown */
-#btnCart .dropdown-menu .btn {
-    width: 100%; /* Botones ocupan todo el ancho */
-    margin-top: 10px; /* Margen superior */
-    border-radius: 4px; /* Bordes redondeados */
-    padding: 10px; /* Padding interno */
-    font-weight: bold; /* Texto en negrita */
+#cart-items::-webkit-scrollbar-track {
+    background: #f9f9f9;
 }
+
+/* Botón general dentro del dropdown */
+#btnCart .dropdown-menu .btn {
+    width: 100%;
+    margin-top: 15px;
+    padding: 10px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #ffffff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+}
+
+#btnCart .dropdown-menu .btn:hover {
+    background-color: #0056b3;
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+    #btnCart .dropdown-menu {
+        width: 100%;
+        max-height: 70vh;
+        padding: 15px;
+    }
+
+    .cart-item {
+        grid-template-columns: 70px 1fr 40px; /* Imagen, detalles, botón */
+        gap: 10px;
+    }
+
+    .cart-item .item-img {
+        width: 70px;
+        height: 70px;
+    }
+
+    .remove-from-cart {
+        width: 30px;
+        height: 30px;
+        font-size: 14px;
+    }
+}
+
 
 
 .product-image {

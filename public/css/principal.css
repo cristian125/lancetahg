@@ -37,12 +37,6 @@
     margin-bottom: 40px; /* Margen inferior para separación con el contenido siguiente */
 }
 
-/* Estilo para el contenedor de la fila */
-.row.justify-content-center.align-items-center {
-    margin-bottom: 20px; /* Espacio adicional entre esta fila y el contenido siguiente */
-}
-
-
 
 
 
@@ -55,9 +49,9 @@
     background-color: #ffffff; 
     border-radius: 10px; /* Bordes redondeados */
     transition: all 0.3s ease; /* Transición suave */   
-    width: 280px !important; /* Establece un ancho máximo constante */
-    height: 305px !important; /* Establece una altura constante */
-
+    width: 280px; /* Establece un ancho fijo por defecto */
+    height: 305px; /* Establece una altura constante */
+    margin: 0 auto; /* Centrar el contenedor horizontalmente */
 }
 
 
@@ -278,3 +272,34 @@
     width: 50px;  /* Ajusta este valor según el tamaño que desees */
     height: auto;  /* Mantén la proporción de la imagen */
 }
+        /* Mostrar las superposiciones cuando el producto está activo */
+        .product-container.active .overlay,
+        .product-container.active .overlay-cart,
+        .product-container.active .overlay-info {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Asegurar que las superposiciones no se muestren por defecto en móviles */
+        @media (max-width: 767.98px) {
+            .product-container .overlay,
+            .product-container .overlay-cart,
+            .product-container .overlay-info {
+                opacity: 0;
+                visibility: hidden;
+            }
+
+            /* Transición suave para las superposiciones */
+            .product-container .overlay,
+            .product-container .overlay-cart,
+            .product-container .overlay-info {
+                transition: opacity 0.3s ease, visibility 0.3s ease;
+            }
+        }
+
+        /* Opcional: Ajustar el cursor para indicar interactividad */
+        @media (hover: none) and (pointer: coarse) {
+            .product-container > a {
+                cursor: pointer;
+            }
+        }

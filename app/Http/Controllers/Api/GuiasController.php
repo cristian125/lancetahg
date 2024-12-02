@@ -97,10 +97,8 @@ class GuiasController extends Controller
         }
     }
 
-
     public function statusUpdate(Request $request)
     {
-
         $apiKey = $request->input('api_key') ?? $request->header('x-api-key');
         if ($apiKey !== env('EXTERNAL_API_KEY')) {
             DB::table('api_import_logs')->insert([
@@ -112,17 +110,14 @@ class GuiasController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
     
-
         $response = Http::get('http://app.lancetahg.com/api/lancetaweb', [
             'accion' => 'STATUS',
             'token' => env('EXTERNAL_API_TOKEN')
         ]);
     
-
         if ($response->successful()) {
             $statusData = $response->json();
     
-
             if (!is_array($statusData)) {
                 DB::table('api_import_logs')->insert([
                     'request_time' => now(),
@@ -134,20 +129,16 @@ class GuiasController extends Controller
             }
     
             foreach ($statusData as $status) {
-
                 $orderNo = $status['Order No_'];
                 $type = $status['Type'];
     
-
                 $order = DB::table('orders')->where('order_number', $orderNo)->first();
     
                 if ($order) {
-                    $oid = $order->oid;
-    
-
                     $existingGuia = DB::table('guias')->where('order_no', $orderNo)->first();
     
                     if ($existingGuia) {
+                        // Actualiza la guía existente
                         DB::table('guias')
                             ->where('order_no', $orderNo)
                             ->update([
@@ -155,6 +146,7 @@ class GuiasController extends Controller
                                 'updated_at' => now()
                             ]);
                     } else {
+                        // Inserta una nueva fila si no existe
                         DB::table('guias')->insert([
                             'order_no' => $orderNo,
                             'type' => $type,
@@ -162,21 +154,11 @@ class GuiasController extends Controller
                             'updated_at' => now()
                         ]);
                     }
-    
-                    if ($type == 7) {
-                        DB::table('order_history')
-                            ->where('order_id', $oid)
-                            ->update([
-                                'status_5_confirmed_at' => now(),
-                                'updated_at' => now()
-                            ]);
-                    }
                 } else {
-
+                    Log::warning("El pedido con order_no $orderNo no existe en la tabla orders.");
                 }
             }
     
-
             DB::table('api_import_logs')->insert([
                 'request_time' => now(),
                 'status' => 'success',
@@ -186,7 +168,6 @@ class GuiasController extends Controller
     
             return response()->json(['message' => 'Datos de estado de órdenes procesados correctamente.']);
         } else {
-
             DB::table('api_import_logs')->insert([
                 'request_time' => now(),
                 'status' => 'failed',

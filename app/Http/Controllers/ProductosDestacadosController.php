@@ -18,7 +18,7 @@ class ProductosDestacadosController extends Controller
         {
             return view('mantenimiento');
         }
-
+    
         // Obtener los productos destacados seleccionados por el administrador y ordenarlos según la columna `orden`
         $productosDestacados = DB::table('itemsdb')
             ->join('destacados', 'itemsdb.no_s', '=', 'destacados.no_s')
@@ -36,10 +36,7 @@ class ProductosDestacadosController extends Controller
                 'itemsdb.codigo_de_producto_minorista as codigo'
             )
             ->get();
-
-
-
-
+    
         // Si hay menos de 20 productos seleccionados, completamos con productos aleatorios
         if ($productosDestacados->count() < 20) {
             $productosAleatorios = DB::table('itemsdb')
@@ -59,12 +56,12 @@ class ProductosDestacadosController extends Controller
                     'codigo_de_producto_minorista as codigo'
                 )
                 ->get();
-
+    
             $destacados = $productosDestacados->merge($productosAleatorios);
         } else {
             $destacados = $productosDestacados->take(20);
         }
-
+    
         // Agregar la imagen principal y secundarias para cada producto
         foreach ($destacados as $producto) {
             // Seleccionar el precio a mostrar
@@ -73,23 +70,23 @@ class ProductosDestacadosController extends Controller
             } else {
                 $producto->precio_final = $producto->precio_unitario_IVAinc;
             }
-
+    
             // Usar 'no_s' como identificador del producto
             $codigoProducto = str_pad($producto->no_s, 6, "0", STR_PAD_LEFT);
             $imagenPrincipal = asset("storage/itemsview/default.jpg"); // Imagen por defecto
             $imagenesSecundarias = [];
-
+    
             // Verificar si existe una carpeta con imágenes para el producto
             $carpetaImagenes = "itemsview/{$codigoProducto}";
-
+    
             if (Storage::disk('public')->exists($carpetaImagenes)) {
                 // Obtener todas las imágenes dentro de la carpeta
                 $imagenesEnCarpeta = Storage::disk('public')->files($carpetaImagenes);
-
+    
                 // Procesar las imágenes encontradas
                 foreach ($imagenesEnCarpeta as $imagen) {
                     $nombreImagen = basename($imagen);
-
+    
                     // Verificar si es la imagen principal
                     if ($nombreImagen === "{$codigoProducto}.jpg") {
                         $imagenPrincipal = asset("storage/{$imagen}");
@@ -101,33 +98,44 @@ class ProductosDestacadosController extends Controller
                     }
                 }
             }
-
+    
             // Añadir la imagen principal y secundarias al objeto producto
             $producto->imagen_principal = $imagenPrincipal;
             $producto->imagenes_secundarias = $imagenesSecundarias;
         }
+    
+        // Obtener banners activos por dispositivo
+        $desktopBanner = DB::table('banner_images')
+            ->where('active', 1)
+            ->where('device', 'desktop')
+            ->first();
+    
+        $mobileBanner = DB::table('banner_images')
+            ->where('active', 1)
+            ->where('device', 'mobile')
+            ->first();
+    
+        // Obtener imágenes del carousel y del grid
         $carouselImages = DB::table('carousel_images')
-        ->where('active', 1)
-        ->orderBy('order')
-        ->get();
-
+            ->where('active', 1)
+            ->orderBy('order')
+            ->get();
+    
         $gridImages = DB::table('grid_images')->where('active', 1)->get();
-        $bannerImage = DB::table('banner_images')->where('active', 1)->first();
-
-            // Obtener la configuración del modal desde la tabla `modal_config`
-            $modalConfig = DB::table('modal_config')->first();
-
-            // Verificar que el modalConfig no sea nulo y que tenga el campo 'is_active' correctamente definido
-            $modalActivo = isset($modalConfig->is_active) ? $modalConfig->is_active : false;
-
-            // Obtener la imagen del modal
-            $modalImagen = isset($modalConfig->image_url) ? $modalConfig->image_url : null;
-
-
-
-        // Retornar la vista con los productos destacados
-        return view('index', compact('destacados', 'carouselImages', 'gridImages', 'bannerImage','modalActivo', 'modalImagen'));
+    
+        // Obtener la configuración del modal desde la tabla `modal_config`
+        $modalConfig = DB::table('modal_config')->first();
+    
+        // Verificar que el modalConfig no sea nulo y que tenga el campo 'is_active' correctamente definido
+        $modalActivo = isset($modalConfig->is_active) ? $modalConfig->is_active : false;
+    
+        // Obtener la imagen del modal
+        $modalImagen = isset($modalConfig->image_url) ? $modalConfig->image_url : null;
+    
+        // Retornar la vista con los datos necesarios
+        return view('index', compact('destacados', 'carouselImages', 'gridImages', 'desktopBanner', 'mobileBanner','modalActivo', 'modalImagen'));
     }
+    
     /***
      * Se consulta si esta en mantenimiento
      * */

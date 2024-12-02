@@ -274,58 +274,72 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Manejar la selección del método de pago en el modal
-            document.querySelectorAll('.payment-option').forEach(function (element) {
-                element.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    var selectedPaymentMethod = this.getAttribute('data-payment-method');
+       document.addEventListener('DOMContentLoaded', function () {
+    // Manejar la selección del método de pago en el modal
+    document.querySelectorAll('.payment-option').forEach(function (element) {
+        element.addEventListener('click', function (e) {
+            e.preventDefault();
+            var selectedPaymentMethod = this.getAttribute('data-payment-method');
     
-                    // Cerrar el modal
-                    var paymentMethodModal = bootstrap.Modal.getInstance(document.getElementById('paymentMethodModal'));
-                    paymentMethodModal.hide();
+            // Cerrar el modal
+            var paymentMethodModal = bootstrap.Modal.getInstance(document.getElementById('paymentMethodModal'));
+            paymentMethodModal.hide();
     
-                    // Enviar el método de pago al servidor
-                    fetch("{{ route('update.payment.method') }}", {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            payment_method: selectedPaymentMethod,
-                        }),
-                    })
-                    .then((response) => response.json())
-                    .then((data) => {
-                        if (data.success) {
-                            // Ocultar el botón "Proceder al Pago"
-                            document.getElementById('proceedToPaymentBtn').style.display = 'none';
+            // Enviar el método de pago al servidor
+            fetch("{{ route('update.payment.method') }}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    payment_method: selectedPaymentMethod,
+                }),
+            })
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.success) {
+                    // Ocultar el botón "Proceder al Pago"
+                    document.getElementById('proceedToPaymentBtn').style.display = 'none';
+
+                    // Ocultar la frase "Confirmación de Envío"
+                    const confirmationHeading = document.querySelector('.display-6.font-weight-bold.text-primary.mb-5');
+                    if (confirmationHeading) {
+                        confirmationHeading.style.display = 'none';
+                    }
     
-                            // Mostrar la sección de pago con el iframe y el loader
-                            document.getElementById('mainContent').style.display = 'none';
-                            document.getElementById('paymentSection').style.display = 'block';
-                            document.getElementById('loader').style.display = 'block';
-    
-                            // Enviar automáticamente el formulario de pago
-                            document.getElementById('paymentForm').submit();
-                        } else {
-                            alert('Error al actualizar el método de pago: ' + data.message);
-                        }
-                    })
-                    .catch((error) => {
-                        console.error('Error:', error);
-                        alert('Ocurrió un error al procesar su solicitud.');
+                    // Mostrar la sección de pago con el iframe y el loader
+                    document.getElementById('mainContent').style.display = 'none';
+                    document.getElementById('paymentSection').style.display = 'block';
+                    document.getElementById('loader').style.display = 'block';
+
+                    // Desplazar la pantalla hacia arriba
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth' // Efecto suave
                     });
-                });
+
+                    // Enviar automáticamente el formulario de pago
+                    document.getElementById('paymentForm').submit();
+                } else {
+                    alert('Error al actualizar el método de pago: ' + data.message);
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert('Ocurrió un error al procesar su solicitud.');
             });
-    
-            // Detectar cuándo el iframe ha terminado de cargar y ocultar el loader
-            document.getElementById('paymentFrame').onload = function () {
-                document.getElementById('loader').style.display = 'none';
-            };
         });
+    });
+
+    // Detectar cuándo el iframe ha terminado de cargar y ocultar el loader
+    document.getElementById('paymentFrame').onload = function () {
+        document.getElementById('loader').style.display = 'none';
+    };
+});
+
     </script>
+    
     
 
     <style>

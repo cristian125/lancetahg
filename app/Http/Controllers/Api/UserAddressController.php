@@ -10,7 +10,6 @@ class UserAddressController extends Controller
 {
 
 
-
     public function getAllUserAddresses(): JsonResponse
     {
         // Obtener las direcciones asociadas a los pedidos en orders y order_shippment

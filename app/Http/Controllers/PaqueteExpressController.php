@@ -7,6 +7,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use GuzzleHttp\Client;
 
 class PaqueteExpressController extends ProductController
 {
@@ -368,18 +369,26 @@ class PaqueteExpressController extends ProductController
         $contenido = $response->getContent();
         // Decodificar el contenido JSON a un array asociativo
         $data = json_decode($contenido, true);
+        $client = new Client(['verify'=>false]);
         try {
             // Realizar la solicitud POST con el contenido JSON
-            $respPE = Http::post(env('PAQUETEEXPRESS_DEMO_URL'), $data);
+            // $respPE = Http::post(env('PAQUETEEXPRESS_DEMO_URL'), $data);
+            $url = env('PAQUETEEXPRESS_DEMO_URL');
+            // dd(json_encode($data['header']));
+            $req = $client->request('POST',$url,['json'=>$data]);
+            // $req->setBody($data);
+            // $respPE = $req->send();
+
+            $respPE = $req->getBody()->getContents();
 
             // Verificar si la respuesta fue exitosa
-            $respPE->throw(); // Lanzará una excepción si el código de estado no está en el rango 200-299
-
+            // $respPE->throw(); // Lanzará una excepción si el código de estado no está en el rango 200-299
+            // dd();
             // Obtener el cuerpo de la respuesta
-            $responseBody = json_decode($respPE->body(), true);
+            $responseBody = json_decode($respPE, true);
 
             // Obtener el código de estado de la respuesta
-            $statusCode = $respPE->status();
+            $statusCode = $req->getStatusCode();
 
             $success = $responseBody['body']['response']['success'];
 

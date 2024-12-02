@@ -302,9 +302,10 @@
                                         }
                                     },
                                     error: function(error) {
+                                        console.log(error);
                                         $('#shipping-info-text-paqueteria')
                                             .html(
-                                                '<span class="text-danger">Error en la solicitud AJAX.</span>'
+                                                '<span class="text-danger">Ocurrio un error al consultar el precio de envío por favor reintente.</span>'
                                             );
                                     }
                                 });

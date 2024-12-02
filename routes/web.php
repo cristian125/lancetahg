@@ -35,7 +35,7 @@ use App\Http\Controllers\UserOrderController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Mail;
-
+use App\Http\Controllers\GoogleMerchantController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -47,6 +47,8 @@ use Illuminate\Support\Facades\Mail;
 |
  */
 
+/* Google Merchant */
+Route::get('/export-products', [GoogleMerchantController::class, 'exportProducts']);
 
 Route::fallback(function () {
     return response()->view('errors.404', [], 404);
@@ -55,6 +57,7 @@ Route::fallback(function () {
 Route::group(['middleware' => ['web']], function () {
     Route::get('/paqueteruta', [PaqueteExpressController::class, 'getRequestCotizadorRequest'])->name('pq');
     Route::get('/verify-email/{token}', [RegisterController::class, 'verifyEmail'])->name('verify.email')->middleware('throttle:5,3');
+    
 
     Route::get('/', [ProductosDestacadosController::class, 'index'])->name('home');
     Route::any('/mantenimiento', [ProductosDestacadosController::class, 'maintenance'])->name('mantenimento');

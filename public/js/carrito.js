@@ -12,6 +12,8 @@ function loadCartItems() {
             let totalItems = 0;
 
             $.each(data.items, function (index, item) {
+                // Calcular el precio con IVA
+                let priceWithVAT = (item.price * (1+item.vat)).toFixed(2);
                 // Verificar si el producto tiene un descuento
                 let discountBadge = "";
                 if (item.discount > 0) {
@@ -19,25 +21,25 @@ function loadCartItems() {
                 }
 
                 cartItemsList += `
-                <div class="cart-item row" style="display: flex; align-items: center; border-bottom: 1px solid #ddd; padding: 10px 0; margin-bottom: 10px;">
-                    <div style="flex: 1; display: flex; align-items: center;">
-                        <a href="/producto/${item.id}" class="list-group-item list-group-item-action form-control" style="display: flex; align-items: center; padding: 10px; background-color: #f8f9fa; border-radius: 10px; transition: background-color 0.3s ease, box-shadow 0.3s ease; box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);">
-                            <div class="item-img" data-img="/producto/img/${item.no_s}" style="min-height: 64px; width: 80px; background-image:url(/producto/img/${item.no_s}); background-position: center; background-repeat: no-repeat; background-size: cover; border-radius: 5px;"></div>
-                            <span style="padding-left: 15px; font-size: 16px; color: #333; flex-grow: 1;">
-                                ${item.description}
-                                <br />
-                                <small style="color: #999;">
-                                    ${item.quantity} x $${item.price}
-                                </small>
-                                ${discountBadge}
-                            </span>
-                        </a>
+                <a href="/producto/${item.id}" class="cart-item" style="text-decoration: none; color: inherit;">
+                    <!-- Imagen del producto -->
+                    <div class="item-img" style="background-image: url(/producto/img/${item.no_s});"></div>
+            
+                    <!-- Detalles del producto -->
+                    <div class="item-details">
+                        <span>${item.description}</span>
+                        <small>${item.quantity} x $${priceWithVAT}</small>
+                        ${discountBadge}
                     </div>
-                    <button class="btn btn-danger remove-from-cart" data-nos="${item.no_s}" style="margin-right: 15px; background-color: #e74c3c; border: none; color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: background-color 0.3s ease;">
+            
+                    <!-- Botón de eliminar -->
+                    <button class="remove-from-cart" data-nos="${item.no_s}" onclick="event.preventDefault();">
                         <i class="bi bi-trash"></i>
                     </button>
-                </div>
-                `;
+                </a>
+            `;
+            
+            
                 totalItems += item.quantity;
             });
 

@@ -170,11 +170,6 @@ class OrdersHeaderController extends Controller
 
 
 
-
-
-
-
-
     public function showOrderDetails(Request $request)
     {
         // Obtener el número de orden (order_number) desde el request

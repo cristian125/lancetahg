@@ -115,10 +115,10 @@ class PaymentController extends Controller
         $paymentStatus = $responseData['status'] ?? 'FALLADO';
 
         // // // Validar el hash de la respuesta para asegurarse de que sea válido
-        if (!$this->validateResponseHash($responseData)) {
-            Log::warning('Hash de respuesta inválido:', $responseData);
-            return redirect()->route('payment.fail')->with('error', 'Respuesta inválida. Por favor, contacte con soporte.');
-        }
+        // if (!$this->validateResponseHash($responseData)) {
+        //     Log::warning('Hash de respuesta inválido:', $responseData);
+        //     return redirect()->route('payment.fail')->with('error', 'Respuesta inválida. Por favor, contacte con soporte.');
+        // }
 
         // Registrar la solicitud del pago como éxito
         $this->logPaymentRequest($responseData, 'success');

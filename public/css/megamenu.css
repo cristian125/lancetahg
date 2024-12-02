@@ -1,5 +1,5 @@
 /* Estilos para dispositivos móviles (ambas orientaciones) */
-@media (max-width: 800px) and (orientation: landscape) {
+@media (max-width: 1000px) and (orientation: landscape) {
     .megamenu-content {
         position: relative !important;
         margin-left: 0 !important;
@@ -9,8 +9,6 @@
         padding: 10px;
         overflow-y: auto; /* Activar scroll si el contenido es demasiado alto */
         display: none; /* Ocultar por defecto */
-
-
     }
 
 
@@ -50,7 +48,7 @@
     }
 }
 /* Estilos para dispositivos móviles (ambas orientaciones) */
-@media (max-width: 800px){
+@media (max-width: 1000px){
     .megamenu-content {
         position: relative !important;
         margin-left: 0!important;
