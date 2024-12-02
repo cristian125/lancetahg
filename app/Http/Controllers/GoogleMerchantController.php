@@ -56,14 +56,15 @@ class GoogleMerchantController extends Controller
             foreach ($products as $product) {
                 // Log: Producto en proceso
                 Log::info('Procesando producto', ['offerId' => $product->offerId]);
-               
+        
                 $productData = [
                     'offerId' => $product->offerId,
                     'title' => $product->title,
                     'description' => $product->description,
                     // Usamos el ID del producto en la URL
                     'link' => 'https://new.lancetahg.com.mx/producto/' . $product->productId,
-                    'imageLink' => route('producto.imagen', ['id' => $product->productId]),
+                    // Usamos el ID del producto en la URL de la imagen
+                    'imageLink' => 'https://new.lancetahg.com.mx/producto/img/' . $product->productId,
                     'contentLanguage' => 'es',
                     'targetCountry' => 'MX',
                     'channel' => 'online',
