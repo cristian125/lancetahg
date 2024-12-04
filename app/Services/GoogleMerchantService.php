@@ -12,7 +12,7 @@ class GoogleMerchantService
 
     public function __construct()
     {   $client_id = '109377232162453913824';
-        $clientSecret = '9c21b301bb7cc9fdd874a680ceaa110b9604fb83';
+        $clientSecret = '0e65a0a15c58c19cfedb226c6f5740698f4fef0d';
         // Genera la ruta absoluta dentro de la carpeta storage
         $credentialsPath = storage_path('app/' . env('GOOGLE_APPLICATION_CREDENTIALS'));
     
@@ -64,4 +64,38 @@ class GoogleMerchantService
     
         return $this->service->products->insert($merchantId, $product);
     }
+
+    public function insertProductsBatch(array $productsData)
+    {
+
+        $merchantId = 5507438001;
+        if (empty($merchantId)) {
+            Log::error('El Merchant ID no está configurado');
+            throw new \Exception('El Merchant ID no está configurado. Configúralo en el archivo .env.');
+        }
+        
+        $batchRequest = new \Google_Service_ShoppingContent_ProductsCustomBatchRequest();
+        $entries = [];
+                
+        foreach ($productsData as $index => $productData) {
+            $entry = new \Google_Service_ShoppingContent_ProductsCustomBatchRequestEntry();
+            $entry->setBatchId($index);
+            $entry->setMerchantId($merchantId);
+            $entry->setMethod('insert');
+            $entry->setProduct(new \Google_Service_ShoppingContent_Product($productData));
+            $entries[] = $entry;
+        }
+
+        $batchRequest->setEntries($entries);
+
+        try {
+            $response = $this->service->products->custombatch($batchRequest);
+            return $response->getEntries();
+        } catch (\Exception $e) {
+            Log::error('Error al enviar productos por lotes', ['error' => $e->getMessage()]);
+            throw $e;
+        }
+    }
+    
+    
 }

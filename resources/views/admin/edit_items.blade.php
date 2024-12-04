@@ -86,6 +86,65 @@
 
                             <!-- Sección 1: Información Básica -->
                             <h4 class="mb-3 text-primary">Información Básica</h4>
+                            <div class="mb-4">
+                                <h4 class="text-primary">Gestión de Grupos</h4>
+                                <p>
+                                    Los grupos permiten organizar tus productos según sus características comunes. Antes de
+                                    asignar atributos
+                                    a un producto, asegúrate de que su grupo correspondiente exista. Si no tienes grupos
+                                    creados, puedes
+                                    configurarlos ahora.
+                                </p>
+                                <a href="{{ route('admin.grupos.create') }}" class="btn btn-success">Crear Nuevo Grupo</a>
+                                <a href="{{ route('admin.grupos.index') }}" class="btn btn-secondary">Ver Grupos
+                                    Existentes</a>
+                            </div>
+
+                            @if ($grupoActual)
+                                <h4 class="m mb-3">Contenido de tu grupo actual:
+                                    {{ $grupoActual->descripcion }}</h4>
+                                @if ($otrosProductosMismoGrupo->count() > 0)
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>Número de Serie</th>
+                                                <th>Nombre</th>
+                                                <th>Precio Unitario</th>
+                                                <th>Estado</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($otrosProductosMismoGrupo as $producto)
+                                                <tr>
+                                                    <td>{{ str_pad($producto->no_s, 6, '0', STR_PAD_LEFT) }}</td>
+                                                    <td>{{ $producto->nombre }}</td>
+                                                    <td>${{ number_format($producto->precio_unitario, 2) }}</td>
+                                                    <td>
+                                                        @if ($producto->activo)
+                                                            <span class="badge bg-success">Activo</span>
+                                                        @else
+                                                            <span class="badge bg-danger">Inactivo</span>
+                                                        @endif
+                                                    </td>
+                                                    <td>
+                                                        <a href="{{ route('admin.items.edit', $producto->id) }}"
+                                                            class="btn btn-sm btn-primary">Editar</a>
+                                                        <!-- Puedes añadir más acciones si es necesario -->
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                @else
+                                    <p class="text-muted">No hay otros productos en este grupo.</p>
+                                @endif
+                            @endif
+                            <!-- Contenedor para la lista de productos -->
+                            <div id="productos-lista">
+                                @include('admin.partials.productos_lista', ['productos' => $productos])
+                            </div>
+
                             <div class="row">
                                 <!-- Número de Serie -->
                                 <div class="col-md-4 mb-3">
@@ -117,6 +176,68 @@
                                     </select>
                                 </div>
 
+
+                                <!-- Sección para asignar atributos -->
+                                <h4 class="mt-4 mb-3 text-primary">Atributos del Producto</h4>
+
+                                @foreach ($atributos as $grupoId => $atributosGrupo)
+                                    <div class="col-md-3 form-group mb-3 ">
+                                        <label
+                                            class="form-label fw-bold">{{ $atributosGrupo->first()->grupo_descripcion }}</label>
+                                        <div class="atributos-container border rounded p-2">
+                                            @foreach ($atributosGrupo as $atributo)
+                                                <div class="form-check">
+                                                    <input type="checkbox" name="atributos[]" value="{{ $atributo->id }}"
+                                                        id="atributo_{{ $atributo->id }}"
+                                                        {{ in_array($atributo->id, $atributosProducto) ? 'checked' : '' }}
+                                                        class="form-check-input atributo-checkbox">
+
+                                                    <label for="atributo_{{ $atributo->id }}"
+                                                        class="form-check-label">{{ $atributo->nombre }}</label>
+                                                </div>
+                                            @endforeach
+                                        </div>
+
+                                        <!-- Mostrar otros productos en este grupo -->
+                                        @if (isset($productosPorGrupo[$grupoId]) && $productosPorGrupo[$grupoId]->count() > 0)
+                                            <h5 class="mt-3">Productos en este grupo:</h5>
+                                            <table class="table table-bordered otros-productos-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Número de Serie</th>
+                                                        <th>Nombre</th>
+                                                        <th>Precio Unitario</th>
+                                                        <th>Estado</th>
+                                                        <th>Acciones</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach ($productosPorGrupo[$grupoId] as $producto)
+                                                        <tr>
+                                                            <td>{{ str_pad($producto->no_s, 6, '0', STR_PAD_LEFT) }}</td>
+                                                            <td>{{ $producto->nombre }}</td>
+                                                            <td>${{ number_format($producto->precio_unitario, 2) }}</td>
+                                                            <td>
+                                                                @if ($producto->activo)
+                                                                    <span class="badge bg-success">Activo</span>
+                                                                @else
+                                                                    <span class="badge bg-danger">Inactivo</span>
+                                                                @endif
+                                                            </td>
+                                                            <td>
+                                                                <a href="{{ route('admin.items.edit', $producto->item_id) }}"
+                                                                    class="btn btn-sm btn-primary">Editar</a>
+                                                                <!-- Puedes añadir más acciones si es necesario -->
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        @else
+                                        @endif
+                                    </div>
+                                @endforeach
+                                <!-- Sección 6: Otros Productos en el Mismo Grupo -->
                             </div>
 
                             <!-- Sección 2: Detalles del Producto -->
@@ -125,8 +246,8 @@
                                 <!-- Nombre -->
                                 <div class="col-md-6 mb-3">
                                     <label for="nombre" class="form-label fw-bold">Nombre</label>
-                                    <input type="text" id="nombre" name="nombre" class="form-control border-primary"
-                                        value="{{ $item->nombre }}" required>
+                                    <input type="text" id="nombre" name="nombre"
+                                        class="form-control border-primary" value="{{ $item->nombre }}" required>
                                 </div>
 
                                 <!-- Nombre BC -->
@@ -361,24 +482,24 @@
                 }
             }
 
-// Subir imagen al servidor automáticamente
-function uploadImage(file) {
-    const formData = new FormData();
-    formData.append('secondary_images[]', file);
-    formData.append('item_id', '{{ $item->id }}'); // ID del producto
-    formData.append('_token', '{{ csrf_token() }}'); // Token CSRF
+            // Subir imagen al servidor automáticamente
+            function uploadImage(file) {
+                const formData = new FormData();
+                formData.append('secondary_images[]', file);
+                formData.append('item_id', '{{ $item->id }}'); // ID del producto
+                formData.append('_token', '{{ csrf_token() }}'); // Token CSRF
 
-    fetch('{{ route('subir.imagen.secundaria') }}', {
-            method: 'POST',
-            body: formData,
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Actualizar la lista de imágenes secundarias después de la subida
-                secondaryImagesContainer.innerHTML = ''; // Limpiar el contenedor
-                data.image_urls.forEach(url => {
-                    const imageHtml = `
+                fetch('{{ route('subir.imagen.secundaria') }}', {
+                        method: 'POST',
+                        body: formData,
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Actualizar la lista de imágenes secundarias después de la subida
+                            secondaryImagesContainer.innerHTML = ''; // Limpiar el contenedor
+                            data.image_urls.forEach(url => {
+                                const imageHtml = `
                     <div class="col-3 mb-3 position-relative secondary-image-item">
                         <img src="${url}" alt="Imagen Secundaria" class="img-fluid rounded w-100 h-auto">
                         <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 eliminar-imagen" data-image="${url}">
@@ -386,25 +507,23 @@ function uploadImage(file) {
                         </button>
                     </div>
                 `;
-                    secondaryImagesContainer.insertAdjacentHTML('beforeend', imageHtml);
-                });
+                                secondaryImagesContainer.insertAdjacentHTML('beforeend', imageHtml);
+                            });
 
-                // Si hay una imagen principal nueva, actualizar la vista previa
-                if (data.main_image_url) {
-                    const mainImagePreview = document.getElementById('mainImagePreview');
-                    mainImagePreview.src = data.main_image_url;
-                }
-            } else {
-                alert('Error al subir las imágenes.');
+                            // Si hay una imagen principal nueva, actualizar la vista previa
+                            if (data.main_image_url) {
+                                const mainImagePreview = document.getElementById('mainImagePreview');
+                                mainImagePreview.src = data.main_image_url;
+                            }
+                        } else {
+                            alert('Error al subir las imágenes.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Ocurrió un error al subir las imágenes.');
+                    });
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Ocurrió un error al subir las imágenes.');
-        });
-}
-
-
 
             // Eliminar imagen
             $(document).on('click', '.eliminar-imagen', function() {
@@ -749,4 +868,145 @@ function uploadImage(file) {
             }
         });
     </script>
+
+
+    <script>
+        document.getElementById('btnCrearGrupo').addEventListener('click', function() {
+            let descripcionGrupo = document.getElementById('descripcion_grupo').value.trim();
+
+            if (descripcionGrupo === '') {
+                alert('Por favor, ingresa una descripción para el grupo.');
+                return;
+            }
+
+            // Enviar solicitud AJAX para crear el grupo
+            fetch('{{ route('admin.createGrupo') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    },
+                    body: JSON.stringify({
+                        descripcion_grupo: descripcionGrupo,
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Agregar el nuevo grupo al selector y seleccionarlo
+                        let grupoSelect = document.getElementById('grupo_id');
+                        let option = document.createElement('option');
+                        option.value = data.grupo_id;
+                        option.text = descripcionGrupo;
+                        option.selected = true;
+                        grupoSelect.add(option);
+
+                        // Limpiar el campo de texto
+                        document.getElementById('descripcion_grupo').value = '';
+                    } else {
+                        alert('Error al crear el grupo.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Ocurrió un error al crear el grupo.');
+                });
+        });
+    </script>
+    <style>
+        /* Estilos existentes */
+
+        .atributos-container {
+            max-height: 200px;
+            max-width: 250px;
+            /* Ajusta la altura máxima según tus necesidades */
+            overflow-y: auto;
+            /* Habilita el scroll vertical */
+            padding: 10px;
+            background-color: #f8f9fa;
+            /* Color de fondo opcional */
+        }
+
+        .atributos-container .form-check {
+            margin-bottom: 5px;
+        }
+
+        /* Estilos existentes */
+    </style>
+    <style>
+        /* Estilos existentes */
+
+        .atributos-container {
+            max-height: 200px;
+            /* Ajusta la altura máxima según tus necesidades */
+            overflow-y: auto;
+            /* Habilita el scroll vertical */
+            padding: 10px;
+            background-color: #f8f9fa;
+            /* Color de fondo opcional */
+        }
+
+        .atributos-container .form-check {
+            margin-bottom: 5px;
+        }
+
+        /* Estilos para la nueva tabla de otros productos */
+        .otros-productos-table th,
+        .otros-productos-table td {
+            vertical-align: middle;
+        }
+
+        .badge {
+            font-size: 0.9em;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Función para obtener los IDs de los atributos seleccionados
+            function getSelectedAtributos() {
+                let selected = [];
+                document.querySelectorAll('.atributo-checkbox:checked').forEach(function(checkbox) {
+                    selected.push(checkbox.value);
+                });
+                return selected;
+            }
+
+            // Función para actualizar la lista de productos
+            function updateProductosList() {
+                let atributosSeleccionados = getSelectedAtributos();
+
+                // Enviar solicitud AJAX al servidor
+                fetch('{{ route('admin.obtenerProductosPorAtributos') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        },
+                        body: JSON.stringify({
+                            atributos: atributosSeleccionados,
+                            producto_id_actual: '{{ $item->id }}', // Para excluir el producto actual
+                        }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Actualizar el contenedor con la nueva lista de productos
+                        document.getElementById('productos-lista').innerHTML = data.html;
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            }
+
+            // Añadir event listeners a los checkboxes de atributos
+            document.querySelectorAll('.atributo-checkbox').forEach(function(checkbox) {
+                checkbox.addEventListener('change', function() {
+                    updateProductosList();
+                });
+            });
+
+            // Cargar la lista de productos inicialmente
+            updateProductosList();
+        });
+    </script>
+
 @endsection

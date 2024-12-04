@@ -4,9 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Validator;
 
 class ItemController extends Controller
 {
@@ -38,6 +37,8 @@ class ItemController extends Controller
         // Renderiza la vista con los items paginados y el término de búsqueda
         return view('admin.items_list', compact('items', 'search'));
     }
+
+    
     public function edit($id)
     {
         // Consulta SQL para obtener el item por ID
@@ -47,7 +48,47 @@ class ItemController extends Controller
         if (!$item) {
             return redirect()->route('admin.items.index')->withErrors('Item no encontrado.');
         }
+        // Obtener todos los grupos existentes
+        $grupos = DB::table('grupos')->select('id', 'descripcion')->get();
 
+        // Obtener el grupo actual del producto (suponiendo que un producto solo tiene atributos de un grupo)
+        $grupoActual = DB::table('producto_atributo')
+            ->join('atributos', 'producto_atributo.atributo_id', '=', 'atributos.id')
+            ->join('grupos', 'atributos.grupo_id', '=', 'grupos.id')
+            ->where('producto_atributo.producto_id', $item->id)
+            ->select('grupos.id', 'grupos.descripcion')
+            ->first();
+
+        // Obtener todos los atributos agrupados por grupo
+        $atributos = DB::table('atributos')
+            ->join('grupos', 'atributos.grupo_id', '=', 'grupos.id')
+            ->select('atributos.*', 'grupos.descripcion as grupo_descripcion')
+            ->get()
+            ->groupBy('grupo_descripcion');
+                // Obtener los productos agrupados por grupo, excluyendo el producto actual
+    $productosPorGrupo = DB::table('itemsdb')
+    ->join('producto_atributo', 'itemsdb.id', '=', 'producto_atributo.producto_id')
+    ->join('atributos', 'producto_atributo.atributo_id', '=', 'atributos.id')
+    ->join('grupos', 'atributos.grupo_id', '=', 'grupos.id')
+    ->where('itemsdb.id', '!=', $id) // Excluir el producto actual
+    ->select(
+        'grupos.descripcion as grupo_descripcion',
+        'grupos.id as grupo_id',
+        'itemsdb.id as item_id',
+        'itemsdb.no_s',
+        'itemsdb.nombre',
+        'itemsdb.precio_unitario',
+        'itemsdb.activo'
+    )
+    ->distinct()
+    ->get()
+    ->groupBy('grupo_id');
+
+    // Obtener los IDs de los atributos asignados al producto
+    $atributosProducto = DB::table('producto_atributo')
+        ->where('producto_id', $id)
+        ->pluck('atributo_id')
+        ->toArray();
         // Obtener los proveedores
         $proveedores = DB::table('proveedores')
             ->select('no_', 'nombre')
@@ -104,16 +145,48 @@ class ItemController extends Controller
             $files = Storage::disk($disk)->files($imageFolder);
 
             foreach ($files as $file) {
-                $images[] = asset('storage/' . $file);  // Obtener la URL de la imagen
+                $images[] = asset('storage/' . $file); // Obtener la URL de la imagen
             }
         }
 
         // Designar la primera imagen como principal, si no existe una designada explícitamente
-        $mainImage = $images[0] ?? asset('storage/itemsview/default.jpg');  // Si no hay imágenes, mostrar una por defecto
+        $mainImage = $images[0] ?? asset('storage/itemsview/default.jpg'); // Si no hay imágenes, mostrar una por defecto
 
         // Todas las imágenes se consideran secundarias, excepto la principal
-        $secondaryImages = array_slice($images, 1);  // Todas menos la primera son secundarias
+        $secondaryImages = array_slice($images, 1); // Todas menos la primera son secundarias
 
+        // Obtener otros productos en el mismo grupo
+        $otrosProductosMismoGrupo = collect(); // Inicializar una colección vacía
+
+        if ($grupoActual) {
+            $otrosProductosMismoGrupo = DB::table('itemsdb')
+                ->join('producto_atributo', 'itemsdb.id', '=', 'producto_atributo.producto_id')
+                ->join('atributos', 'producto_atributo.atributo_id', '=', 'atributos.id')
+                ->join('grupos', 'atributos.grupo_id', '=', 'grupos.id')
+                ->where('grupos.id', $grupoActual->id)
+                ->where('itemsdb.id', '!=', $id) // Excluir el producto actual
+                ->select(
+                    'itemsdb.id',
+                    'itemsdb.no_s',
+                    'itemsdb.nombre',
+                    'itemsdb.precio_unitario',
+                    'grupos.descripcion as grupo_descripcion',
+                    'itemsdb.activo'
+                )
+                ->distinct()
+                ->get();
+        }
+            // Obtener los productos que tienen los atributos seleccionados
+    $productos = collect();
+    if (!empty($atributosProducto)) {
+        $productos = DB::table('itemsdb')
+            ->join('producto_atributo', 'itemsdb.id', '=', 'producto_atributo.producto_id')
+            ->whereIn('producto_atributo.atributo_id', $atributosProducto)
+            ->where('itemsdb.id', '!=', $id) // Excluir el producto actual
+            ->select('itemsdb.*')
+            ->distinct()
+            ->get();
+    }
         // Enviar los datos a la vista, incluyendo todas las imágenes
         return view('admin.edit_items', compact(
             'item',
@@ -122,11 +195,18 @@ class ItemController extends Controller
             'gruposMinoristas',
             'proveedores',
             'unidadesMedida',
-            'mainImage',        // Imagen principal
-            'secondaryImages',  // Todas las imágenes, excepto la primera
+            'mainImage', // Imagen principal
+            'secondaryImages', // Todas las imágenes, excepto la primera
             'divisionSeleccionada',
             'categoriaSeleccionada',
-            'grupoMinoristaSeleccionado'
+            'grupoMinoristaSeleccionado',
+            'grupos',
+            'grupoActual',
+            'atributos',
+            'atributosProducto',
+            'otrosProductosMismoGrupo', // Añadir esta línea
+            'productosPorGrupo',
+            'productos'
         ));
     }
 
@@ -149,6 +229,7 @@ class ItemController extends Controller
             'precio_con_descuento' => 'nullable|numeric',
             'main_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'secondary_images.*' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'grupo_id' => 'nullable|integer|exists:grupos,id',
         ]);
 
         if ($validator->fails()) {
@@ -158,7 +239,7 @@ class ItemController extends Controller
         // Preparar los datos para actualizar en la base de datos
         $data = [
             'no_s' => $request->input('no_s'),
-            'grupo' => $request->input('grupo'),
+
             'no_proveedor' => $request->input('no_proveedor'),
             'nombre' => $request->input('nombre'),
             'descripcion' => $request->input('descripcion'),
@@ -179,9 +260,8 @@ class ItemController extends Controller
             'allow_local_shipping' => $request->has('allow_local_shipping') ? 1 : 0,
             'allow_paqueteria_shipping' => $request->has('allow_paqueteria_shipping') ? 1 : 0,
             'allow_store_pickup' => $request->has('allow_store_pickup') ? 1 : 0,
-            'allow_cobrar_shipping' => $request->has('allow_cobrar_shipping') ? 1 : 0,  // Añadir aquí
+            'allow_cobrar_shipping' => $request->has('allow_cobrar_shipping') ? 1 : 0, // Añadir aquí
         ];
-        
 
         // Actualizar el item en la base de datos
         DB::table('itemsdb')->where('id', $id)->update($data);
@@ -233,12 +313,37 @@ class ItemController extends Controller
         if ($request->ajax()) {
             return response()->json(['success' => true]);
         }
+        // Obtener el ID del grupo seleccionado
+        $grupoId = $request->input('grupo_id');
+
+        // Eliminar las relaciones actuales de atributos del producto
+        DB::table('producto_atributo')->where('producto_id', $id)->delete();
+
+        // Si se seleccionó un grupo, asignar los atributos del grupo al producto
+        if ($grupoId) {
+            // Obtener los atributos del grupo
+            $atributos = DB::table('atributos')->where('grupo_id', $grupoId)->pluck('id');
+
+            // Crear las relaciones en producto_atributo
+            foreach ($atributos as $atributoId) {
+                DB::table('producto_atributo')->insert([
+                    'producto_id' => $id,
+                    'atributo_id' => $atributoId,
+                ]);
+            }
+        }
+        $atributosSeleccionados = $request->input('atributos', []);
+        DB::table('producto_atributo')->where('producto_id', $id)->delete();
+        foreach ($atributosSeleccionados as $atributoId) {
+            DB::table('producto_atributo')->insert([
+                'producto_id' => $id,
+                'atributo_id' => $atributoId,
+            ]);
+        }
 
         // Redirigir de vuelta con un mensaje de éxito
         return redirect()->route('admin.items.index')->with('success', 'Item actualizado exitosamente');
     }
-
-
 
     public function getDivisiones()
     {
@@ -268,23 +373,23 @@ class ItemController extends Controller
     {
         // Validar que la imagen ha sido enviada
         $request->validate([
-            'image' => 'required|string'
+            'image' => 'required|string',
         ]);
-    
+
         // Recibir la ruta completa de la imagen desde el request
         $imageUrl = $request->input('image');
-    
+
         // Parsear la URL de la imagen para obtener el path relativo en el almacenamiento
 
-        $imagePath = str_replace(url('storage') . '/', '', $imageUrl); 
-    
+        $imagePath = str_replace(url('storage') . '/', '', $imageUrl);
+
         // Verificar si la imagen existe en el almacenamiento (dentro de 'storage/app/public')
         if (Storage::disk('public')->exists($imagePath)) {
             // Eliminar la imagen del almacenamiento
             Storage::disk('public')->delete($imagePath);
             return response()->json(['success' => true, 'message' => 'Imagen eliminada correctamente.']);
         }
-    
+
         // Enviar respuesta si la imagen no existe
         return response()->json(['error' => 'La imagen no se encuentra o ya ha sido eliminada.'], 404);
     }
@@ -356,41 +461,41 @@ class ItemController extends Controller
             'secondary_images.*' => 'required|image|mimes:jpeg,png,jpg|max:2048',
             'item_id' => 'required|integer',
         ]);
-    
+
         if ($validator->fails()) {
             return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
         }
-    
+
         // Obtener el item de la base de datos
         $item = DB::table('itemsdb')->where('id', $request->input('item_id'))->first();
-    
+
         if (!$item) {
             return response()->json(['success' => false, 'message' => 'Item no encontrado'], 404);
         }
-    
+
         $no_s = $item->no_s;
         $no_s_padded = str_pad($no_s, 6, '0', STR_PAD_LEFT);
         $carpetaProducto = "itemsview/{$no_s_padded}";
         $disk = 'public';
-    
+
         // Crear la carpeta si no existe
         if (!Storage::disk($disk)->exists($carpetaProducto)) {
             Storage::disk($disk)->makeDirectory($carpetaProducto);
         }
-    
+
         // Subir las nuevas imágenes secundarias
         foreach ($request->file('secondary_images') as $secondaryImage) {
             $extension = strtolower($secondaryImage->getClientOriginalExtension());
             $secondaryImageName = uniqid() . '.' . $extension;
             $secondaryImage->storeAs($carpetaProducto, $secondaryImageName, $disk);
         }
-    
+
         // Verificar si existe una imagen principal
         $files = Storage::disk($disk)->files($carpetaProducto);
-    
+
         $mainImageExists = false;
         $imageCount = count($files);
-    
+
         foreach ($files as $file) {
             $fileBasename = basename($file);
             // Si existe un archivo con el nombre principal (no_s_padded.jpg, .jpeg, .png)
@@ -399,24 +504,24 @@ class ItemController extends Controller
                 break;
             }
         }
-    
+
         // Si no existe una imagen principal y solo hay una imagen en la carpeta
         if (!$mainImageExists && $imageCount == 1) {
             $onlyImagePath = $files[0];
             $extension = strtolower(pathinfo($onlyImagePath, PATHINFO_EXTENSION));
             $mainImageName = "{$no_s_padded}.{$extension}";
             $newMainImagePath = "{$carpetaProducto}/{$mainImageName}";
-    
+
             // Renombrar la única imagen como imagen principal
             Storage::disk($disk)->move($onlyImagePath, $newMainImagePath);
         }
-    
+
         // Obtener todas las imágenes actuales en la carpeta
         $allImageUrls = [];
         $allFiles = Storage::disk($disk)->files($carpetaProducto);
-    
+
         $mainImageUrl = null;
-    
+
         foreach ($allFiles as $file) {
             $basename = basename($file);
             if (preg_match("/^{$no_s_padded}\.(jpg|jpeg|png)$/i", $basename)) {
@@ -426,7 +531,7 @@ class ItemController extends Controller
                 $allImageUrls[] = asset("storage/{$file}");
             }
         }
-    
+
         // Devolver todas las imágenes, incluyendo la principal
         return response()->json([
             'success' => true,
@@ -434,7 +539,6 @@ class ItemController extends Controller
             'main_image_url' => $mainImageUrl,
         ]);
     }
-    
 
     public function hacerImagenPrincipal(Request $request)
     {
@@ -498,4 +602,58 @@ class ItemController extends Controller
 
         return response()->json(['success' => true, 'image_url' => $imageUrl]);
     }
+    public function createGrupo(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'descripcion_grupo' => 'required|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        // Crear el nuevo grupo
+        $grupoId = DB::table('grupos')->insertGetId([
+            'descripcion' => $request->input('descripcion_grupo'),
+        ]);
+
+        return response()->json(['success' => true, 'grupo_id' => $grupoId]);
+    }
+
+    public function obtenerProductosPorAtributos(Request $request)
+    {
+        $atributosSeleccionados = $request->input('atributos', []);
+        $productoIdActual = $request->input('producto_id_actual');
+    
+        // Si no hay atributos seleccionados, devolver una colección vacía
+        if (empty($atributosSeleccionados)) {
+            $productos = collect(); // Colección vacía
+        } else {
+            // Obtener los grupos de los atributos seleccionados
+            $gruposIds = DB::table('atributos')
+                ->whereIn('id', $atributosSeleccionados)
+                ->pluck('grupo_id')
+                ->unique();
+    
+            // Obtener todos los productos que tengan atributos en esos grupos
+            $productos = DB::table('itemsdb')
+                ->join('producto_atributo', 'itemsdb.id', '=', 'producto_atributo.producto_id')
+                ->join('atributos', 'producto_atributo.atributo_id', '=', 'atributos.id')
+                ->whereIn('atributos.grupo_id', $gruposIds)
+                ->where('itemsdb.id', '!=', $productoIdActual)
+                ->select('itemsdb.*')
+                ->distinct()
+                ->get();
+        }
+    
+        // Generar el HTML de la tabla de productos
+        $html = view('admin.partials.productos_lista', compact('productos'))->render();
+    
+        return response()->json(['html' => $html]);
+    }
+    
+    
+    
+
+
 }

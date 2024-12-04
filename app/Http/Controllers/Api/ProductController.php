@@ -142,7 +142,7 @@ class ProductController extends Controller
                 ->whereNotIn('no_s', $productosDesdeApi)
                 ->update(['activo' => 0]);
         }
-
+        
         DB::commit();
         $this->logApiImport('success', 'Productos importados y actualizados exitosamente en itemsdb.');
         $this->desactivarProductosInvalidos();

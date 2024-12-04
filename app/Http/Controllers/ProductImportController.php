@@ -20,7 +20,9 @@ class ProductImportController extends Controller
             return response()->json(['tableHtml' => $tableHtml, 'paginationHtml' => $paginationHtml]);
         }
 
-        return view('admin.items_data', compact('logs'));
+        $exportUrl = env('EXPORT_PRODUCTS_URL');
+        $exportToken = env('EXPORT_PRODUCTS_TOKEN');
+        return view('admin.items_data', compact('logs','exportUrl', 'exportToken'));
     }
 
 

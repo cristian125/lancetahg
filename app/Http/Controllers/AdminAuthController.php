@@ -44,26 +44,24 @@ class AdminAuthController extends Controller
 
     public function register(Request $request)
     {
-
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:admins',
             'password' => 'required|string|min:8|confirmed',
             'role' => 'required|string',
         ]);
-
-        DB::table('admins')->insert([
-            'name' => $request->input('name'),
-            'email' => $request->input('email'),
-            'password' => bcrypt($request->input('password')),
-            'role' => $request->input('role'),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-
+    
+        $admin = new \App\Models\Admin();
+        $admin->name = $request->input('name');
+        $admin->email = $request->input('email');
+        $admin->password = $request->input('password'); // No hashear aquí
+        $admin->role = $request->input('role');
+        $admin->save();
+    
         return redirect()->route('admin.login')->with('success', 'Administrador registrado exitosamente.');
     }
+    
+    
 
 
     public function manageAdmins()

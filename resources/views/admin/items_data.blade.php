@@ -1,229 +1,208 @@
 @extends('admin.template')
 
 @section('content')
-    <div class="container mt-5">
-        <h1 class="card-title text-center mb-4 font-weight-bold text-primary">Administración de Productos y Logs</h1>
-        <p class="text-center text-secondary mb-4">Gestion de API's</p>
-
-        <div class="d-flex justify-content-center mb-4">
-            <button id="updateProductsBtn" class="btn btn-outline-primary btn-lg mx-2 d-flex align-items-center">
-                <i class="fas fa-sync-alt mr-2"></i> <span id="updateText">Actualizar Productos</span>
-            </button>
-            <button id="updateGuiasBtn" class="btn btn-outline-secondary btn-lg mx-2 d-flex align-items-center">
-                <i class="fas fa-book mr-2"></i> <span id="updateGuiasText">Actualizar Guías</span>
-            </button>
-            <button id="updateStatusBtn" class="btn btn-outline-success btn-lg mx-2 d-flex align-items-center">
-                <i class="fas fa-tasks mr-2"></i> <span id="updateStatusText">Actualizar Estado de Órdenes</span>
-            </button>
-        </div>
-
-
-        <!-- Loader personalizado -->
-        <div id="loader" class="d-none">
-            <div class="wrapper">
-                <div class="circle"></div>
-                <div class="circle"></div>
-                <div class="circle"></div>
-                <div class="shadow"></div>
-                <div class="shadow"></div>
-                <div class="shadow"></div>
-            </div>
-        </div>
-
-        <div id="resultMessage" class="alert mt-3 text-center d-none"></div>
-
-        <h2 class="text-center mt-5">Logs de Peticiones</h2>
-        <table class="table table-bordered table-hover mt-3">
-            <thead class="thead-dark">
-                <tr>
-                    <th>ID</th>
-                    <th>Estado</th>
-                    <th>Mensaje</th>
-                    <th>Detalles de Error</th>
-                    <th>Fecha de Petición</th>
-                </tr>
-            </thead>
-            <tbody id="logsTableBody">
-                @include('admin.partials.logs_table', ['logs' => $logs])
-            </tbody>
-        </table>
-
-        <div class="d-flex justify-content-center mt-4" id="paginationLinks">
-            {{ $logs->links('pagination::bootstrap-4') }}
+<div class="container mt-5">
+    <div class="row">
+        <!-- Título principal -->
+        <div class="col-12 text-center mb-4">
+            <h1 class="display-4 text-primary font-weight-bold">Panel de Administración</h1>
+            <p class="lead text-secondary">Gestión de API's y Logs del Sistema</p>
         </div>
     </div>
 
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <style>
-        .wrapper {
-            width: 200px;
-            height: 60px;
-            position: relative;
-            z-index: 1;
-            margin: 0 auto;
-        }
+    <!-- Botones de acciones -->
+    <div class="row mb-5">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <button id="updateProductsBtn" class="btn btn-primary btn-block shadow">
+                <i class="fas fa-sync-alt"></i> Actualizar Productos
+            </button>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <button id="updateGuiasBtn" class="btn btn-secondary btn-block shadow">
+                <i class="fas fa-book"></i> Actualizar Guías
+            </button>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <button id="updateStatusBtn" class="btn btn-success btn-block shadow">
+                <i class="fas fa-tasks"></i> Actualizar Estado de Órdenes
+            </button>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <button id="exportProductsBtn" class="btn btn-warning btn-block shadow">
+                <i class="fas fa-upload"></i> Exportar a Google Merchant
+            </button>
+        </div>
+    </div>
 
-        .circle {
-            width: 20px;
-            height: 20px;
-            position: absolute;
-            border-radius: 50%;
-            background-color: #0056b3;
-            left: 15%;
-            transform-origin: 50%;
-            animation: circle7124 .5s alternate infinite ease;
-        }
+    <!-- Loader personalizado -->
+    <div id="loader" class="d-none text-center mb-4">
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Cargando...</span>
+        </div>
+    </div>
 
-        @keyframes circle7124 {
-            0% {
-                top: 60px;
-                height: 5px;
-                border-radius: 50px 50px 25px 25px;
-                transform: scaleX(1.7);
-            }
+    <!-- Mensaje de resultados -->
+    <div id="resultMessage" class="alert d-none text-center"></div>
 
-            40% {
-                height: 20px;
-                border-radius: 50%;
-                transform: scaleX(1);
-            }
+    <!-- Tabla de Logs -->
+    <div class="row">
+        <div class="col-12">
+            <h2 class="text-center mb-4 text-secondary">Historial de Logs</h2>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover shadow">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Estado</th>
+                            <th>Mensaje</th>
+                            <th>Detalles de Error</th>
+                            <th>Fecha de Petición</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logsTableBody">
+                        @include('admin.partials.logs_table', ['logs' => $logs])
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-flex justify-content-center mt-4" id="paginationLinks">
+                {{ $logs->links('pagination::bootstrap-4') }}
+            </div>
+        </div>
+    </div>
+</div>
 
-            100% {
-                top: 0%;
-            }
-        }
+<!-- Estilos -->
+<style>
+    .btn {
+        font-size: 1rem;
+        font-weight: bold;
+        padding: 0.75rem;
+    }
 
-        .circle:nth-child(2) {
-            left: 45%;
-            animation-delay: .2s;
-        }
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+    }
 
-        .circle:nth-child(3) {
-            left: auto;
-            right: 15%;
-            animation-delay: .3s;
-        }
+    .table thead th {
+        font-size: 0.875rem;
+    }
 
-        .shadow {
-            width: 20px;
-            height: 4px;
-            border-radius: 50%;
-            background-color: rgba(0, 0, 0, 0.9);
-            position: absolute;
-            top: 62px;
-            transform-origin: 50%;
-            z-index: -1;
-            left: 15%;
-            filter: blur(1px);
-            animation: shadow046 .5s alternate infinite ease;
-        }
+    .table tbody td {
+        font-size: 0.875rem;
+    }
+    .badge-success{
+        color: rgb(46, 161, 55)
+    }
+    .badge-danger{
+        color: rgb(160, 0, 0)
+    }
 
-        @keyframes shadow046 {
-            0% {
-                transform: scaleX(1.5);
-            }
+</style>
 
-            40% {
-                transform: scaleX(1);
-                opacity: .7;
-            }
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+<script>
+    $(document).ready(function () {
+        const externalApiKey = "{{ env('EXTERNAL_API_KEY') }}";
 
-            100% {
-                transform: scaleX(.2);
-                opacity: .4;
-            }
-        }
+        // Botón Actualizar Productos
+        $('#updateProductsBtn').on('click', function (e) {
+            e.preventDefault();
+            triggerUpdate('{{ route('admin.fetchItems') }}', '#updateProductsBtn', 'Productos actualizados correctamente.');
+        });
 
-        .shadow:nth-child(4) {
-            left: 45%;
-            animation-delay: .2s
-        }
-
-        .shadow:nth-child(5) {
-            left: auto;
-            right: 15%;
-            animation-delay: .3s;
-        }
-    </style>
-
-
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
-
-    <script>
-        $(document).ready(function() {
-
-            const externalApiKey = "{{ env('EXTERNAL_API_KEY') }}";
-
-
-            $('#updateProductsBtn').on('click', function(e) {
-                e.preventDefault();
-                triggerUpdate('{{ route('admin.fetchItems') }}', '#updateProductsBtn',
-                    'Productos actualizados correctamente.');
-            });
-
-
-            $('#updateGuiasBtn').on('click', function(e) {
-                e.preventDefault();
-                triggerUpdate('{{ route('admin.fetchGuias') }}', '#updateGuiasBtn',
-                    'Guías actualizadas correctamente.', {
-                        api_key: externalApiKey
-                    });
-            });
-
-
-            $('#updateStatusBtn').on('click', function(e) {
-                e.preventDefault();
-                triggerUpdate('{{ route('status.update') }}', '#updateStatusBtn',
-                    'Estados de órdenes actualizados correctamente.', {
-                        api_key: externalApiKey
-                    });
-            });
-
-
-            function triggerUpdate(url, buttonSelector, successMessage, data = {}) {
-
-                $('#loader').removeClass('d-none');
-                $(buttonSelector).hide();
-                $('#resultMessage').hide();
-
-                $.ajax({
-                    url: url,
-                    type: 'GET',
-                    data: data,
-                    success: function(response) {
-                        $('#loader').addClass('d-none');
-                        $(buttonSelector).show();
-                        $('#resultMessage').removeClass('alert-danger').addClass('alert alert-success')
-                            .html(`<i class="fas fa-check-circle"></i> ${successMessage}`)
-                            .fadeIn();
-                        fetchLogs();
-                    },
-                    error: function(xhr) {
-                        $('#loader').addClass('d-none');
-                        $(buttonSelector).show();
-                        $('#resultMessage').removeClass('alert-success').addClass('alert alert-danger')
-                            .html('<i class="fas fa-times-circle"></i> Error: ' + (xhr.responseJSON
-                                ?.error || 'No se pudo realizar la actualización.'))
-                            .fadeIn();
-                    }
-                });
-            }
-
-
-            function fetchLogs(page = 1) {
-                $.get("{{ route('admin.itemsData') }}?page=" + page, function(data) {
-                    $('#logsTableBody').html(data.tableHtml);
-                    $('#paginationLinks').html(data.paginationHtml);
-                });
-            }
-
-
-            $(document).on('click', '.pagination a', function(e) {
-                e.preventDefault();
-                const page = $(this).attr('href').split('page=')[1];
-                fetchLogs(page);
+        // Botón Actualizar Guías
+        $('#updateGuiasBtn').on('click', function (e) {
+            e.preventDefault();
+            triggerUpdate('{{ route('admin.fetchGuias') }}', '#updateGuiasBtn', 'Guías actualizadas correctamente.', {
+                api_key: externalApiKey
             });
         });
-    </script>
+
+        // Botón Actualizar Estado
+        $('#updateStatusBtn').on('click', function (e) {
+            e.preventDefault();
+            triggerUpdate('{{ route('status.update') }}', '#updateStatusBtn', 'Estados de órdenes actualizados correctamente.', {
+                api_key: externalApiKey
+            });
+        });
+
+        // Botón Exportar Productos
+        $('#exportProductsBtn').on('click', function (e) {
+            e.preventDefault();
+            const exportUrl = "{{ env('EXPORT_PRODUCTS_URL') }}";
+            const exportToken = "{{ env('EXPORT_PRODUCTS_TOKEN') }}";
+            const url = `${exportUrl}?token=${exportToken}`;
+            triggerExport(url, '#exportProductsBtn', 'Productos exportados correctamente.');
+        });
+
+        // Función para ejecutar actualizaciones
+        function triggerUpdate(url, buttonSelector, successMessage, data = {}) {
+            $('#loader').removeClass('d-none');
+            $(buttonSelector).attr('disabled', true);
+            $('#resultMessage').hide();
+
+            $.ajax({
+                url: url,
+                type: 'GET',
+                data: data,
+                success: function (response) {
+                    $('#loader').addClass('d-none');
+                    $(buttonSelector).attr('disabled', false);
+                    $('#resultMessage').removeClass('alert-danger').addClass('alert alert-success')
+                        .html(`<i class="fas fa-check-circle"></i> ${successMessage}`).fadeIn();
+                    fetchLogs();
+                },
+                error: function (xhr) {
+                    $('#loader').addClass('d-none');
+                    $(buttonSelector).attr('disabled', false);
+                    $('#resultMessage').removeClass('alert-success').addClass('alert alert-danger')
+                        .html('<i class="fas fa-times-circle"></i> Error: ' + (xhr.responseJSON?.error || 'No se pudo realizar la actualización.')).fadeIn();
+                }
+            });
+        }
+
+        // Función para ejecutar exportación
+        function triggerExport(url, buttonSelector, successMessage) {
+            $('#loader').removeClass('d-none');
+            $(buttonSelector).attr('disabled', true);
+            $('#resultMessage').hide();
+
+            $.ajax({
+                url: url,
+                type: 'GET',
+                success: function (response) {
+                    $('#loader').addClass('d-none');
+                    $(buttonSelector).attr('disabled', false);
+                    $('#resultMessage').removeClass('alert-danger').addClass('alert alert-success')
+                        .html(`<i class="fas fa-check-circle"></i> ${successMessage}`).fadeIn();
+                    fetchLogs();
+                },
+                error: function (xhr) {
+                    $('#loader').addClass('d-none');
+                    $(buttonSelector).attr('disabled', false);
+                    $('#resultMessage').removeClass('alert-success').addClass('alert alert-danger')
+                        .html('<i class="fas fa-times-circle"></i> Error: ' + (xhr.responseJSON?.error || 'No se pudo realizar la exportación.')).fadeIn();
+                }
+            });
+        }
+
+        // Función para actualizar logs
+        function fetchLogs(page = 1) {
+            $.get("{{ route('admin.itemsData') }}?page=" + page, function (data) {
+                $('#logsTableBody').html(data.tableHtml);
+                $('#paginationLinks').html(data.paginationHtml);
+            });
+        }
+
+        // Paginación
+        $(document).on('click', '.pagination a', function (e) {
+            e.preventDefault();
+            const page = $(this).attr('href').split('page=')[1];
+            fetchLogs(page);
+        });
+    });
+</script>
 @endsection

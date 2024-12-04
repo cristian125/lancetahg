@@ -32,6 +32,8 @@ use App\Http\Controllers\ShippingPaqueteriaController;
 use App\Http\Controllers\StorePickupController;
 use App\Http\Controllers\UserDataController;
 use App\Http\Controllers\UserOrderController;
+use App\Http\Controllers\GrupoController;
+use App\Http\Controllers\AtributoController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Mail;
@@ -282,6 +284,23 @@ Route::prefix('adminlanz')->middleware('adminsession')->group(function () {
             Route::get('/items-data', [ProductImportController::class, 'showItemsData'])->name('admin.itemsData');
             Route::get('/fetch-items', [ProductImportController::class, 'fetchItemsManually'])->name('admin.fetchItems');
             Route::get('/fetch-guias', [GuiasController::class, 'guiasearch'])->name('admin.fetchGuias');
+            Route::post('/crear-grupo', [ItemController::class, 'createGrupo'])->name('admin.createGrupo');
+
+            Route::get('grupos', [GrupoController::class, 'index'])->name('admin.grupos.index');
+            Route::get('grupos/create', [GrupoController::class, 'create'])->name('admin.grupos.create');
+            Route::post('grupos', [GrupoController::class, 'store'])->name('admin.grupos.store');
+            Route::get('grupos/{id}/edit', [GrupoController::class, 'edit'])->name('admin.grupos.edit');
+            Route::put('grupos/{id}', [GrupoController::class, 'update'])->name('admin.grupos.update');
+            Route::delete('grupos/{id}', [GrupoController::class, 'destroy'])->name('admin.grupos.destroy');
+
+            Route::get('atributos', [AtributoController::class, 'index'])->name('admin.atributos.index');
+            Route::get('atributos/create', [AtributoController::class, 'create'])->name('admin.atributos.create');
+            Route::post('atributos', [AtributoController::class, 'store'])->name('admin.atributos.store');
+            Route::get('atributos/{id}/edit', [AtributoController::class, 'edit'])->name('admin.atributos.edit');
+            Route::put('atributos/{id}', [AtributoController::class, 'update'])->name('admin.atributos.update');
+            Route::delete('atributos/{id}', [AtributoController::class, 'destroy'])->name('admin.atributos.destroy');
+            Route::post('/admin/obtener-productos-por-atributos', [ItemController::class, 'obtenerProductosPorAtributos'])->name('admin.obtenerProductosPorAtributos');
+
         });
     });
 });
