@@ -34,8 +34,9 @@ class ShippingLocalController extends Controller
         $queryCarts = DB::table('carts')
             ->select('id')
             ->where('user_id', $this->user_id)
-            ->where('status', '2')
+            ->where('status', '1')
             ->first();
+
 
         return $queryCarts ? $queryCarts->id : null;
     }
@@ -43,6 +44,7 @@ class ShippingLocalController extends Controller
     private function getTotalFromCart()
     {
         $total = 0;
+        
         $queryCartItems = DB::table('cart_items')
             ->select('final_price', 'quantity')
             ->where('cart_id', $this->id)
@@ -60,7 +62,8 @@ class ShippingLocalController extends Controller
      * Método para calcular el costo de envío de manera unificada
      */
     private function calculateShippingCost($totalPrice, $zona)
-    {
+    {   
+
         switch ($zona) {
             case '1A':
                 $minimoCompra = 800;
@@ -233,7 +236,6 @@ class ShippingLocalController extends Controller
         }
     }
     
-
     public function handleLocalShipping()
     {
         $userId = $this->user_id;
@@ -292,8 +294,5 @@ class ShippingLocalController extends Controller
             'minimoCompra' => $minimoCompra,
 
         ];
-    }
     
-    
-
 }

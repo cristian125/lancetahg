@@ -72,7 +72,7 @@ class OrdersHeaderController extends Controller
                 "id" => $order->order_number,
                 "id_address_delivery" => $order->order_number,
                 "id_address_invoice" => $order->order_number,
-                "id_cart" => "214294",
+                "id_cart" => $order->cart_id,
                 "id_currency" => "1",
                 "id_lang" => "2",
                 "id_customer" => "0",
@@ -162,6 +162,7 @@ class OrdersHeaderController extends Controller
             // Agregar `orderFormatted` al array `orders`
             $orderData['orders'][] = $orderFormatted;
         }
+        
 
         // Devolver los datos de las órdenes en formato JSON
         return response()->json($orderData);

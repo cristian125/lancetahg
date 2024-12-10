@@ -222,15 +222,14 @@
                                                             'label' => 'Procesado',
                                                             'icon' => 'bi-check-circle-fill',
                                                             'color' => 'success',
-                                                            'time' => \Carbon\Carbon::parse(
-                                                                $orderHistory->status_5_confirmed_at ?? now(),
-                                                            )->format('d/m/Y H:i'),
+                                                            'time' =>  $order->status_5_date,
+
                                                         ],
                                                         [
                                                             'label' => 'En espera de Envío',
                                                             'icon' => 'bi-hourglass-split',
                                                             'color' => 'warning',
-                                                            'time' => \Carbon\Carbon::now()->format('d/m/Y H:i'), // Reemplazar con la fecha real de envío
+                                                            'time' => $order->status_6_date, // Reemplazar con la fecha real de envío
                                                         ],
                                                     ];
                                                     break;
@@ -241,21 +240,19 @@
                                                             'label' => 'Procesado',
                                                             'icon' => 'bi-check-circle-fill',
                                                             'color' => 'success',
-                                                            'time' => \Carbon\Carbon::parse(
-                                                                $orderHistory->status_5_confirmed_at ?? now(),
-                                                            )->format('d/m/Y H:i'),
+                                                            'time' => $order->status_5_date,
                                                         ],
                                                         [
                                                             'label' => 'Enviado',
                                                             'icon' => 'bi-check-circle-fill',
                                                             'color' => 'success',
-                                                            'time' => \Carbon\Carbon::now()->format('d/m/Y H:i'), // Reemplazar con la fecha real de envío
+                                                            'time' => $order->status_6_date, // Reemplazar con la fecha real de envío
                                                         ],
                                                         [
-                                                            'label' => 'En espera',
+                                                            'label' => 'En proceso de entrega',
                                                             'icon' => 'bi-hourglass-split',
                                                             'color' => 'warning',
-                                                            'time' => \Carbon\Carbon::now()->format('d/m/Y H:i'), // Reemplazar con la fecha real de completado
+                                                            'time' => $order->status_7_date, // Reemplazar con la fecha real de completado
                                                         ],
                                                     ];
                                                     break;
@@ -266,21 +263,19 @@
                                                             'label' => 'Procesado',
                                                             'icon' => 'bi-check-circle-fill',
                                                             'color' => 'success',
-                                                            'time' => \Carbon\Carbon::parse(
-                                                                $orderHistory->status_5_confirmed_at ?? now(),
-                                                            )->format('d/m/Y H:i'),
+                                                            'time' =>  $order->status_5_date,
                                                         ],
                                                         [
                                                             'label' => 'Enviado',
                                                             'icon' => 'bi-check-circle-fill',
                                                             'color' => 'success',
-                                                            'time' => \Carbon\Carbon::now()->format('d/m/Y H:i'), // Reemplazar con la fecha real de envío
+                                                            'time' =>  $order->status_6_date, // Reemplazar con la fecha real de envío
                                                         ],
                                                         [
-                                                            'label' => 'Completado',
+                                                            'label' => 'Entregado',
                                                             'icon' => 'bi-check-circle-fill',
                                                             'color' => 'success',
-                                                            'time' => \Carbon\Carbon::now()->format('d/m/Y H:i'), // Reemplazar con la fecha real de completado
+                                                            'time' =>  $order->status_7_date, // Reemplazar con la fecha real de completado
                                                         ],
                                                     ];
                                                     break;

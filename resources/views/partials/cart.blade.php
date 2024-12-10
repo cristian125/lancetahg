@@ -213,7 +213,7 @@
                 @foreach ($eligibleCartItems as $item)
                     <div class="unique-cart-item row mb-4 p-3 border-bottom shadow-sm">
                         <div class="col-12 col-md-2 text-center mb-3 mb-md-0">
-                            <div class="image-container1 border border-info">
+                            <div class="image-container1">
                                 @if (isset($item->id))
                                 {{-- @php
                                     dd($item);
@@ -541,6 +541,9 @@
                                     style="font-weight: 600;">
                                     <strong>Total con IVA:</strong>
                                     ${{ number_format($shippment->final_price, 2, '.', ',') }} MXN
+                                    @php
+                                        
+                                    @endphp
                                 </p>
                                 <div class="unique-item-actions2 ms-auto">
                                     <button class="btn btn-danger btn-sm remove-shipping">

@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -40,6 +41,7 @@ class ProductController extends Controller
             return response()->json(['message' => 'No se pudo actualizar.'], 500);
         }
         
+
         return response()->json(['message' => 'Productos y precios actualizados exitosamente.'], 200);
     }
 
@@ -146,13 +148,14 @@ class ProductController extends Controller
         DB::commit();
         $this->logApiImport('success', 'Productos importados y actualizados exitosamente en itemsdb.');
         $this->desactivarProductosInvalidos();
+
         return response()->json(['message' => 'Productos y precios actualizados exitosamente.'], 200);
     }
 
     protected function fetchInventory(Request $request)
     {
         $urlExistencias = env('EXTERNAL_API_BASE_URL') . "?accion=EXISTENCIAS&token=" . env('EXTERNAL_API_TOKEN');
-        $responseExistencias = Http::timeout(10)->get($urlExistencias);
+        $responseExistencias = Http::timeout(450)->get($urlExistencias);
 
         if ($responseExistencias->failed()) {
             $this->logApiImport('failed', 'Error al conectar con la API de existencias.', $responseExistencias->body());
@@ -226,7 +229,7 @@ class ProductController extends Controller
                 Log::warning('No se pudo actualizar el descuento en itemsdb para no_s:', ['no_s' => $no_s]);
             }
         }
-
+        $this->desactivarProductosSinImagen();
         DB::commit();
         $this->logApiImport('success', 'Descuentos importados y actualizados exitosamente en itemsdb.');
     }
@@ -273,5 +276,44 @@ protected function desactivarProductosInvalidos()
         'productos' => $productosInvalidos->pluck('no_s'),
     ]);
 }
+
+
+
+protected function desactivarProductosSinImagen()
+{
+    // Obtener todos los productos activos
+    $productosActivos = DB::table('itemsdb')
+        ->select('no_s')
+        ->where('activo', 1)
+        ->get();
+
+    $productosSinImagen = [];
+
+    // Verificar si cada producto tiene una imagen en la carpeta
+    foreach ($productosActivos as $producto) {
+        $no_s = $producto->no_s;
+        $rutaImagen = "itemsview/{$no_s}/{$no_s}.jpg";
+
+        if (!Storage::disk('public')->exists($rutaImagen)) {
+            $productosSinImagen[] = $no_s;
+        }
+    }
+
+    // Si no se encontraron productos sin imágenes, registrar y salir
+    if (empty($productosSinImagen)) {
+        Log::info('No se encontraron productos sin imágenes para desactivar.');
+        return;
+    }
+
+    // Desactivar productos sin imágenes
+    DB::table('itemsdb')
+        ->whereIn('no_s', $productosSinImagen)
+        ->update(['activo' => 0]);
+
+    Log::info('Productos desactivados por falta de imágenes:', [
+        'productos' => $productosSinImagen,
+    ]);
+}
+
 
 }

@@ -32,18 +32,18 @@ class GoogleMerchantController extends Controller
     //         Log::info('Token validado correctamente');
 
     //         $products = DB::table('itemsdb')
-    //         ->join('inventario', 'itemsdb.no_s', '=', 'inventario.no_s')
-    //         ->select(
-    //             'itemsdb.id as productId',
-    //             'itemsdb.no_s as offerId',  // Alias para no_s
-    //             'itemsdb.nombre as title',
-    //             'itemsdb.descripcion as description',
-    //             'itemsdb.precio_unitario as price',
-    //             'inventario.cantidad_disponible as availability',
-    //             'itemsdb.proveedor_nombre as marca'
-    //         )
-    //         ->where('itemsdb.activo', 1)  // Aquí usamos no_s en lugar de offerId
-    //         ->get();
+    //             ->join('inventario', 'itemsdb.no_s', '=', 'inventario.no_s')
+    //             ->select(
+    //                 'itemsdb.id as productId',
+    //                 'itemsdb.no_s as offerId',
+    //                 'itemsdb.nombre as title',
+    //                 'itemsdb.descripcion as description',
+    //                 'itemsdb.precio_unitario as price',
+    //                 'inventario.cantidad_disponible as availability',
+    //                 'itemsdb.proveedor_nombre as marca'
+    //             )
+    //             ->where('itemsdb.activo', 1)
+    //             ->get();
 
     //         Log::info('Productos obtenidos de la base de datos', ['cantidad' => $products->count()]);
 
@@ -69,7 +69,7 @@ class GoogleMerchantController extends Controller
     //             ];
     //         }
 
-    //         // Divide el arreglo en lotes de 50 productos
+    //         // Divide el arreglo en lotes de 500 productos
     //         $batchSize = 500;
     //         $chunks = array_chunk($productsData, $batchSize);
 
@@ -125,8 +125,10 @@ class GoogleMerchantController extends Controller
                 return response()->json(['message' => 'No hay productos disponibles para exportar']);
             }
 
-            $productsData = [];
+            // Capitalizar la primera letra de cada palabra del título (respetando acentos)
             foreach ($products as $product) {
+                $product->title = mb_convert_case(mb_strtolower($product->title, 'UTF-8'), MB_CASE_TITLE, 'UTF-8');
+
                 // Verificar si la descripción está vacía
                 if (empty($product->description)) {
                     $relatedProduct = DB::table('itemsdb')
@@ -145,7 +147,10 @@ class GoogleMerchantController extends Controller
                         $product->description = 'Descripción no disponible';
                     }
                 }
+            }
 
+            $productsData = [];
+            foreach ($products as $product) {
                 $productsData[] = [
                     'offerId' => $product->offerId,
                     'title' => $product->title,

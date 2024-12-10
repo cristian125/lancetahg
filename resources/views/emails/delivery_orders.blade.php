@@ -64,7 +64,7 @@
         <img src="{{ $message->embed(storage_path('app/public/logos/logolhg.png')) }}" alt="LANCETA HG" style="width: 200px; display: block; margin: 0 auto;">
     </div>
     
-    <h2>Estimado(a) {{ $user->name }},</h2>
+    <h2>Estimado(a) {{ $userdata->tratamiento }} {{ $user->name }},</h2>
     <p>Le informamos que su pedido ha sido actualizado con la siguiente información de entrega:</p>
 
     <div class="order-container">
@@ -76,7 +76,7 @@
             </p>
             @if($store)
             <p>
-                <strong>Lugar de Entrega:</strong> {{ $store->nombre ?? 'No disponible' }}<br>
+                <strong>Lugar de Entrega:</strong>  {{ $store->nombre ?? 'No disponible' }}<br>
                 <strong>Dirección:</strong> {{ $store->direccion ?? 'No disponible' }}
             </p>
         @endif

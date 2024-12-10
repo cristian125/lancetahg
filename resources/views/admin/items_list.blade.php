@@ -4,11 +4,10 @@
 
 <div class="container-fluid py-5">
     <div class="container bg-white p-5 shadow rounded">
-       
+
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3 class="text-primary">Gestión de Items</h3>
 
-          
             <div class="d-flex">
                 <form action="{{ route('admin.items.index') }}" method="GET" class="form-inline">
                     <div class="input-group">
@@ -19,7 +18,6 @@
                     </div>
                 </form>
 
-                
                 @if(request('search'))
                     <a href="{{ route('admin.items.index') }}" class="btn btn-outline-secondary ms-2">
                         <i class="fas fa-times"></i> Quitar búsqueda
@@ -27,16 +25,16 @@
                 @endif
             </div>
         </div>
-
         <div class="table-responsive">
             <table class="table table-hover table-striped">
                 <thead class="table-dark">
                     <tr>
                         <th>ID</th>
                         <th>No S</th>
-                        <th>Grupo ID</th>
+                        <th>Grupos</th>
                         <th>Nombre</th>
                         <th>Precio Unitario</th>
+                        <th>Cantidad Disponible</th>
                         <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
@@ -47,9 +45,12 @@
                             <tr>
                                 <td>{{ $item->id }}</td>
                                 <td>{{ $item->no_s }}</td>
-                                <td>{{ $item->grupo_id ?? 'Sin grupo' }}</td>
+                                <td>
+                                    {{ $item->grupos_ids ? str_replace(',', ', ', $item->grupos_ids) : 'Sin Grupo' }}
+                                </td>
                                 <td>{{ $item->nombre }}</td>
                                 <td>${{ number_format($item->precio_unitario, 2) }}</td>
+                                <td>{{ $item->cantidad_disponible ?? 0 }}</td>
                                 <td>
                                     @if($item->activo)
                                         <span class="badge bg-success">Activo</span>
@@ -58,7 +59,6 @@
                                     @endif
                                 </td>
                                 <td>
-                                  
                                     <a href="{{ route('admin.items.edit', $item->id) }}" class="btn btn-sm btn-outline-info">
                                         <i class="fas fa-edit"></i> Editar
                                     </a>
@@ -66,26 +66,27 @@
                             </tr>
                         @endforeach
                     @else
-                       
                         <tr>
-                            <td colspan="7" class="text-center text-danger">No se encontraron resultados</td>
+                            <td colspan="8" class="text-center text-danger">No se encontraron resultados</td>
                         </tr>
                     @endif
                 </tbody>
             </table>
         </div>
-
-
+        
         <div class="d-flex justify-content-center mt-4">
             {{ $items->appends(['search' => request('search')])->links('pagination::bootstrap-4') }}
         </div>
+        
+
     </div>
 </div>
+
 <style>
     body {
         background: rgb(195,195,195);
         background: linear-gradient(90deg, rgba(195,195,195,1) 4%, rgba(227,227,227,1) 79%);
-        }
-    
-    </style>
+    }
+</style>
+
 @endsection

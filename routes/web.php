@@ -77,8 +77,8 @@ Route::group(['middleware' => ['web']], function () {
     Route::get('/register', [RegisterController::class, 'showRegistrationForm']);
     Route::post('/register', [RegisterController::class, 'register'])->name('register')->middleware('throttle:5,3');
     // Route::post('/register', [RegisterController::class, 'register'])->name('register');
-    // Route::post('/login', [LoginController::class, 'login'])->name('login');
-    Route::post('/login', [LoginController::class, 'login'])->name('login')->middleware('throttle:5,3');
+    Route::post('/login', [LoginController::class, 'login'])->name('login');
+    // Route::post('/login', [LoginController::class, 'login'])->name('login')->middleware('throttle:5,3');
     Route::get('/producto/img/{id}', [ProductController::class, 'getImage'])->name('producto.imagen');
     Route::get('/ajax-search', [ProductController::class, 'ajaxSearch'])->name('ajax.search');
     Route::get('/search-result', [ProductController::class, 'search'])->name('product.search');

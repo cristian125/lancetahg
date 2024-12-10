@@ -115,10 +115,10 @@ class PaymentController extends Controller
         $paymentStatus = $responseData['status'] ?? 'FALLADO';
 
         // // // Validar el hash de la respuesta para asegurarse de que sea válido
-        // if (!$this->validateResponseHash($responseData)) {
-        //     Log::warning('Hash de respuesta inválido:', $responseData);
-        //     return redirect()->route('payment.fail')->with('error', 'Respuesta inválida. Por favor, contacte con soporte.');
-        // }
+        if (!$this->validateResponseHash($responseData)) {
+            Log::warning('Hash de respuesta inválido:', $responseData);
+            return redirect()->route('payment.fail')->with('error', 'Respuesta inválida. Por favor, contacte con soporte.');
+        }
 
         // Registrar la solicitud del pago como éxito
         $this->logPaymentRequest($responseData, 'success');
@@ -132,6 +132,12 @@ class PaymentController extends Controller
         if (!$transaction) {
             return redirect()->route('cart.show')->with('error', 'No se pudo encontrar la transacción.');
         }
+
+    if ($transaction->processed == true) {
+        // Si ya se ha procesado previamente, redirigir a una página de éxito o mostrar un mensaje.
+        return redirect()->route('payment.success', ['oid' => $oid])
+            ->with('message', 'Esta transacción ya fue procesada anteriormente.');
+    }
 
         $userId = $transaction->user_id;
         $cartId = $transaction->cart_id;
@@ -396,8 +402,16 @@ class PaymentController extends Controller
                 }
             }
 
+            
+        // **Nuevo: Marcar la transacción como procesada**
+        DB::table('payment_transactions')->where('oid', $oid)->update([
+            'processed' => true,
+            'updated_at' => now()
+        ]);
+
             return view('success', compact('order', 'orderItems', 'pickupDate', 'pickupTime'))->with('message', '¡Pago realizado con éxito! Pedido creado correctamente.');
         }
+
     }
 
     public function handleSuccesssinserie(Request $request)
@@ -410,10 +424,10 @@ class PaymentController extends Controller
             $responseData = $request->all();
 
             // // Validar el hash de la respuesta para asegurarse de que sea válido
-            // if (!$this->validateResponseHash($responseData)) {
-            //     Log::warning('Hash de respuesta inválido:', $responseData);
-            //     return redirect()->route('payment.fail')->with('error', 'Respuesta inválida. Por favor, contacte con soporte.');
-            // }
+            if (!$this->validateResponseHash($responseData)) {
+                Log::warning('Hash de respuesta inválido:', $responseData);
+                return redirect()->route('payment.fail')->with('error', 'Respuesta inválida. Por favor, contacte con soporte.');
+            }
 
             // Registrar la solicitud del pago como éxito
             $this->logPaymentRequest($responseData, 'success');

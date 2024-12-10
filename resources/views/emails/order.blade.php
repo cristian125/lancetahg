@@ -75,7 +75,23 @@
                 <p>
                     <strong>Número de Pedido:</strong> {{ $order->order_number }}<br>
                     <strong>Fecha de Creación:</strong> {{ \Carbon\Carbon::parse($order->created_at)->format('d/m/Y H:i') }}<br>
-                    <strong>Método de Envío:</strong> {{ $order->shipment_method }}
+                    <strong>Método de Envío:</strong> 
+                    @switch($order->shipment_method)
+                        @case('EnvioPorPaqueteria')
+                            Envío por Paquetería
+                            @break
+                        @case('RecogerEnTienda')
+                            Recoger en Tienda
+                            @break
+                        @case('EnvioLocal')
+                            Envío Local
+                            @break
+                        @case('EnvioPorCobrar')
+                            Envío por Cobrar
+                            @break
+                        @default
+                            Método Desconocido
+                    @endswitch
                 </p>
             </div>
             <div class="order-items">

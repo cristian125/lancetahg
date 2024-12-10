@@ -4,11 +4,27 @@
     <script src="https://cdn.tiny.cloud/1/wvaefm1arxme7m88dltt36jyacb4oqanhvybh3pu7972u0ok/tinymce/7/tinymce.min.js"
         referrerpolicy="origin"></script>
     <div class="container-fluid py-5">
+
         <h2 class="text-center mb-4">Modificar Item</h2>
         <div class="row justify-content-center">
+
             <div class="col-md-10">
+
                 <div class="card shadow-sm border-0">
                     <div class="card-body p-4">
+                        <a href="{{ route('producto.detalle', $item->id) }}" target="_blank"
+                            class="btn btn-outline-info btn-lg shadow-sm fw-bold d-flex align-items-center justify-content-center gap-2 mt-4 float-end">
+                            <i class="fas fa-eye"></i> Ir a la vista de producto
+                        </a>
+                        <!-- Existencia Actual -->
+                        <div class="col-md-4 mb-3">
+                            <label class=" fw-bold">Existencia Actual</label>
+                            <p class="px-3 py-2 bg-light">
+                                {{ $item->cantidad_disponible ?? 0 }}
+                            </p>
+                        </div>
+
+
                         <!-- Añadimos 'enctype' para permitir la subida de archivos -->
                         <form id="itemForm" action="{{ route('admin.items.update', $item->id) }}" method="POST"
                             enctype="multipart/form-data">
@@ -187,8 +203,8 @@
                                         <div class="atributos-container border rounded p-2">
                                             @foreach ($atributosGrupo as $atributo)
                                                 <div class="form-check">
-                                                    <input type="checkbox" name="atributos[]" value="{{ $atributo->id }}"
-                                                        id="atributo_{{ $atributo->id }}"
+                                                    <input type="checkbox" name="atributos[]"
+                                                        value="{{ $atributo->id }}" id="atributo_{{ $atributo->id }}"
                                                         {{ in_array($atributo->id, $atributosProducto) ? 'checked' : '' }}
                                                         class="form-check-input atributo-checkbox">
 
@@ -959,6 +975,17 @@
         .badge {
             font-size: 0.9em;
         }
+
+        .btn-outline-info {
+            border: 2px solid #17a2b8;
+            color: #17a2b8;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-info:hover {
+            background-color: #17a2b8;
+            color: white;
+        }
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -1006,6 +1033,35 @@
 
             // Cargar la lista de productos inicialmente
             updateProductosList();
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const precioUnitarioInput = document.getElementById('precio_unitario');
+            const descuentoInput = document.getElementById('descuento');
+            const precioUnitarioIVAincInput = document.getElementById('precio_unitario_IVAinc');
+            const precioConDescuentoInput = document.getElementById('precio_con_descuento');
+
+            // Determinar el IVA según el grupo_iva del producto
+            let IVA = "{{ $item->grupo_iva }}" === 'IVA16' ? 0.16 : 0;
+
+            function recalculatePrices() {
+                let precioUnitario = parseFloat(precioUnitarioInput.value) || 0;
+                let descuento = parseFloat(descuentoInput.value) || 0;
+
+                let precioUnitarioIVAinc = precioUnitario * (1 + IVA);
+                let precioConDescuento = precioUnitarioIVAinc - (precioUnitarioIVAinc * (descuento / 100));
+
+                precioUnitarioIVAincInput.value = precioUnitarioIVAinc.toFixed(2);
+                precioConDescuentoInput.value = precioConDescuento.toFixed(2);
+            }
+
+            // Escucha los cambios en precio_unitario y descuento
+            precioUnitarioInput.addEventListener('input', recalculatePrices);
+            descuentoInput.addEventListener('input', recalculatePrices);
+
+            // Calcula al cargar la página
+            recalculatePrices();
         });
     </script>
 

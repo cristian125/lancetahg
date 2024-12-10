@@ -55,31 +55,33 @@
                                                     </div>
                                                 </div>
                                                 <hr>
-                                                <div class="mt-3 d-flex justify-content-start align-items-center">
-                                                    <!-- Radio button de dirección predeterminada -->
-                                                    <div class="form-check me-4">
-                                                        <input type="radio" name="direccion_predeterminada"
-                                                            class="form-check-input radio-predeterminada styled-radio"
-                                                            data-id="{{ $direccion->id }}"
-                                                            id="direccionPred{{ $direccion->id }}"
-                                                            {{ $direccion->predeterminada ? 'checked' : '' }}>
-                                                        <label class="form-check-label label-predeterminada"
-                                                            for="direccionPred{{ $direccion->id }}">
-                                                            Dirección de Envío
-                                                        </label>
+                                                <div class="row mt-3">
+                                                    <div class="col-12 col-md-6 mb-2">
+                                                        <div class="form-check">
+                                                            <input type="radio" name="direccion_predeterminada"
+                                                                class="form-check-input radio-predeterminada styled-radio"
+                                                                data-id="{{ $direccion->id }}"
+                                                                id="direccionPred{{ $direccion->id }}"
+                                                                {{ $direccion->predeterminada ? 'checked' : '' }}>
+                                                            <label class="form-check-label label-predeterminada"
+                                                                for="direccionPred{{ $direccion->id }}">
+                                                                Dirección de Envío
+                                                            </label>
+                                                        </div>
                                                     </div>
-
-                                                    <!-- Radio button de dirección de facturación -->
-                                                    <div class="form-check">
-                                                        <input type="radio" name="direccion_facturacion"
-                                                            class="form-check-input radio-facturacion styled-radio"
-                                                            data-id="{{ $direccion->id }}"
-                                                            id="direccionFact{{ $direccion->id }}"
-                                                            {{ $direccion->facturacion ? 'checked' : '' }}>
-                                                        <label class="form-check-label label-facturacion"
-                                                            for="direccionFact{{ $direccion->id }}">
-                                                            Dirección Físcal
-                                                        </label>
+                                                
+                                                    <div class="col-12 col-md-6 mb-2">
+                                                        <div class="form-check">
+                                                            <input type="radio" name="direccion_facturacion"
+                                                                class="form-check-input radio-facturacion styled-radio"
+                                                                data-id="{{ $direccion->id }}"
+                                                                id="direccionFact{{ $direccion->id }}"
+                                                                {{ $direccion->facturacion ? 'checked' : '' }}>
+                                                            <label class="form-check-label label-facturacion"
+                                                                for="direccionFact{{ $direccion->id }}">
+                                                                Dirección Fiscal
+                                                            </label>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -406,4 +408,25 @@ hr {
     border-top: 1px solid #e0e0e0;
 }
 
+/* Ajuste de los radio buttons en pantallas pequeñas */
+@media (max-width: 768px) {
+    .form-check {
+        width: 100%;               /* Ocupar todo el ancho */
+        margin-bottom: 10px;      /* Separación entre radios */
+        display: flex;
+        align-items: center;
+        justify-content: start;   /* Alinear a la izquierda */
+    }
+
+    .form-check-label {
+        font-size: 1rem;
+        margin-left: 10px;        /* Separación con el botón */
+    }
+
+    .styled-radio {
+        width: 1.5rem;            /* Tamaño ajustado */
+        height: 1.5rem;
+        accent-color: #007bff;   /* Color personalizado */
+    }
+}
 </style>

@@ -739,7 +739,7 @@ class ProductController extends Controller
         return response()->json($productos);
     }
 
-    public function showCart1(Request $request)
+    public function showCart12(Request $request)
     {
 
         $mantenimiento = ProductosDestacadosController::checkMaintenance();
@@ -811,6 +811,7 @@ class ProductController extends Controller
 
         $shippmentExists = $shippment !== null;
         $tipoEnvioSeleccionado = $shippment ? $shippment->ShipmentMethod : null;
+
         if ($tipoEnvioSeleccionado) {
             $eligibleCartItems = $cartItems->filter(function ($item) use ($tipoEnvioSeleccionado) {
                 if ($tipoEnvioSeleccionado === 'EnvioLocal') {
@@ -835,6 +836,7 @@ class ProductController extends Controller
             $eligibleCartItems = $cartItems;
             $nonEligibleItems = collect();
         }
+
 
         $totalPrice = $eligibleCartItems->sum(function ($item) {
             return $item->final_price * $item->quantity;
@@ -862,15 +864,18 @@ class ProductController extends Controller
         foreach ($activeShippingMethods as $method) {
             $price = 0.00;
 
-            if ($method->name === 'EnvioLocal') {
-                $price = 250.00;
-            } elseif ($method->name === 'EnvioPorPaqueteria') {
-                $price = 500.00;
-            } elseif ($method->name === 'RecogerEnTienda') {
-                $price = 0.00;
-            } elseif ($method->name === 'EnvioPorCobrar') {
-                $price = 0.00;
+            if ($method->name === 'EnvioPorPaqueteria') {
+                // Si existe el envío y el método es paquetería,
+                // usamos el valor de la BD, por ejemplo final_price:
+                if ($shippmentExists && $shippment->ShipmentMethod === 'EnvioPorPaqueteria') {
+                    $price = (float)$shippment->final_price; 
+                } else {
+                    // Si aún no se ha seleccionado este método de envío,
+                    // puedes mostrar 0 o no mostrar nada hasta que se seleccione.
+                    $price = 0.00;
+                }
             }
+            
 
             $envios[] = [
                 'name' => $method->display_name,
@@ -1023,6 +1028,7 @@ class ProductController extends Controller
 
         $shippmentExists = $shippment !== null;
         $tipoEnvioSeleccionado = $shippment ? $shippment->ShipmentMethod : null;
+
         if ($tipoEnvioSeleccionado) {
             $eligibleCartItems = $cartItems->filter(function ($item) use ($tipoEnvioSeleccionado) {
                 if ($tipoEnvioSeleccionado === 'EnvioLocal') {
@@ -1058,7 +1064,7 @@ class ProductController extends Controller
         $subtotal_productos_pedido = $eligibleCartItems->sum(function ($item) {
             return $item->unit_price * $item->quantity;
         });
-
+        
         $descuento_productos_pedido = $eligibleCartItems->sum(function ($item) {
             return $item->discount_amount;
         });
@@ -1074,11 +1080,16 @@ class ProductController extends Controller
         $envio_iva_pedido = isset($shippment) && isset($shippment->shippingcost_IVA) ? (float) $shippment->shippingcost_IVA : 0.00;
         $envio_total_pedido = isset($shippment) && isset($shippment->final_price) ? (float) $shippment->final_price : 0.00;
 
-        // Calcular el total con las verificaciones previas
-        $subtotal_pedido = (float) $subtotal_productos_pedido + $envio_subtotal_pedido;
-        $descuento_pedido = (float) $descuento_productos_pedido + $envio_descuento_pedido;
-        $iva_pedido = (float) $iva_productos_pedido + $envio_iva_pedido;
+        $subtotal_pedido = $subtotal_productos_pedido;
+        $descuento_pedido = $descuento_productos_pedido;
+        $iva_pedido = $iva_productos_pedido;
         $total_pedido = $subtotal_pedido - $descuento_pedido + $iva_pedido;
+
+        // Calcular el total con las verificaciones previas
+        // $subtotal_pedido = (float) $subtotal_productos_pedido + $envio_subtotal_pedido;
+        // $descuento_pedido = (float) $descuento_productos_pedido + $envio_descuento_pedido;
+        // $iva_pedido = (float) $iva_productos_pedido + $envio_iva_pedido;
+        // $total_pedido = $subtotal_pedido - $descuento_pedido + $iva_pedido;
         //    dd($total_pedido, $subtotal_pedido, $descuento_pedido, $iva_pedido);
         // dd($subtotal_pedido,$descuento_pedido,$iva_pedido,$total_pedido);
         $activeShippingMethods = DB::table('shipping_methods')

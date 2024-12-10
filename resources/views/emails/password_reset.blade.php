@@ -56,9 +56,10 @@
 <body>
     <div class="container">
         <!-- Logo de la Empresa -->
-        <div class="logo">
-            <h1>LANCETA HG</h1>
-        </div>
+        <div style="max-width: 900px; margin: 0 auto; padding: 20px; background-color: #fff; border: 1px solid #ddd; border-radius: 8px;">
+            <div class="logo" style="background-color: #005f7f; padding: 20px; border-radius: 10px;">
+                <img src="{{ $message->embed(storage_path('app/public/logos/logolhg.png')) }}" alt="LANCETA HG" style="width: 200px; display: block; margin: 0 auto;">
+            </div>
 
         <!-- Contenido del Correo -->
         <p>Hola {{ $user->name }},</p>

@@ -173,6 +173,14 @@ class OrderController extends Controller
 
         // Obtener el usuario asociado al pedido
         $user = DB::table('users')->where('id', $order->user_id)->first();
+        $userdata = DB::table('users_data')
+        ->where('user_id',$user->id)
+        ->first();
+
+        if($userdata->tratamiento=='NA')
+        {
+            $userdata->tratamiento = '';
+        }
 
         if ($user) {
             // Preparar los datos para el correo
@@ -191,9 +199,9 @@ class OrderController extends Controller
             if ($orderShipment && $orderShipment->store_id) {
                 $store = DB::table('tiendas')->where('id', $orderShipment->store_id)->first();
             }
-
+            
             // Enviar el correo electrónico al usuario con todos los datos
-            $this->sendDeliveryEmail($user, $order, $orderItems, $orderShipment, $store);
+            $this->sendDeliveryEmail($userdata, $user, $order, $orderItems, $orderShipment, $store);
         } else {
             Log::warning('Usuario no encontrado para el ID: ' . $order->user_id);
         }
@@ -204,16 +212,18 @@ class OrderController extends Controller
         ]);
     }
 
-    protected function sendDeliveryEmail($user, $order, $orderItems, $orderShipment, $store)
+    public function sendDeliveryEmail($userdata,$user, $order, $orderItems, $orderShipment, $store)
     {
+        
         $data = [
             'user' => $user,
             'order' => $order,
             'orderItems' => $orderItems,
             'orderShipment' => $orderShipment,
             'store' => $store,
+            'userdata' => $userdata,
         ];
-
+        // return view('emails.delivery_orders',$data);
         try {
             Mail::send('emails.delivery_orders', $data, function ($message) use ($user) {
                 $message->to($user->email)
@@ -224,6 +234,9 @@ class OrderController extends Controller
         } catch (\Exception $e) {
             Log::error('Error al enviar el correo electrónico al usuario ID: ' . $user->id . '. Error: ' . $e->getMessage());
         }
+
     }
+
+
 
 }

@@ -7,15 +7,21 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
+
+
+
+
+
 class ItemController extends Controller
 {
     public function index(Request $request)
     {
-        // Capturar el término de búsqueda desde el request
+        // Captura del término de búsqueda
         $search = $request->input('search');
-
-        // Consulta SQL para obtener los items con el ID del grupo real
+    
+        // Consulta SQL para obtener los items únicos con cantidad disponible
         $items = DB::table('itemsdb')
+            ->leftJoin('inventario', 'itemsdb.no_s', '=', 'inventario.no_s') // Unión con inventario
             ->leftJoin('producto_atributo', 'itemsdb.id', '=', 'producto_atributo.producto_id')
             ->leftJoin('atributos', 'producto_atributo.atributo_id', '=', 'atributos.id')
             ->leftJoin('grupos', 'atributos.grupo_id', '=', 'grupos.id')
@@ -24,19 +30,31 @@ class ItemController extends Controller
                 'itemsdb.no_s',
                 'itemsdb.nombre',
                 'itemsdb.precio_unitario',
-                'grupos.id as grupo_id', // Obtenemos el ID del grupo en lugar del nombre
-                'itemsdb.activo' // Mantener la columna 'activo'
+                DB::raw('GROUP_CONCAT(DISTINCT grupos.id) as grupos_ids'), // Combinar grupos
+                'inventario.cantidad_disponible',  // Existencia actual
+                'itemsdb.activo'
             )
             ->when($search, function ($query, $search) {
-                return $query->where('itemsdb.nombre', 'like', '%' . $search . '%')
-                    ->orWhere('itemsdb.no_s', 'like', '%' . $search . '%')
-                    ->orWhere('grupos.id', 'like', '%' . $search . '%'); // Búsqueda por ID del grupo real
+                return $query->where(function ($query) use ($search) {
+                    $query->where('itemsdb.nombre', 'like', '%' . $search . '%')
+                        ->orWhere('itemsdb.no_s', 'like', '%' . $search . '%')
+                        ->orWhere('grupos.id', 'like', '%' . $search . '%');
+                });
             })
+            ->groupBy(
+                'itemsdb.id',
+                'itemsdb.no_s',
+                'itemsdb.nombre',
+                'itemsdb.precio_unitario',
+                'inventario.cantidad_disponible',
+                'itemsdb.activo'
+            )
             ->paginate(15);
-
-        // Renderiza la vista con los items paginados y el término de búsqueda
+    
+        // Devolver la vista con los datos
         return view('admin.items_list', compact('items', 'search'));
     }
+    
 
     
     public function edit($id)
@@ -187,6 +205,15 @@ class ItemController extends Controller
             ->distinct()
             ->get();
     }
+        // Consulta para obtener el item y su cantidad disponible
+        $item = DB::table('itemsdb')
+        ->leftJoin('inventario', 'itemsdb.no_s', '=', 'inventario.no_s')
+        ->select(
+            'itemsdb.*',
+            'inventario.cantidad_disponible'
+        )
+        ->where('itemsdb.id', $id)
+        ->first();
         // Enviar los datos a la vista, incluyendo todas las imágenes
         return view('admin.edit_items', compact(
             'item',

@@ -78,7 +78,7 @@ class CartController extends ProductController
             }
             return false;
         });
-
+        
         $eligibleProductNos = $eligibleCartItems->pluck('no_s')->all();
         $nonEligibleItems = $cartItems->reject(function ($item) use ($eligibleProductNos) {
             return in_array($item->no_s, $eligibleProductNos);
@@ -279,7 +279,7 @@ class CartController extends ProductController
         })->sum(function ($item) {
             return $item->final_price;
         });
-
+        
         $totalSinIVA = $cartItems->filter(function ($item) {
             return $item->grupo_iva === 'IVA0';
         })->sum(function ($item) {

@@ -248,6 +248,15 @@ width: 100% !important;
     object-fit: contain; /* Escala la imagen para que quepa dentro del contenedor sin recortarla */
     background-color: #fff; /* Añade un fondo blanco para evitar que se vea el fondo del contenedor */
 }
+@media (max-width: 868px) {
+    .product-image1 {
+        width: 75%;
+        height: 75%;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+}
 
 
 .custom-btn-minus {
