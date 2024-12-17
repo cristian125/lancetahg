@@ -178,7 +178,7 @@
                                     </select>
                                 </div>
 
-                                <div class="col-md-4 mb-3">
+                                {{-- <div class="col-md-4 mb-3">
                                     <label for="no_proveedor" class="form-label fw-bold">Número de Proveedor</label>
                                     <select id="no_proveedor" name="no_proveedor" class="form-select border-primary">
                                         <option value="">Seleccione un proveedor</option>
@@ -190,7 +190,20 @@
                                             </option>
                                         @endforeach
                                     </select>
+                                </div> --}}
+                                <!-- Número de Serie -->
+                                <div class="col-md-4 mb-3">
+                                    <label for="no_s" class="form-label fw-bold">Proveedor</label>
+                                    <input type="text" id="proveedor" name="proveedor" class="form-control border-primary"
+                                        value="{{ $item->proveedor }}" required>
                                 </div>
+                                <!-- Número de Serie -->
+                                <div class="col-md-4 mb-3">
+                                    <label for="no_s" class="form-label fw-bold">Nombre Proveedor</label>
+                                    <input type="text" id="nombreproveedor" name="nombreproveedor"
+                                        class="form-control border-primary" value="{{ $item->proveedor_nombre }}" required>
+                                </div>
+
 
 
                                 <!-- Sección para asignar atributos -->
@@ -343,8 +356,10 @@
                                 <!-- Costo Unitario -->
                                 <div class="col-md-4 mb-3">
                                     <label for="costo_unitario" class="form-label fw-bold">Costo Unitario MXN</label>
-                                    <input type="number" step="0.01" id="costo_unitario" name="costo_unitario"
-                                        class="form-control border-primary" value="{{ $item->costo_unitario }}">
+                                    <input type="number" step="0.01" id="costo_unitario" name="costo_unitario" 
+                                    class="form-control border-primary" 
+                                    value="{{ old('costo_unitario', $item->costo_unitario ?? 0) }}">
+                                
                                 </div>
 
                                 <!-- Precio Unitario -->

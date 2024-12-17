@@ -135,7 +135,7 @@
 
     /* Botón de detalles */
     .btn-outline-primary {
-        padding: 10px 20px;
+        /* padding: 10px 20px; */
         font-size: 1rem;
         font-weight: bold;
         border: 2px solid #007bff;

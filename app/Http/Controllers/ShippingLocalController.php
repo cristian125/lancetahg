@@ -29,6 +29,9 @@ class ShippingLocalController extends Controller
         }
     }
 
+
+
+    
     private function getIdCart()
     {
         $queryCarts = DB::table('carts')
@@ -294,5 +297,5 @@ class ShippingLocalController extends Controller
             'minimoCompra' => $minimoCompra,
 
         ];
-    
+    }
 }

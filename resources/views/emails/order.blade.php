@@ -108,23 +108,31 @@
                     </thead>
                     <tbody>
                         @foreach ($orderItems as $item)
+                            @php
+                                $discounted_price = $item->unit_price * (1 - ($item->discount / 100));
+                                $item_subtotal = $discounted_price * $item->quantity;
+                            @endphp
                             <tr>
                                 <td>{{ $item->product_id }}</td>
                                 <td>{{ $item->product_name }}</td>
                                 <td>{{ $item->quantity }}</td>
                                 <td>${{ number_format($item->unit_price, 2) }}</td>
-                                <td>${{ number_format($item->unit_price * $item->quantity, 2) }}</td>
+                                <td>${{ number_format($item_subtotal, 2) }}</td>
                             </tr>
                         @endforeach
                     </tbody>
+                    
                 </table>
                 @php
-                    $subtotal = $orderItems->sum(function($item) {
-                        return $item->unit_price * $item->quantity;
-                    });
-                    $iva = $subtotal * 0.16; 
-                    $total = $subtotal + $iva;
-                @endphp
+                $subtotal = $orderItems->sum(function($item) {
+                    $discounted_price = $item->unit_price * (1 - ($item->discount / 100));
+                    return $discounted_price * $item->quantity;
+                });
+            
+                $iva = $subtotal * 0.16; 
+                $total = $subtotal + $iva;
+            @endphp
+            
                 <div class="order-summary">
                     <p><strong>Subtotal:</strong> ${{ number_format($subtotal, 2) }}</p>
                     <p><strong>IVA (16%):</strong> ${{ number_format($iva, 2) }}</p>

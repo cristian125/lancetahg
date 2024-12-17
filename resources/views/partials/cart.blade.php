@@ -655,11 +655,12 @@
                                             Contacto</label>
                                         <input type="text" id="contactPhone" name="contactPhone"
                                             class="form-control border-primary" maxlength="15"
-                                            value="{{ old('contactPhone', $user->phone ?? '') }}"
+                                            value="{{ old('contactPhone', $user->telefono ?? '') }}"
                                             placeholder="(Obligatorio)">
                                         <div class="invalid-feedback">Por favor, proporcione un teléfono de contacto
                                             válido.</div>
                                     </div>
+
                                 </form>
                             </div>
                         </div>

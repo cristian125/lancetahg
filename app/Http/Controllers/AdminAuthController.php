@@ -1,11 +1,11 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Models\Admin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\Hash;
 class AdminAuthController extends Controller
 {
 
@@ -48,17 +48,43 @@ class AdminAuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:admins',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|string',
+            'role' => 'required|string|in:superusuario,editor,viewer',
         ]);
     
-        $admin = new \App\Models\Admin();
-        $admin->name = $request->input('name');
-        $admin->email = $request->input('email');
-        $admin->password = $request->input('password'); // No hashear aquí
-        $admin->role = $request->input('role');
-        $admin->save();
+        \App\Models\Admin::create([
+            'name' => $request->input('name'),
+            'email' => $request->input('email'),
+ 
+            'password' => $request->input('password'), 
+            'role' => $request->input('role'),
+        ]);
+        
     
-        return redirect()->route('admin.login')->with('success', 'Administrador registrado exitosamente.');
+        return redirect()->route('admin.manage.admins')->with('success', 'Administrador registrado exitosamente.');
+    }
+    
+    public function deleteAdmin($id)
+    {
+        if ($id == Auth::guard('admin')->id()) {
+            return redirect()->route('admin.manage.admins')->withErrors('No puedes eliminar tu propia cuenta.');
+        }
+
+        Admin::destroy($id);
+        return redirect()->route('admin.manage.admins')->with('success', 'Administrador eliminado exitosamente.');
+    }
+
+    public function changePassword(Request $request, $id)
+    {
+        $request->validate([
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+    
+        $admin = Admin::findOrFail($id);
+        $admin->update([
+            'password' => $request->input('password'), // Solo asignar, el mutador en el modelo hashea
+        ]);
+    
+        return redirect()->route('admin.manage.admins')->with('success', 'Contraseña actualizada correctamente.');
     }
     
     

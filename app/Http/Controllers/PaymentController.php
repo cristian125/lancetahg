@@ -117,7 +117,7 @@ class PaymentController extends Controller
         // // // Validar el hash de la respuesta para asegurarse de que sea válido
         if (!$this->validateResponseHash($responseData)) {
             Log::warning('Hash de respuesta inválido:', $responseData);
-            return redirect()->route('payment.fail')->with('error', 'Respuesta inválida. Por favor, contacte con soporte.');
+            return redirect()->route('payment.callback.fail')->with('error', 'Respuesta inválida. Por favor, contacte con soporte.');
         }
 
         // Registrar la solicitud del pago como éxito
@@ -426,7 +426,7 @@ class PaymentController extends Controller
             // // Validar el hash de la respuesta para asegurarse de que sea válido
             if (!$this->validateResponseHash($responseData)) {
                 Log::warning('Hash de respuesta inválido:', $responseData);
-                return redirect()->route('payment.fail')->with('error', 'Respuesta inválida. Por favor, contacte con soporte.');
+                return redirect()->route('payment.callback.fail')->with('error', 'Respuesta inválida. Por favor, contacte con soporte.');
             }
 
             // Registrar la solicitud del pago como éxito

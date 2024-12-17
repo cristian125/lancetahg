@@ -6,21 +6,42 @@
             $('#addDireccion').on('click', function() {
                 $('#modalAgregarDireccion').modal('show');
             });
-
+            $('#frmAgregarDireccion #btnCancelar').on('click',function(e){
+                e.preventDefault();
+            });
+             
             $('#frmAgregarDireccion #codigopostal').on('keyup', function(e) {
+                $('#frmAgregarDireccion .alert').remove();
                 let largo = $(this).val().trim().length;
-                if (largo == 5) {
+                let codigopostal = $('#frmAgregarDireccion #codigopostal').val();
+                if (largo > 5) {
+                    codigopostal = codigopostal.substring(0, 5);
+                    $('#frmAgregarDireccion #codigopostal').val(codigopostal);
+                    return;
+                }
+
+                
+                if (largo >= 5) {
                     $.ajax({
                         type: "POST",
                         url: "{{ route('cuenta.direccion.obtener') }}",
                         data: {
                             _token: "{{ csrf_token() }}",
-                            'codigopostal': $('#frmAgregarDireccion #codigopostal').val()
+                            'codigopostal': codigopostal
                         },
                         dataType: "json",
                         success: function(response) {
                             $('#frmAgregarDireccion #delegacion').html('');
                             $('#frmAgregarDireccion #estado').html('');
+                            if (response.length == 0) {
+                                $('#frmAgregarDireccion').prepend(
+                                    '<div class="alert alert-danger alert-dismissible" role="alert">No se encontro el código postal capturado ' +
+                                    codigopostal +
+                                    '.<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>'
+                                    )
+                                return;
+                            }
+
                             $.each(response, function(i, r) {
                                 let municipio = r.municipio_ciudad;
                                 let estado = r.provincia;
@@ -129,38 +150,40 @@
                     }
                 });
             });
-
-
         });
     </script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // Obtener el valor de la sección que se debe abrir
+
             const sectionToOpen = "{{ $sectionToOpen }}";
 
             if (sectionToOpen) {
-                // Buscar el botón del acordeón correspondiente
+
                 const accordionButton = document.querySelector(`[data-bs-target="#${sectionToOpen}"]`);
                 const accordionCollapse = document.querySelector(`#${sectionToOpen}`);
 
-                // Abrir el acordeón si existe
                 if (accordionButton && accordionCollapse) {
-                    accordionCollapse.classList.add('show'); // Añadir la clase 'show' para abrir el acordeón
+                    accordionCollapse.classList.add('show'); 
                     accordionButton.setAttribute('aria-expanded',
-                        'true'); // Cambiar el atributo aria-expanded a true
+                        'true'); 
                 }
             }
         });
     </script>
+    <style>
+        #modalAgregarDireccion{
+            margin-top:5em;
+        }
+    </style>
 @endsection
 @section('body')
     @foreach ($modal_files as $file)
         @include('partials.modal.cuenta.' . $file)
     @endforeach
 
-    <!-- Contenedor principal -->
+
     <div class="container my-5">
-        <!-- Cuadro general de cuenta con estilos -->
+
         <div class="card shadow-lg border-0 rounded">
             <div class="card-body p-5">
                 <!-- Sección de encabezado de la cuenta -->

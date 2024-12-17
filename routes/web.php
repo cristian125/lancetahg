@@ -96,9 +96,9 @@ Route::group(['middleware' => ['web']], function () {
     })->name('coberturaloc');
     Route::get('/page/{slug}', [PageController::class, 'showPage'])->name('page.show');
     Route::get('/avisoprivacidad', [PageController::class, 'showPrivacyPolicy'])->name('avisoprivacidad');
-    Route::get('/ayuda', function () {
-        return view('ayuda');
-    })->name('ayuda');
+    // Route::get('/ayuda', function () {
+    //     return view('ayuda');
+    // })->name('ayuda');
     Route::get('/formasdepago', function () {
         return view('formasdepago');
     })->name('formasdepago');
@@ -227,6 +227,8 @@ Route::prefix('adminlanz')->middleware('adminsession')->group(function () {
         Route::middleware('admin.role:superusuario')->group(function () {
             Route::get('/manage-admins', [AdminAuthController::class, 'manageAdmins'])->name('admin.manage.admins');
             Route::post('/update-admin-role/{id}', [AdminAuthController::class, 'updateAdminRole'])->name('admin.update.admin.role');
+            Route::delete('/delete-admin/{id}', [AdminAuthController::class, 'deleteAdmin'])->name('admin.delete.admin');
+            Route::post('/change-password/{id}', [AdminAuthController::class, 'changePassword'])->name('admin.change.password');
             Route::get('/shipping-methods', [ShippingMethodController::class, 'showShippingMethods'])->name('admin.shipping_methods');
             Route::post('/shipping-methods/update', [ShippingMethodController::class, 'updateShippingMethod'])->name('admin.shipping_methods.update');
             Route::get('/users', [AdminUserController::class, 'index'])->name('admin.users');
@@ -236,13 +238,20 @@ Route::prefix('adminlanz')->middleware('adminsession')->group(function () {
             Route::post('/users/{id}/delete-carts', [AdminUserController::class, 'deleteCarts'])->name('admin.users.deleteCarts');
             Route::post('/users/{id}/delete-shipments', [AdminUserController::class, 'deleteShipments'])->name('admin.users.deleteShipments');
             Route::get('/admin/cliente-distinguido', [ClienteDistinguidoController::class, 'show'])->name('cliente.distinguido.show');
-            Route::get('ordenes', [AdminOrderController::class, 'index'])->name('admin.orders.index');
-            Route::get('ordenes/{orderId}', [AdminOrderController::class, 'show'])->name('admin.orders.show');
-            Route::get('/admin/pedido/{orderId}/pdf', [AdminOrderController::class, 'downloadOrderPdf'])->name('admin.order.pdf');
+            // Route::get('ordenes', [AdminOrderController::class, 'index'])->name('admin.orders.index');
+            // Route::get('ordenes/{orderId}', [AdminOrderController::class, 'show'])->name('admin.orders.show');
+            // Route::get('/admin/pedido/{orderId}/pdf', [AdminOrderController::class, 'downloadOrderPdf'])->name('admin.order.pdf');
             Route::get('/newsletter', [NewsletterController::class, 'show'])->name('newsletter.show');
             Route::post('/newsletter/toggle/{id}', [NewsletterController::class, 'toggleSubscription'])->name('newsletter.toggle');
             Route::delete('/newsletter/{id}', [NewsletterController::class, 'destroy'])->name('newsletter.destroy');
         });
+
+        Route::middleware('admin.role:superusuario,editor,viewer')->group(function () {
+            Route::get('ordenes', [AdminOrderController::class, 'index'])->name('admin.orders.index');
+            Route::get('ordenes/{orderId}', [AdminOrderController::class, 'show'])->name('admin.orders.show');
+            Route::get('/admin/pedido/{orderId}/pdf', [AdminOrderController::class, 'downloadOrderPdf'])->name('admin.order.pdf');
+        });
+        
 
         Route::middleware('admin.role:superusuario,editor')->group(function () {
             Route::get('/items', [ItemController::class, 'index'])->name('admin.items.index');

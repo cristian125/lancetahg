@@ -234,16 +234,18 @@
             </div>
         </li>
 
-        <!-- Categoría: Administración -->
-        @if (Auth::guard('admin')->check() && Auth::guard('admin')->user()->role === 'superusuario')
-            <li class="nav-item">
-                <a class="nav-link collapsed" data-bs-toggle="collapse" href="#administracion" role="button" aria-expanded="false" aria-controls="administracion">
-                    <i class="fas fa-user-shield"></i>
-                    <span class="text-truncate">Administración</span>
-                    <i class="fas fa-chevron-down float-end"></i>
-                </a>
-                <div class="collapse" id="administracion">
-                    <ul class="nav flex-column ms-3">
+        @if (Auth::guard('admin')->check())
+        <li class="nav-item">
+            <a class="nav-link collapsed" data-bs-toggle="collapse" href="#administracion" role="button" aria-expanded="false" aria-controls="administracion">
+                <i class="fas fa-user-shield"></i>
+                <span class="text-truncate">Administración</span>
+                <i class="fas fa-chevron-down float-end"></i>
+            </a>
+            <div class="collapse" id="administracion">
+                <ul class="nav flex-column ms-3">
+    
+                    {{-- Opciones solo para superusuario --}}
+                    @if (Auth::guard('admin')->user()->role === 'superusuario')
                         <li class="nav-item">
                             <a href="{{ route('admin.manage.admins') }}" class="nav-link {{ request()->is('admin/manage-admins') ? 'active' : '' }}">
                                 <i class="fas fa-users-cog"></i>
@@ -269,21 +271,28 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ route('admin.orders.index') }}" class="nav-link">
-                                <i class="fas fa-shopping-cart"></i>
-                                <span class="text-truncate">Pedidos de Compra</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
                             <a href="{{ route('admin.payment_logs.index') }}" class="nav-link {{ request()->is('admin/manage-admins') ? 'active' : '' }}">
                                 <i class="fas fa-users-cog"></i>
                                 <span class="text-truncate">Payment Logs</span>
                             </a>
                         </li>
-                    </ul>
-                </div>
-            </li>
-        @endif
+                    @endif
+    
+                    {{-- Opciones disponibles para superusuario y viewer --}}
+                    @if(in_array(Auth::guard('admin')->user()->role, ['superusuario', 'viewer']))
+                        <li class="nav-item">
+                            <a href="{{ route('admin.orders.index') }}" class="nav-link">
+                                <i class="fas fa-shopping-cart"></i>
+                                <span class="text-truncate">Pedidos de Compra</span>
+                            </a>
+                        </li>
+                    @endif
+    
+                </ul>
+            </div>
+        </li>
+    @endif
+    
 
         <!-- Categoría: Configuración de Página -->
         <li class="nav-item">

@@ -1167,9 +1167,7 @@ class ProductController extends Controller
             'shippingCostIVA' => $envio_iva_pedido,
             'paqueteriaShippingData' => $paqueteriaShippingData,
             'cobrarShippingData' => $cobrarShippingData,
-
-
-
+            'user' => $userData,
         ];
         
         return view('carrito', $variables_compartidas);

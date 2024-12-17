@@ -28,7 +28,7 @@
             padding: 15px;
             margin-top: 20px;
             overflow-x: auto;
-            /* Habilita desplazamiento horizontal */
+
         }
 
         .order-header {
@@ -136,10 +136,15 @@
                             @endphp
                             @foreach ($orderItemsData as $item)
                                 @php
-                                    $precioUnitarioSinIVA = $item->unit_price;
-                                    $precioUnitarioConIVA = $item->unit_price * (1 + $item->vat);
+                                    // Aplicar descuento
+                                    $precioUnitarioSinIVA = $item->unit_price * (1 - ($item->discount / 100));
+                                    $precioUnitarioConIVA = $precioUnitarioSinIVA * (1 + $item->vat);
+                                    
+                                    // Calcular subtotales
                                     $subtotalItemSinIVA = $precioUnitarioSinIVA * $item->quantity;
                                     $subtotalItemConIVA = $precioUnitarioConIVA * $item->quantity;
+                        
+                                    // Acumular totales
                                     $subtotalSinIVA += $subtotalItemSinIVA;
                                     $subtotalConIVA += $subtotalItemConIVA;
                                 @endphp
@@ -154,12 +159,14 @@
                                 </tr>
                             @endforeach
                         </tbody>
+                        
                     </table>
                 </div>
                 <div class="order-summary">
                     <p><strong>Total sin IVA:</strong> ${{ number_format($subtotalSinIVA, 2) }}</p>
                     <p><strong>Total con IVA:</strong> ${{ number_format($subtotalConIVA, 2) }}</p>
                 </div>
+                
             </div>
         </div>
         <h3>Datos del Cliente:</h3>

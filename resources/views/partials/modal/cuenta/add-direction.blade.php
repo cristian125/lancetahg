@@ -8,13 +8,16 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form id="frmAgregarDireccion" action="{{route('cuenta.direccion.agregar')}}" class="table" method="POST">
+                <form id="frmAgregarDireccion" action="{{ route('cuenta.direccion.agregar') }}" class="table"
+                    method="POST">
                     @csrf
                     <div class="row">
                         <div class="col-md-12">
                             <div class="input-group">
-                                <label for="nombre" class="input-group-text">Nombre: &nbsp;<i class="bi bi-info-circle"></i></label>
-                                <input type="text" name="nombre" id="nombre" class="form-control" required="required" placeholder="Ej: Casa, Hospital, Clinica, Consultorio" />
+                                <label for="nombre" class="input-group-text">Nombre: &nbsp;<i
+                                        class="bi bi-info-circle"></i></label>
+                                <input type="text" name="nombre" id="nombre" class="form-control"
+                                    required="required" placeholder="Ej: Casa, Hospital, Clinica, Consultorio" />
                             </div>
                         </div>
                     </div>
@@ -22,7 +25,8 @@
                         <div class="col-md-6">
                             <div class="input-group">
                                 <label for="calle" class="input-group-text">Calle:</label>
-                                <input type="text" name="calle" id="calle" class="form-control" required="required" />
+                                <input type="text" name="calle" id="calle" class="form-control"
+                                    required="required" />
                             </div>
                         </div>
                         <div class="col-md-3">
@@ -34,7 +38,8 @@
                         <div class="col-md-3">
                             <div class="input-group">
                                 <label for="ext" class="input-group-text">No Ext: </label>
-                                <input type="text" name="ext" id="ext" class="form-control" required="required" />
+                                <input type="text" name="ext" id="ext" class="form-control"
+                                    required="required" />
                             </div>
                         </div>
                     </div>
@@ -42,7 +47,8 @@
                         <div class="col-md-6">
                             <div class="input-group">
                                 <label for="colonia" class="input-group-text ">Colonia: </label>
-                                <input type="text" name="colonia" id="colonia" class="form-control" required="required" />
+                                <input type="text" name="colonia" id="colonia" class="form-control"
+                                    required="required" />
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -56,13 +62,15 @@
                         <div class="col-md-6">
                             <div class="input-group">
                                 <label for="codigopostal" class="input-group-text">Código Postal: </label>
-                                <input type="text" name="codigopostal" id="codigopostal" class="form-control" required="required" />
+                                <input type="number" name="codigopostal" id="codigopostal" class="form-control"
+                                    pattern="^\d{5}$" required="required" />
                             </div>
-                        </div>                
+                        </div>
                         <div class="col-md-6">
                             <div class="input-group">
                                 <label for="delegacion" class="input-group-text disabled">Municipio: </label>
-                                <select name="delegacion" id="delegacion" class="form-control" required="required"></select>
+                                <select name="delegacion" id="delegacion" class="form-control"
+                                    required="required"></select>
                             </div>
                         </div>
                     </div>
@@ -70,7 +78,8 @@
                         <div class="col-md-6">
                             <div class="input-group">
                                 <label for="estado" class="input-group-text disabled">Estado: </label>
-                                <select name="estado" id="estado" class="form-control" required="required"></select>
+                                <select name="estado" id="estado" class="form-control"
+                                    required="required"></select>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -92,7 +101,8 @@
                     </div>
                     <div class="row">
                         <div class="col-md-6">
-                            <button id="btnCancelar" class="btn btn-danger form-control bg-danger text-white" data-bs-dismiss="modal" aria-label="Close"    >
+                            <button id="btnCancelar" class="btn btn-danger form-control bg-danger text-white"
+                                data-bs-dismiss="modal" aria-label="Close">
                                 <i class="bi bi-x-octagon-fill"></i> Cancelar
                             </button>
                         </div>
@@ -102,9 +112,16 @@
                             </button>
                         </div>
                     </div>
-                    
+
                 </form>
             </div>
         </div>
     </div>
 </div>
+<script>
+    $(document).ready(function() {
+        $('#modalAgregarDireccion').on('hidden.bs.modal', function() {
+            console.log('here');
+        });
+    });
+</script>

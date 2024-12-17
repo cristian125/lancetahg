@@ -7,18 +7,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
-
-
-
-
-
 class ItemController extends Controller
 {
     public function index(Request $request)
     {
         // Captura del término de búsqueda
         $search = $request->input('search');
-    
+
         // Consulta SQL para obtener los items únicos con cantidad disponible
         $items = DB::table('itemsdb')
             ->leftJoin('inventario', 'itemsdb.no_s', '=', 'inventario.no_s') // Unión con inventario
@@ -31,7 +26,7 @@ class ItemController extends Controller
                 'itemsdb.nombre',
                 'itemsdb.precio_unitario',
                 DB::raw('GROUP_CONCAT(DISTINCT grupos.id) as grupos_ids'), // Combinar grupos
-                'inventario.cantidad_disponible',  // Existencia actual
+                'inventario.cantidad_disponible', // Existencia actual
                 'itemsdb.activo'
             )
             ->when($search, function ($query, $search) {
@@ -50,13 +45,11 @@ class ItemController extends Controller
                 'itemsdb.activo'
             )
             ->paginate(15);
-    
+
         // Devolver la vista con los datos
         return view('admin.items_list', compact('items', 'search'));
     }
-    
 
-    
     public function edit($id)
     {
         // Consulta SQL para obtener el item por ID
@@ -83,30 +76,30 @@ class ItemController extends Controller
             ->select('atributos.*', 'grupos.descripcion as grupo_descripcion')
             ->get()
             ->groupBy('grupo_descripcion');
-                // Obtener los productos agrupados por grupo, excluyendo el producto actual
-    $productosPorGrupo = DB::table('itemsdb')
-    ->join('producto_atributo', 'itemsdb.id', '=', 'producto_atributo.producto_id')
-    ->join('atributos', 'producto_atributo.atributo_id', '=', 'atributos.id')
-    ->join('grupos', 'atributos.grupo_id', '=', 'grupos.id')
-    ->where('itemsdb.id', '!=', $id) // Excluir el producto actual
-    ->select(
-        'grupos.descripcion as grupo_descripcion',
-        'grupos.id as grupo_id',
-        'itemsdb.id as item_id',
-        'itemsdb.no_s',
-        'itemsdb.nombre',
-        'itemsdb.precio_unitario',
-        'itemsdb.activo'
-    )
-    ->distinct()
-    ->get()
-    ->groupBy('grupo_id');
+        // Obtener los productos agrupados por grupo, excluyendo el producto actual
+        $productosPorGrupo = DB::table('itemsdb')
+            ->join('producto_atributo', 'itemsdb.id', '=', 'producto_atributo.producto_id')
+            ->join('atributos', 'producto_atributo.atributo_id', '=', 'atributos.id')
+            ->join('grupos', 'atributos.grupo_id', '=', 'grupos.id')
+            ->where('itemsdb.id', '!=', $id) // Excluir el producto actual
+            ->select(
+                'grupos.descripcion as grupo_descripcion',
+                'grupos.id as grupo_id',
+                'itemsdb.id as item_id',
+                'itemsdb.no_s',
+                'itemsdb.nombre',
+                'itemsdb.precio_unitario',
+                'itemsdb.activo'
+            )
+            ->distinct()
+            ->get()
+            ->groupBy('grupo_id');
 
-    // Obtener los IDs de los atributos asignados al producto
-    $atributosProducto = DB::table('producto_atributo')
-        ->where('producto_id', $id)
-        ->pluck('atributo_id')
-        ->toArray();
+        // Obtener los IDs de los atributos asignados al producto
+        $atributosProducto = DB::table('producto_atributo')
+            ->where('producto_id', $id)
+            ->pluck('atributo_id')
+            ->toArray();
         // Obtener los proveedores
         $proveedores = DB::table('proveedores')
             ->select('no_', 'nombre')
@@ -194,26 +187,26 @@ class ItemController extends Controller
                 ->distinct()
                 ->get();
         }
-            // Obtener los productos que tienen los atributos seleccionados
-    $productos = collect();
-    if (!empty($atributosProducto)) {
-        $productos = DB::table('itemsdb')
-            ->join('producto_atributo', 'itemsdb.id', '=', 'producto_atributo.producto_id')
-            ->whereIn('producto_atributo.atributo_id', $atributosProducto)
-            ->where('itemsdb.id', '!=', $id) // Excluir el producto actual
-            ->select('itemsdb.*')
-            ->distinct()
-            ->get();
-    }
+        // Obtener los productos que tienen los atributos seleccionados
+        $productos = collect();
+        if (!empty($atributosProducto)) {
+            $productos = DB::table('itemsdb')
+                ->join('producto_atributo', 'itemsdb.id', '=', 'producto_atributo.producto_id')
+                ->whereIn('producto_atributo.atributo_id', $atributosProducto)
+                ->where('itemsdb.id', '!=', $id) // Excluir el producto actual
+                ->select('itemsdb.*')
+                ->distinct()
+                ->get();
+        }
         // Consulta para obtener el item y su cantidad disponible
         $item = DB::table('itemsdb')
-        ->leftJoin('inventario', 'itemsdb.no_s', '=', 'inventario.no_s')
-        ->select(
-            'itemsdb.*',
-            'inventario.cantidad_disponible'
-        )
-        ->where('itemsdb.id', $id)
-        ->first();
+            ->leftJoin('inventario', 'itemsdb.no_s', '=', 'inventario.no_s')
+            ->select(
+                'itemsdb.*',
+                'inventario.cantidad_disponible'
+            )
+            ->where('itemsdb.id', $id)
+            ->first();
         // Enviar los datos a la vista, incluyendo todas las imágenes
         return view('admin.edit_items', compact(
             'item',
@@ -245,12 +238,12 @@ class ItemController extends Controller
             'nombre' => 'required|string|max:255',
             'precio_unitario' => 'required|numeric',
             'activo' => 'required|boolean',
-            'no_proveedor' => 'required|string|max:255',
+            // 'no_proveedor' => 'required|string|max:255',
             'unidad_medida_venta' => 'required|string|max:255',
             'cod_division' => 'required|string|max:255',
             'cod_categoria_producto' => 'required|string|max:255',
             'codigo_de_producto_minorista' => 'required|string|max:255',
-            'costo_unitario' => 'required|numeric',
+            'costo_unitario' => 'nullable|numeric|min:0',
             'precio_unitario_IVAinc' => 'required|numeric',
             'descuento' => 'nullable|numeric',
             'precio_con_descuento' => 'nullable|numeric',
@@ -271,7 +264,7 @@ class ItemController extends Controller
             'nombre' => $request->input('nombre'),
             'descripcion' => $request->input('descripcion'),
             'nombre_bc' => $request->input('nombre_bc'),
-            'costo_unitario' => $request->input('costo_unitario'),
+            'costo_unitario' => $request->input('costo_unitario', 0),
             'precio_unitario' => $request->input('precio_unitario'),
             'cod_division' => $request->input('cod_division'),
             'cod_categoria_producto' => $request->input('cod_categoria_producto'),
@@ -280,6 +273,8 @@ class ItemController extends Controller
             'precio_unitario_IVAinc' => $request->input('precio_unitario_IVAinc'),
             'descuento' => $request->input('descuento'),
             'precio_con_descuento' => $request->input('precio_con_descuento'),
+            'proveedor' => $request->input('proveedor'),
+            'proveedor_nombre' => $request->input('nombreproveedor'),
             'descripcion_alias' => $request->input('descripcion_alias'),
             'activo' => $request->input('activo'),
             'modificada_por' => 'admin',
@@ -587,48 +582,77 @@ class ItemController extends Controller
         $imageUrl = $request->input('image');
         $disk = 'public';
 
-        // Convertir la URL de la imagen a la ruta relativa en el disco
+        // Convertir la URL de la imagen a la ruta relativa
         $relativeImagePath = str_replace(asset('storage') . '/', '', $imageUrl);
 
         if (!Storage::disk($disk)->exists($relativeImagePath)) {
             return response()->json(['success' => false, 'message' => 'Imagen no encontrada'], 404);
         }
 
-        // Verificar que la imagen sea de tipo JPG o JPEG
         $extension = strtolower(pathinfo($relativeImagePath, PATHINFO_EXTENSION));
-        if ($extension != 'jpg' && $extension != 'jpeg') {
-            return response()->json(['success' => false, 'message' => 'La imagen principal debe ser de tipo JPG o JPEG'], 422);
+        // Asegurarnos de que la imagen principal sea JPG/JPEG
+        if (!in_array($extension, ['jpg', 'jpeg', 'png'])) {
+            return response()->json(['success' => false, 'message' => 'La imagen principal debe ser JPG, JPEG o PNG'], 422);
         }
 
         $no_s = $item->no_s;
         $no_s_padded = str_pad($no_s, 6, '0', STR_PAD_LEFT);
         $carpetaProducto = "itemsview/{$no_s_padded}";
 
-        // Renombrar cualquier imagen que actualmente sea principal (cualquier archivo con el nombre no_s_padded)
+        // Buscar la imagen principal actual (no_s_padded.*)
         $files = Storage::disk($disk)->files($carpetaProducto);
-        $secondaryImageCounter = 1;
+        $mainImagePath = null;
 
         foreach ($files as $file) {
             $fileBasename = basename($file);
-            // Verificar si alguna imagen es principal (con el nombre no_s_padded y cualquier extensión)
             if (preg_match("/^{$no_s_padded}\.(jpg|jpeg|png)$/i", $fileBasename)) {
-                // Renombrarla a secundaria (asignar el próximo número disponible)
-                while (Storage::disk($disk)->exists("{$carpetaProducto}/{$no_s_padded}_{$secondaryImageCounter}.jpg")) {
-                    $secondaryImageCounter++;
-                }
-                $newSecondaryImageName = "{$no_s_padded}_{$secondaryImageCounter}." . pathinfo($file, PATHINFO_EXTENSION);
-                Storage::disk($disk)->move($file, "{$carpetaProducto}/{$newSecondaryImageName}");
+                $mainImagePath = $file;
+                break;
             }
         }
 
-        // Mover la imagen seleccionada como la nueva imagen principal
-        $mainImagePath = "{$carpetaProducto}/{$no_s_padded}.jpg";
-        Storage::disk($disk)->move($relativeImagePath, $mainImagePath);
+        // Si no hay imagen principal actual y la imagen elegida es la única, simplemente nombrar la elegida como principal
+        if (!$mainImagePath) {
+            $newMainName = "{$no_s_padded}.{$extension}";
+            $newMainPath = "{$carpetaProducto}/{$newMainName}";
+            Storage::disk($disk)->move($relativeImagePath, $newMainPath);
+            $imageUrl = asset("storage/{$newMainPath}");
+            return response()->json(['success' => true, 'image_url' => $imageUrl]);
+        }
 
-        $imageUrl = asset("storage/{$mainImagePath}");
+        // Si la imagen seleccionada ya es la principal, no hacer nada
+        if ($relativeImagePath === $mainImagePath) {
+            // La imagen seleccionada ya es la principal, no se cambia nada
+            $imageUrl = asset("storage/{$mainImagePath}");
+            return response()->json(['success' => true, 'image_url' => $imageUrl]);
+        }
+
+        // Si llegamos aquí, la imagen seleccionada es diferente a la principal actual.
+        // Renombrar la imagen principal actual a secundaria
+        $secondaryImageCounter = 1;
+        $mainExtension = strtolower(pathinfo($mainImagePath, PATHINFO_EXTENSION));
+
+        // Encontrar un nombre único para la imagen principal actual que pasará a ser secundaria
+        do {
+            $newSecondaryImageName = "{$no_s_padded}_{$secondaryImageCounter}.{$mainExtension}";
+            $newSecondaryImagePath = "{$carpetaProducto}/{$newSecondaryImageName}";
+            $secondaryImageCounter++;
+        } while (Storage::disk($disk)->exists($newSecondaryImagePath));
+
+        // Renombrar la imagen principal actual a secundaria
+        Storage::disk($disk)->move($mainImagePath, $newSecondaryImagePath);
+
+        // Ahora renombrar la imagen seleccionada a principal
+        $newMainName = "{$no_s_padded}.{$extension}";
+        $newMainPath = "{$carpetaProducto}/{$newMainName}";
+
+        Storage::disk($disk)->move($relativeImagePath, $newMainPath);
+
+        $imageUrl = asset("storage/{$newMainPath}");
 
         return response()->json(['success' => true, 'image_url' => $imageUrl]);
     }
+
     public function createGrupo(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -651,7 +675,7 @@ class ItemController extends Controller
     {
         $atributosSeleccionados = $request->input('atributos', []);
         $productoIdActual = $request->input('producto_id_actual');
-    
+
         // Si no hay atributos seleccionados, devolver una colección vacía
         if (empty($atributosSeleccionados)) {
             $productos = collect(); // Colección vacía
@@ -661,7 +685,7 @@ class ItemController extends Controller
                 ->whereIn('id', $atributosSeleccionados)
                 ->pluck('grupo_id')
                 ->unique();
-    
+
             // Obtener todos los productos que tengan atributos en esos grupos
             $productos = DB::table('itemsdb')
                 ->join('producto_atributo', 'itemsdb.id', '=', 'producto_atributo.producto_id')
@@ -672,15 +696,11 @@ class ItemController extends Controller
                 ->distinct()
                 ->get();
         }
-    
+
         // Generar el HTML de la tabla de productos
         $html = view('admin.partials.productos_lista', compact('productos'))->render();
-    
+
         return response()->json(['html' => $html]);
     }
-    
-    
-    
-
 
 }

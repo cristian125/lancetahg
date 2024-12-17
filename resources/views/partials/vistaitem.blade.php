@@ -158,10 +158,8 @@
                                 </div>
                             </div>
                             @php
-                                // Inicializar un array para métodos de envío restringidos
-                                $shippingRestrictions = [];
 
-                                // Verificar cada tipo de envío y agregar al array si está restringido
+                                $shippingRestrictions = [];
                                 if (!$producto->allow_paqueteria_shipping) {
                                     $shippingRestrictions[] = 'Paquetería';
                                 }
@@ -213,7 +211,7 @@
                                     </button>
                                 @endif
                             </form>
-                            <!-- Contenedor para la notificación -->
+
                             <div id="cart-notification" class="notification-popup" style="display: none;">
                                 Producto añadido al carrito.
                             </div>
@@ -334,7 +332,6 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Identificar elementos del DOM
         const qtyInput = document.getElementById('qty');
         const addButton = document.querySelector('.btn-add-qty');
         const removeButton = document.querySelector('.btn-remove-qty');
@@ -343,22 +340,20 @@
             new bootstrap.Toast(document.getElementById('stockAlertToast')) :
             null;
 
-        // Límite de cantidades
         const maxQty = parseInt(qtyInput.getAttribute('max')) || 1;
         const minQty = parseInt(qtyInput.getAttribute('min')) || 1;
 
-        // Función para ajustar la cantidad
+
         function sanitizeQuantity(value) {
             return Math.min(Math.max(value, minQty), maxQty);
         }
 
-        // Actualizar cantidad
+
         function updateQuantity(change) {
             let currentQty = parseInt(qtyInput.value) || minQty;
             currentQty = sanitizeQuantity(currentQty + change);
             qtyInput.value = currentQty;
 
-            // Mostrar alerta si se excede el máximo
             if (stockAlertToast) {
                 if (currentQty >= maxQty && change > 0) {
                     stockAlertToast.show();
@@ -370,30 +365,29 @@
             updateAddToCartButton();
         }
 
-        // Habilitar o deshabilitar botón de "Añadir al carrito"
+
         function updateAddToCartButton() {
             const currentQty = parseInt(qtyInput.value) || 0;
             addToCartButton.disabled = currentQty < minQty || currentQty > maxQty || isNaN(currentQty);
         }
 
-        // Escuchar clic en botón "+"
+
         addButton.addEventListener('click', function() {
             updateQuantity(1);
         });
 
-        // Escuchar clic en botón "-"
         removeButton.addEventListener('click', function() {
             updateQuantity(-1);
         });
 
-        // Validar entrada manual
+
         qtyInput.addEventListener('input', function() {
             const currentQty = parseInt(qtyInput.value) || minQty;
             qtyInput.value = sanitizeQuantity(currentQty);
             updateAddToCartButton();
         });
 
-        // Inicializar estado del botón "Añadir al carrito"
+
         updateAddToCartButton();
     });
 </script>
@@ -428,14 +422,14 @@
                     }
                 }
 
-                // Mostrar notificación de éxito
+
                 showNotification("Producto añadido al carrito.");
             },
             error: function(data) {
                 if (data.status === 401) {
                     showLoginPopover();
                 } else if (data.responseJSON && data.responseJSON.error) {
-                    // Mostrar el mensaje dinámico desde el backend
+
                     showMaxStockPopover(data.responseJSON.error);
                 } else {
                     showMaxStockPopover();
@@ -474,14 +468,14 @@
     function showMaxStockPopover(message = "No puedes añadir más productos de los que hay en stock.") {
         $("#add-to-cart")
             .popover({
-                content: message, // Mensaje dinámico
+                content: message, 
                 placement: "bottom",
                 trigger: "focus",
                 customClass: "popover-warning bg-warning fw-bold",
             })
             .popover("show");
 
-        // Ocultar automáticamente después de 3 segundos
+
         setTimeout(() => {
             $("#add-to-cart").popover("dispose");
         }, 3000);
@@ -528,12 +522,12 @@
             notification.classList.add('show');
             notification.style.display = 'block';
 
-            // Ocultar después de 2 segundos
+
             setTimeout(() => {
                 notification.classList.add('hide');
             }, 2000);
 
-            // Eliminar clases y ocultar después de 2.5 segundos
+
             setTimeout(() => {
                 notification.style.display = 'none';
                 notification.classList.remove('show', 'hide');

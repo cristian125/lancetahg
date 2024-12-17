@@ -105,15 +105,15 @@ class GuiasController extends Controller
             ]);
             return response()->json(['error' => 'Unauthorized'], 401);
         }
-
+    
         $response = Http::get('http://app.lancetahg.com/api/lancetaweb', [
             'accion' => 'STATUS',
             'token' => env('EXTERNAL_API_TOKEN'),
         ]);
-
+    
         if ($response->successful()) {
             $statusData = $response->json();
-
+    
             if (!is_array($statusData)) {
                 DB::table('api_import_logs')->insert([
                     'request_time' => now(),
@@ -123,45 +123,96 @@ class GuiasController extends Controller
                 ]);
                 return response()->json(['error' => 'Invalid data format from API'], 500);
             }
-
+    
             foreach ($statusData as $status) {
-                $orderNo = $status['Order No_'];
-                $type = $status['Type'];
-
+                $orderNo = $status['Order No_'] ?? null;
+                $type = $status['Type'] ?? null;
+                $fechaHora = $status['FechaHora'] ?? null;
+    
+                // Validamos que exista orderNo y type
+                if (!$orderNo || is_null($type)) {
+                    continue; 
+                }
+    
                 $order = DB::table('orders')->where('order_number', $orderNo)->first();
-
+    
                 if ($order) {
+                    // Parseamos la fecha si existe
+                    $status5Date = null;
+                    $status6Date = null;
+                    $status7Date = null;
+    
+                    if ($fechaHora) {
+                        $fechaCarbon = \Carbon\Carbon::parse($fechaHora);
+    
+                        // Asignamos la fecha correspondiente según el tipo
+                        if ($type == 5) {
+                            $status5Date = $fechaCarbon;
+                        } elseif ($type == 6) {
+                            $status6Date = $fechaCarbon;
+                        } elseif ($type == 7) {
+                            $status7Date = $fechaCarbon;
+                        }
+                    }
+    
                     $existingGuia = DB::table('guias')->where('order_no', $orderNo)->first();
-
+    
                     if ($existingGuia) {
-                        // Actualiza la guía existente
+                        // Preparamos el arreglo de actualización
+                        $updateData = [
+                            'type' => $type,
+                            'updated_at' => now(),
+                        ];
+    
+                        // Solo agregamos las fechas si las tenemos
+                        if ($status5Date) {
+                            $updateData['status_5_date'] = $status5Date;
+                        }
+                        if ($status6Date) {
+                            $updateData['status_6_date'] = $status6Date;
+                        }
+                        if ($status7Date) {
+                            $updateData['status_7_date'] = $status7Date;
+                        }
+    
+                        // Actualizamos la guía existente
                         DB::table('guias')
                             ->where('order_no', $orderNo)
-                            ->update([
-                                'type' => $type,
-                                'updated_at' => now(),
-                            ]);
+                            ->update($updateData);
                     } else {
-                        // Inserta una nueva fila si no existe
-                        DB::table('guias')->insert([
+                        // Preparamos los datos para insertar
+                        $insertData = [
                             'order_no' => $orderNo,
                             'type' => $type,
                             'created_at' => now(),
                             'updated_at' => now(),
-                        ]);
+                        ];
+    
+                        if ($status5Date) {
+                            $insertData['status_5_date'] = $status5Date;
+                        }
+                        if ($status6Date) {
+                            $insertData['status_6_date'] = $status6Date;
+                        }
+                        if ($status7Date) {
+                            $insertData['status_7_date'] = $status7Date;
+                        }
+    
+                        // Insertamos una nueva fila
+                        DB::table('guias')->insert($insertData);
                     }
                 } else {
                     Log::warning("El pedido con order_no $orderNo no existe en la tabla orders.");
                 }
             }
-
+    
             DB::table('api_import_logs')->insert([
                 'request_time' => now(),
                 'status' => 'success',
                 'message' => 'Datos de estado de órdenes procesados correctamente.',
                 'error_details' => null,
             ]);
-
+    
             return response()->json(['message' => 'Datos de estado de órdenes procesados correctamente.']);
         } else {
             DB::table('api_import_logs')->insert([
@@ -170,10 +221,11 @@ class GuiasController extends Controller
                 'message' => 'No se pudo obtener los datos de la API externa.',
                 'error_details' => 'Error ' . $response->status() . ': ' . $response->body(),
             ]);
-
+    
             return response()->json(['error' => 'No se pudo obtener los datos de la API externa.'], 500);
         }
     }
+    
 
 
     

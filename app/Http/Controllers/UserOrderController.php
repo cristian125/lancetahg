@@ -233,79 +233,86 @@ class UserOrderController extends Controller
     public function updateOrderStatus($orderNumber)
     {
         try {
-            $url = "http://app.lancetahg.com/api/lancetaweb?accion=STATUS&pedido={$orderNumber}&token=2235800b9050256bea993e14b2e06181";
-            $response = Http::get($url);
-
+            $url = "http://app.lancetahg.com/api/lancetaweb?accion=STATUS&token=2235800b9050256bea993e14b2e06181";
+            $response = Http::get($url, [
+                'accion' => 'STATUS',
+                'token' => '2235800b9050256bea993e14b2e06181',
+                'pedido' => (string)$orderNumber
+            ]);
+            
+            $data = json_decode($response->body(), true);
+    
             if ($response->successful()) {
                 $statusData = $response->json();
 
                 if (is_array($statusData) && !empty($statusData)) {
-                    $currentStatus = collect($statusData)->firstWhere('Order No_', $orderNumber);
-
-                    if ($currentStatus && array_key_exists('Type', $currentStatus)) {
-                        $type = $currentStatus['Type'];
-
-                        // Obtener registro actual si existe
-                        $existingGuia = DB::table('guias')->where('order_no', $orderNumber)->first();
-
-                        // Si el nuevo tipo es null y existe uno previo, conservarlo
-                        if ($type === null && $existingGuia) {
-                            $type = $existingGuia->type;
+                    // Filtramos todos los registros del mismo pedido
+                    $dataForOrder = collect($statusData)->where('Order No_', $orderNumber);
+    
+                    if ($dataForOrder->isEmpty()) {
+                        Log::info("No se encontraron estados para order_no {$orderNumber}");
+                        return;
+                    }
+    
+                    // Obtenemos el registro actual si existe
+                    $existingGuia = DB::table('guias')->where('order_no', $orderNumber)->first();
+    
+                    // Inicializamos las fechas actuales si ya existen
+                    $status5Date = $existingGuia->status_5_date ?? null;
+                    $status6Date = $existingGuia->status_6_date ?? null;
+                    $status7Date = $existingGuia->status_7_date ?? null;
+    
+                    // Procesamos cada registro del pedido para asignar las fechas correctas
+                    foreach ($dataForOrder as $record) {
+                        $type = $record['Type'] ?? null;
+                        $fechaHora = $record['FechaHora'] ?? null;
+    
+                        // Si falta Type o FechaHora, saltamos
+                        if (is_null($type) || is_null($fechaHora)) {
+                            continue;
                         }
-
-                        $type = (int) $type;
-
-                        // Preparamos las fechas según las reglas
-                        $status5Date = $existingGuia->status_5_date ?? null;
-                        $status6Date = $existingGuia->status_6_date ?? null;
-                        $status7Date = $existingGuia->status_7_date ?? null;
-
-                        // Lógica para asignar fechas dependiendo del type recibido
-                        if ($type >= 5) {
-                            // Si no hay status_5_date, la seteamos
-                            if (is_null($status5Date)) {
-                                $status5Date = now();
-                            }
+    
+                        // Parseamos la fecha a un objeto Carbon
+                        $fechaCarbon = \Carbon\Carbon::parse($fechaHora);
+    
+                        // Asignamos las fechas según el tipo
+                        // La lógica aquí puede variar según si deseas siempre la primera fecha encontrada,
+                        // o actualizarla cada vez que haya una nueva.
+                        // En este ejemplo, si ya hay una fecha guardada no la sobrescribimos (podrías cambiar la lógica si gustas).
+                        if ($type == 5 && is_null($status5Date)) {
+                            $status5Date = $fechaCarbon;
+                        } elseif ($type == 6 && is_null($status6Date)) {
+                            $status6Date = $fechaCarbon;
+                        } elseif ($type == 7 && is_null($status7Date)) {
+                            $status7Date = $fechaCarbon;
                         }
-
-                        if ($type >= 6) {
-                            // Si no había fecha 5 y ahora llegó 6, ponemos ambas a now()
-                            // (Pero ya hemos puesto 5 arriba si no existía)
-                            if (is_null($status6Date)) {
-                                $status6Date = now();
-                            }
-                        }
-
-                        if ($type >= 7) {
-                            if (is_null($status5Date)) {
-                                $status5Date = now();
-                            }
-                            if (is_null($status6Date)) {
-                                $status6Date = now();
-                            }
-                            if (is_null($status7Date)) {
-                                $status7Date = now();
-                            }
-                        }
-
-                        // Construimos el arreglo final de actualización
+                    }
+    
+                    // Obtenemos el Type más alto encontrado para el pedido
+                    $maxType = $dataForOrder->max('Type') ?? null;
+                    if (is_null($maxType) && $existingGuia) {
+                        $maxType = $existingGuia->type; // Si no encontramos ninguno nuevo, mantenemos el actual
+                    }
+    
+                    // Si no hay maxType, no se actualiza nada
+                    if (!is_null($maxType)) {
                         $updateData = [
                             'order_no' => $orderNumber,
-                            'type' => $type,
+                            'type' => (int) $maxType,
                             'updated_at' => now(),
                             'status_5_date' => $status5Date,
                             'status_6_date' => $status6Date,
                             'status_7_date' => $status7Date,
                         ];
-
+    
                         DB::table('guias')->updateOrInsert(
                             ['order_no' => (string) $orderNumber],
                             $updateData
                         );
-
-                        Log::info("Estado actualizado para order_no {$orderNumber}: Type={$type}");
+    
+                        Log::info("Estado actualizado para order_no {$orderNumber}: Type={$maxType}");
                     } else {
-                        Log::info("No se encontró el estado para order_no {$orderNumber} o faltó el campo Type en la respuesta");
+                        Log::info("No se pudo determinar el tipo para order_no {$orderNumber}");
                     }
                 }
             } else {
@@ -315,6 +322,7 @@ class UserOrderController extends Controller
             Log::error("Error al conectar con la API para order_no {$orderNumber}: " . $e->getMessage());
         }
     }
+    
 
     public function orderDetails($orderId)
     {

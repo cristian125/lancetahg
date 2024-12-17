@@ -123,5 +123,25 @@
         {!! FooterController::render() !!}
     @endisset
 </body>
+<script>
+
+document.addEventListener('selectstart', event => event.preventDefault());
+document.addEventListener('dragstart', event => event.preventDefault());
+document.addEventListener('contextmenu', event => event.preventDefault());
+document.addEventListener('keydown', event => {
+  if (
+    event.key === 'F12' || 
+    (event.ctrlKey && event.shiftKey && event.key === 'I') || 
+    (event.ctrlKey && event.key === 'C') || 
+    (event.ctrlKey && event.key === 'U') || 
+    (event.ctrlKey && event.key === 'S')
+  ) {
+    event.preventDefault();
+  }
+});
+
+
+
+</script>
 
 </html>
