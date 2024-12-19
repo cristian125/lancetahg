@@ -36,7 +36,8 @@
                 <label for="estado" class="form-label">Estado: <span class="text-danger">*</span></label>
                 <select class="form-select" id="estado" name="estado" required>
                     <option value="CDMX">CDMX</option>
-                    <!-- Más opciones aquí -->
+
+                    
                 </select>
             </div>
             <div class="col-md-3">
@@ -53,14 +54,13 @@
                 <label for="grado_estudios" class="form-label">Último grado de estudios: <span class="text-danger">*</span></label>
                 <select class="form-select" id="grado_estudios" name="grado_estudios" required>
                     <option value="Secundaria">Secundaria</option>
-                    <!-- Más opciones aquí -->
                 </select>
             </div>
             <div class="col-md-3">
                 <label for="genero" class="form-label">Género: <span class="text-danger">*</span></label>
                 <select class="form-select" id="genero" name="genero" required>
                     <option value="Masculino">Masculino</option>
-                    <!-- Más opciones aquí -->
+
                 </select>
             </div>
         </div>
@@ -69,7 +69,7 @@
                 <label for="puesto_interes" class="form-label">Puesto de interés: <span class="text-danger">*</span></label>
                 <select class="form-select" id="puesto_interes" name="puesto_interes" required>
                     <option value="Auxiliar de Almacén">Auxiliar de Almacén</option>
-                    <!-- Más opciones aquí -->
+
                 </select>
             </div>
             <div class="col-md-6">

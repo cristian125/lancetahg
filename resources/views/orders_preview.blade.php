@@ -14,7 +14,7 @@
                 @foreach($orders as $order)
                     <li class="list-group-item mb-4 p-4 {{ $order->is_new ? 'new-order' : '' }}">
                         <div class="row align-items-center">
-                            <!-- Información del pedido -->
+
                             <div class="col-md-8">
                                 <h5 class="mb-2 fw-bold text-primary">
                                     Pedido ID: <span class="text-dark">{{ $order->order_number }}</span>
@@ -48,7 +48,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- Botón para detalles -->
+
                             <div class="col-md-4 text-md-end mt-3 mt-md-0">
                                 <a href="{{ route('order.details', ['orderId' => $order->id]) }}" class="btn btn-outline-primary rounded-pill px-4 py-2 shadow-sm">
                                     Ver Detalles
@@ -59,7 +59,7 @@
                 @endforeach
             </ul>
 
-            <!-- Enlaces de paginación -->
+
             <div class="d-flex justify-content-center mt-4">
                 {{ $orders->links() }}
             </div>
@@ -68,13 +68,13 @@
 </div>
 
 <style>
-    /* Contenedor general */
+
     .card {
         background-color: #f9f9f9;
         border: 1px solid #e3e3e3;
     }
 
-    /* Estilo para pedidos recientes */
+
     .new-order {
         border: 3px solid #00B398;
         box-shadow: 0 0 20px rgba(0, 179, 152, 0.5);
@@ -86,7 +86,7 @@
         box-shadow: 0 0 30px rgba(0, 179, 152, 0.8);
     }
 
-    /* Información del pedido */
+
     .order-info h5 {
         font-size: 1.3rem;
     }
@@ -97,7 +97,7 @@
         margin: 0;
     }
 
-    /* Métodos de envío */
+
     .shipment-method {
         padding: 0.3rem 0.6rem;
         background-color: #e7f3fe;
@@ -107,7 +107,7 @@
         font-weight: bold;
     }
 
-    /* Resaltar lista de pedidos */
+
     .list-group-item {
         background-color: #ffffff;
         border: 1px solid #e3e3e3;
@@ -121,7 +121,7 @@
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
 
-    /* Contenedor del total */
+
     .total-container {
         background-color: #ffe134;
         border-radius: 8px;
@@ -133,7 +133,7 @@
         color: #212529;
     }
 
-    /* Botón de detalles */
+
     .btn-outline-primary {
         /* padding: 10px 20px; */
         font-size: 1rem;
@@ -147,7 +147,7 @@
         color: #fff;
     }
 
-    /* Estilo de alertas */
+
     .alert-info {
         background-color: #e7f3fe;
         color: #0c5460;

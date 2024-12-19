@@ -17,7 +17,8 @@
         .container-xl {
             border-radius: 10px;
             box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
-            /* Sombra más suave */
+
+            
             max-width: 1200px;
             margin: 0 auto;
             overflow: hidden;
@@ -52,11 +53,9 @@
             max-width: 50%;
             height: auto;
             border-radius: 10px;
-            /* Borde redondeado para el GIF */
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            /* Sombra alrededor del GIF */
             border: 3px solid #03587C;
-            /* Borde del mismo color que el fondo */
+
         }
     </style>
 </head>
@@ -70,7 +69,7 @@
             <h1>Sitio en Mantenimiento</h1>
             <p>Estamos trabajando en mejoras. Estaremos de vuelta pronto.</p>
 
-            <!-- Imagen de construcción -->
+
             <div class="image">
                 <img src="{{ asset('storage/img/mantenimiento.gif') }}" alt="Sitio en Construcción">
             </div>

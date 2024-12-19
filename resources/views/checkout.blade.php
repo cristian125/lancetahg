@@ -4,7 +4,7 @@
 
     <div class="container my-4">
 
-        <!-- Mostrar mensajes de éxito o error -->
+
         @if (session('message'))
             <div class="alert alert-success text-center">
                 <i class="bi bi-check-circle-fill"></i> {{ session('message') }}
@@ -22,16 +22,16 @@
                 <i class="bi bi-exclamation-triangle-fill"></i> {{ $error }}
             </div>
         @else
-            {{-- <div class="container p-4 border rounded bg-light shadow-sm"> --}}
+
                 <div class="row">
                     <div class="col-12 text-center">
                         <h2 class="display-6 font-weight-bold text-primary mb-5">Confirmación de Envío</h2>
                     </div>
                 </div>
 
-                <!-- Sección del iframe y formulario de pago (se oculta inicialmente) -->
+
                 <div class="container" id="paymentSection" style="display: none;">
-                    <!-- Loader que se muestra mientras se carga el iframe -->
+
                     <div id="loader" class="loader"></div>
                     <div class="row">
                         <div class="col-12">
@@ -49,16 +49,16 @@
                     </div>
                 </div>
 
-                <!-- Inicio del contenido principal -->
+
                 <div class="row" id="mainContent">
-                    <!-- Columna izquierda: Resumen de Compra -->
+
                     <div class="col-md-6 mb-4">
                         <div class="card shadow-lg border-0 rounded">
                             <div class="card-header bg-success text-white text-uppercase font-weight-bold">
                                 <i class="bi bi-receipt"></i> Resumen de Compra
                             </div>
                             <div class="card-body">
-                                <!-- Desglose de productos estilo ticket -->
+
                                 @foreach ($cartItems as $item)
                                     <div class="mb-3 p-3 border-bottom">
                                         <div class="d-flex justify-content-between">
@@ -93,7 +93,7 @@
                                             @endif
                                         </div>
 
-                                        <!-- Mostrar el valor del IVA -->
+
                                         <div class="d-flex justify-content-between">
                                             <strong>IVA:</strong>
                                             @if (isset($item->grupo_iva) && $item->grupo_iva === 'IVA16')
@@ -107,7 +107,7 @@
                                     </div>
                                 @endforeach
 
-                                <!-- Resumen de totales generales -->
+
                                 <div class="table-responsive mt-4">
                                     <table class="table table-hover table-striped table-borderless align-middle w-100">
                                         <thead class="thead-light">
@@ -164,9 +164,8 @@
                                 
                             </div>
                         </div>
-                    </div> <!-- Cierre de la columna izquierda -->
+                    </div> 
 
-                    <!-- Columna derecha: Detalles del Envío -->
                     <div class="col-md-6 mb-4">
                         <div class="card shadow-lg border-0 rounded">
                             <div class="card-header bg-primary text-white text-uppercase font-weight-bold">
@@ -175,7 +174,7 @@
                             <div class="card-body">
                                 <ul class="list-group list-group-flush">
                                     @if ($shippment->ShipmentMethod === 'RecogerEnTienda')
-                                        <!-- Mostrar los detalles de la tienda para recoger -->
+
                                         <li class="list-group-item">
                                             <strong>Este pedido es para recoger en tienda:</strong>
                                         </li>
@@ -202,7 +201,7 @@
                                         <li class="list-group-item"><strong>Nombre de Contacto:</strong> {{ $shippment->contactName }}</li>
                                         <li class="list-group-item"><strong>Teléfono de Contacto:</strong> {{ $shippment->contactPhone }}</li>
                                     @else
-                                        <!-- Mostrar los detalles de envío a domicilio -->
+
                                         <li class="list-group-item"><strong>Dirección:</strong>
                                             {{ $shippment->calle }} {{ $shippment->no_ext }}</li>
                                         @if (!empty($shippment->no_int))
@@ -233,10 +232,10 @@
                                 </ul>
                             </div>
                         </div>
-                    </div> <!-- Cierre de la columna derecha -->
-                </div> <!-- Cierre de la fila principal -->
+                    </div> 
+                </div> 
 
-                <!-- Botón para Proceder al Pago -->
+
                 <div class="row">
                     <div class="col-12 text-center">
                         <button id="proceedToPaymentBtn" class="btn btn-primary btn-lg fw-normal shadow-lg py-3 px-5 my-4 w-100" data-bs-toggle="modal" data-bs-target="#paymentMethodModal">
@@ -244,11 +243,10 @@
                         </button>
                     </div>
                 </div>
-            {{-- </div> --}}
+
         @endif
     </div>
 
-    <!-- Modal para seleccionar el método de pago -->
     <div class="modal fade" id="paymentMethodModal" tabindex="-1" aria-labelledby="paymentMethodModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -275,17 +273,17 @@
 
     <script>
        document.addEventListener('DOMContentLoaded', function () {
-    // Manejar la selección del método de pago en el modal
+
     document.querySelectorAll('.payment-option').forEach(function (element) {
         element.addEventListener('click', function (e) {
             e.preventDefault();
             var selectedPaymentMethod = this.getAttribute('data-payment-method');
     
-            // Cerrar el modal
+
             var paymentMethodModal = bootstrap.Modal.getInstance(document.getElementById('paymentMethodModal'));
             paymentMethodModal.hide();
     
-            // Enviar el método de pago al servidor
+
             fetch("{{ route('update.payment.method') }}", {
                 method: 'POST',
                 headers: {
@@ -299,27 +297,25 @@
             .then((response) => response.json())
             .then((data) => {
                 if (data.success) {
-                    // Ocultar el botón "Proceder al Pago"
+
                     document.getElementById('proceedToPaymentBtn').style.display = 'none';
 
-                    // Ocultar la frase "Confirmación de Envío"
                     const confirmationHeading = document.querySelector('.display-6.font-weight-bold.text-primary.mb-5');
                     if (confirmationHeading) {
                         confirmationHeading.style.display = 'none';
                     }
     
-                    // Mostrar la sección de pago con el iframe y el loader
+
                     document.getElementById('mainContent').style.display = 'none';
                     document.getElementById('paymentSection').style.display = 'block';
                     document.getElementById('loader').style.display = 'block';
 
-                    // Desplazar la pantalla hacia arriba
+
                     window.scrollTo({
                         top: 0,
-                        behavior: 'smooth' // Efecto suave
+                        behavior: 'smooth' 
                     });
 
-                    // Enviar automáticamente el formulario de pago
                     document.getElementById('paymentForm').submit();
                 } else {
                     alert('Error al actualizar el método de pago: ' + data.message);
@@ -332,7 +328,7 @@
         });
     });
 
-    // Detectar cuándo el iframe ha terminado de cargar y ocultar el loader
+
     document.getElementById('paymentFrame').onload = function () {
         document.getElementById('loader').style.display = 'none';
     };
@@ -343,29 +339,29 @@
     
 
     <style>
-        /* Hacer que la tabla sea totalmente visible en pantallas pequeñas */
+
 .table-responsive {
-    overflow-x: visible !important; /* Permitir que la tabla se adapte sin scroll horizontal */
+    overflow-x: visible !important; 
 }
 
 .table th,
 .table td {
-    white-space: normal; /* Evitar que el contenido se divida en varias líneas */
-    font-size: 14px; /* Ajustar el tamaño del texto para pantallas pequeñas */
+    white-space: normal; 
+    font-size: 14px; 
 }
 
 @media (max-width: 768px) {
     .table th,
     .table td {
-        font-size: 12px; /* Reducir el tamaño del texto para pantallas más pequeñas */
+        font-size: 12px; 
     }
 
     .table thead th {
-        font-size: 13px; /* Tamaño más pequeño para los encabezados */
+        font-size: 13px; 
     }
 
     .table-responsive {
-        margin-bottom: 1rem; /* Espacio adicional en pantallas pequeñas */
+        margin-bottom: 1rem; 
     }
 }
 

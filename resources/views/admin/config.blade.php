@@ -9,14 +9,14 @@
                     Estado de Mantenimiento del Sitio
                 </div>
                 <div class="card-body">
-                    <!-- Mostrar mensaje de éxito si hay alguno -->
+
                     @if(session('success'))
                         <div class="alert alert-success">
                             {{ session('success') }}
                         </div>
                     @endif
 
-                    <!-- Mostrar el estado actual de mantenimiento -->
+
                     <div class="alert {{ $mantenimiento == 'true' ? 'alert-warning' : 'alert-info' }}">
                         <strong>Estado Actual:</strong> 
                         El sitio web está actualmente 

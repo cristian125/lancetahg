@@ -51,6 +51,8 @@ use App\Http\Controllers\GoogleMerchantController;
 
 /* Google Merchant */
 Route::get('/export-products', [GoogleMerchantController::class, 'exportProducts']);
+Route::get('/items-data', [ProductImportController::class, 'showItemsData'])->name('admin.itemsData');
+Route::get('/fetch-guias', [GuiasController::class, 'guiasearch'])->name('admin.fetchGuias');
 
 Route::fallback(function () {
     return response()->view('errors.404', [], 404);
@@ -60,7 +62,6 @@ Route::group(['middleware' => ['web']], function () {
     Route::get('/paqueteruta', [PaqueteExpressController::class, 'getRequestCotizadorRequest'])->name('pq');
     Route::get('/verify-email/{token}', [RegisterController::class, 'verifyEmail'])->name('verify.email')->middleware('throttle:5,3');
     
-
     Route::get('/', [ProductosDestacadosController::class, 'index'])->name('home');
     Route::any('/mantenimiento', [ProductosDestacadosController::class, 'maintenance'])->name('mantenimento');
     Route::get('/producto/{id}', [ProductController::class, 'show'])->name('producto.detalle');
@@ -150,6 +151,7 @@ Route::group(['middleware' => ['web', 'auth']], function () {
 /***
  * Usuario Autenticado
  */
+
 Route::group(['middleware' => ['auth', 'web']], function () {
     Route::any('/logout', [LoginController::class, 'logout'])->name('logout');
     Route::get('/admin', [ProductosDestacadosController::class, 'index'])->name('admin');
@@ -208,7 +210,7 @@ Route::post('/process-order', [PaymentController::class, 'processOrder'])->name(
 /***
  * Rutas del Administrador
  */
-Route::prefix('adminlanz')->middleware('adminsession')->group(function () {
+Route::prefix('AdmLHG9573')->middleware('adminsession')->group(function () {
     Route::get('/', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
     Route::post('/login', [AdminAuthController::class, 'login'])->name('admin.login.post');
     Route::post('/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
@@ -225,9 +227,7 @@ Route::prefix('adminlanz')->middleware('adminsession')->group(function () {
         Route::post('/admin/config/cambiar-password', [AdminController::class, 'changePassword'])->name('admin.changePassword');
         Route::get('/profile', [AdminAuthController::class, 'profile'])->name('admin.profile');
         Route::middleware('admin.role:superusuario')->group(function () {
-            Route::get('/manage-admins', [AdminAuthController::class, 'manageAdmins'])->name('admin.manage.admins');
-            Route::post('/update-admin-role/{id}', [AdminAuthController::class, 'updateAdminRole'])->name('admin.update.admin.role');
-            Route::delete('/delete-admin/{id}', [AdminAuthController::class, 'deleteAdmin'])->name('admin.delete.admin');
+
             Route::post('/change-password/{id}', [AdminAuthController::class, 'changePassword'])->name('admin.change.password');
             Route::get('/shipping-methods', [ShippingMethodController::class, 'showShippingMethods'])->name('admin.shipping_methods');
             Route::post('/shipping-methods/update', [ShippingMethodController::class, 'updateShippingMethod'])->name('admin.shipping_methods.update');
@@ -252,6 +252,16 @@ Route::prefix('adminlanz')->middleware('adminsession')->group(function () {
             Route::get('/admin/pedido/{orderId}/pdf', [AdminOrderController::class, 'downloadOrderPdf'])->name('admin.order.pdf');
         });
         
+
+        Route::middleware('admin.role:superusuario')->group(function () {  
+
+            Route::get('/fetch-items', [ProductImportController::class, 'fetchItemsManually'])->name('admin.fetchItems');
+
+            Route::get('/manage-admins', [AdminAuthController::class, 'manageAdmins'])->name('admin.manage.admins');
+            Route::post('/update-admin-role/{id}', [AdminAuthController::class, 'updateAdminRole'])->name('admin.update.admin.role');
+            Route::delete('/delete-admin/{id}', [AdminAuthController::class, 'deleteAdmin'])->name('admin.delete.admin');
+            Route::match(['get', 'post'], '/config', [AdminConfigController::class, 'configurarMantenimiento'])->name('configadmin');
+        });
 
         Route::middleware('admin.role:superusuario,editor')->group(function () {
             Route::get('/items', [ItemController::class, 'index'])->name('admin.items.index');
@@ -287,12 +297,10 @@ Route::prefix('adminlanz')->middleware('adminsession')->group(function () {
             Route::post('/destacados/guardar', [AdminDestacadosController::class, 'guardarDestacados'])->name('admin.destacados.guardar');
             Route::get('/modal-config', [ModalConfigController::class, 'showModalConfig'])->name('admin.modal_config');
             Route::post('/modal-config/save', [ModalConfigController::class, 'saveModalConfig'])->name('admin.modal_config.save');
-            Route::match(['get', 'post'], '/config', [AdminConfigController::class, 'configurarMantenimiento'])->name('configadmin');
+            
             Route::get('/payment-logs', [PaymentLogController::class, 'index'])->name('admin.payment_logs.index');
             Route::get('/payment-logs/{id}', [PaymentLogController::class, 'show'])->name('admin.payment_logs.show');
-            Route::get('/items-data', [ProductImportController::class, 'showItemsData'])->name('admin.itemsData');
-            Route::get('/fetch-items', [ProductImportController::class, 'fetchItemsManually'])->name('admin.fetchItems');
-            Route::get('/fetch-guias', [GuiasController::class, 'guiasearch'])->name('admin.fetchGuias');
+
             Route::post('/crear-grupo', [ItemController::class, 'createGrupo'])->name('admin.createGrupo');
 
             Route::get('grupos', [GrupoController::class, 'index'])->name('admin.grupos.index');

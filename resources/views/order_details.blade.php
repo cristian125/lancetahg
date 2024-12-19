@@ -8,7 +8,7 @@
                     Detalles del Pedido <span class="text-primary">#{{ $order->order_number }}</span>
                 </h3>
                 <div class="row">
-                    <!-- Información de Envío -->
+                   
                     <div class="col-lg-6 mb-4">
                         <div class="p-3 p-md-4 bg-light rounded-3 border">
                             <h5 class="mb-3 text-primary">Información de Envío</h5>
@@ -51,14 +51,13 @@
                         </div>
                     </div>
 
-                    <!-- Estado del Pedido -->
+
                     <div class="col-lg-6 mb-4">
                         <div class="p-3 p-md-4 bg-light rounded-3 border">
                             <h5 class="mb-4 text-primary">Estado del Pedido</h5>
                             <ul class="timeline">
                                 @if ($order->shipment_method === 'RecogerEnTienda')
-                                    {{-- Pedido para Recoger en Tienda --}}
-                                    {{-- Mostrar estados basados en orderHistory --}}
+
                                     @php
                                         $statuses = [
                                             'status_1_confirmation_at' => [
@@ -89,7 +88,7 @@
                                         ];
                                     @endphp
 
-                                    {{-- Mostrar los estados existentes en orderHistory --}}
+   
                                     @foreach ($statuses as $key => $status)
                                         @if (isset($orderHistory->$key) && !empty($orderHistory->$key))
                                             <li class="timeline-item">
@@ -106,7 +105,7 @@
                                         @endif
                                     @endforeach
 
-                                    {{-- Mostrar estado de asignación de fecha y hora de entrega --}}
+
                                     @if ($isAssignedForPickup)
                                         <li class="timeline-item">
                                             <span class="timeline-icon bg-success text-white">
@@ -145,8 +144,7 @@
                                         </li>
                                     @endif
                                 @else
-                                    {{-- Pedido de Envío Estándar --}}
-                                    {{-- Mostrar estados basados en orderHistory --}}
+
                                     @php
                                         $statuses = [
                                             'status_1_confirmation_at' => [
@@ -177,7 +175,7 @@
                                         ];
                                     @endphp
 
-                                    {{-- Mostrar estados existentes en orderHistory --}}
+
                                     @foreach ($statuses as $key => $status)
                                         @if (isset($orderHistory->$key) && !empty($orderHistory->$key))
                                             <li class="timeline-item">
@@ -192,7 +190,6 @@
                                                 </div>
                                             </li>
 
-                                            {{-- Agregar el estado "Surtiendo Pedido" después de "Pagado" --}}
                                             @if ($key === 'status_3_paid_at' && !$order->guia_type && $order->shipment_method !== 'RecogerEnTienda')
                                                 <li class="timeline-item">
                                                     <span class="timeline-icon bg-warning text-white">
@@ -210,13 +207,13 @@
                                         @endif
                                     @endforeach
 
-                                    {{-- Mostrar estados basados en guia_type --}}
+
                                     @if ($order->guia_type)
                                         @php
                                             $guiaStatuses = [];
                                             switch ($order->guia_type) {
                                                 case 5:
-                                                    // guia_type=5: Procesado (completado), Enviado (procesando)
+
                                                     $guiaStatuses = [
                                                         [
                                                             'label' => 'Procesado',
@@ -229,12 +226,12 @@
                                                             'label' => 'En espera de Envío',
                                                             'icon' => 'bi-hourglass-split',
                                                             'color' => 'warning',
-                                                            'time' => $order->status_6_date, // Reemplazar con la fecha real de envío
+                                                            'time' => $order->status_6_date, 
                                                         ],
                                                     ];
                                                     break;
                                                 case 6:
-                                                    // guia_type=6: Procesado (completado), Enviado (completado), Completado (procesando)
+
                                                     $guiaStatuses = [
                                                         [
                                                             'label' => 'Procesado',
@@ -246,18 +243,18 @@
                                                             'label' => 'Enviado',
                                                             'icon' => 'bi-check-circle-fill',
                                                             'color' => 'success',
-                                                            'time' => $order->status_6_date, // Reemplazar con la fecha real de envío
+                                                            'time' => $order->status_6_date, 
                                                         ],
                                                         [
                                                             'label' => 'En proceso de entrega',
                                                             'icon' => 'bi-hourglass-split',
                                                             'color' => 'warning',
-                                                            'time' => $order->status_7_date, // Reemplazar con la fecha real de completado
+                                                            'time' => $order->status_7_date, 
                                                         ],
                                                     ];
                                                     break;
                                                 case 7:
-                                                    // guia_type=7: Procesado, Enviado, Completado (todos completados)
+
                                                     $guiaStatuses = [
                                                         [
                                                             'label' => 'Procesado',
@@ -269,13 +266,13 @@
                                                             'label' => 'Enviado',
                                                             'icon' => 'bi-check-circle-fill',
                                                             'color' => 'success',
-                                                            'time' =>  $order->status_6_date, // Reemplazar con la fecha real de envío
+                                                            'time' =>  $order->status_6_date, 
                                                         ],
                                                         [
                                                             'label' => 'Entregado',
                                                             'icon' => 'bi-check-circle-fill',
                                                             'color' => 'success',
-                                                            'time' =>  $order->status_7_date, // Reemplazar con la fecha real de completado
+                                                            'time' =>  $order->status_7_date, 
                                                         ],
                                                     ];
                                                     break;
@@ -300,7 +297,7 @@
                         </div>
                     </div>
 
-                    {{-- Información de la Tienda para RecogerEnTienda --}}
+
                     @if ($order->shipment_method === 'RecogerEnTienda' && $store)
                         <div class="col-lg-12 mb-4">
                             <div class="p-3 p-md-4 bg-light rounded-3 border">
@@ -311,7 +308,7 @@
                         </div>
                     @endif
 
-                    {{-- Número de Guía --}}
+
                     @if ($trackingNumber)
                         <div class="col-lg-12 mb-4">
                             <div class="p-3 p-md-4 bg-warning rounded-3 border">
@@ -339,11 +336,11 @@
                     @endif
                 </div>
 
-                {{-- Productos del Pedido --}}
+
                 <div class="p-3 p-md-4 bg-light rounded-3 border mb-4">
                     <h4 class="mb-4 text-primary">Productos del Pedido</h4>
                     @if ($order_items->isNotEmpty())
-                        <!-- Tabla para pantallas grandes -->
+
                         <div class="d-none d-md-block table-responsive">
                             <table class="table table-hover align-middle">
                                 <thead class="table-secondary">
@@ -389,7 +386,7 @@
                             </table>
                         </div>
 
-                        <!-- Tarjetas para pantallas pequeñas -->
+
                         <div class="d-block d-md-none">
                             @foreach ($order_items as $item)
                                 <div class="card mb-3">
@@ -437,7 +434,7 @@
                     @endif
                 </div>
 
-                {{-- Resumen del Pedido y Método de Pago --}}
+
                 <div class="row">
                     @if ($payment)
                         <div class="col-lg-6 mb-4">
@@ -503,7 +500,6 @@
                     </div>
                 </div>
 
-                {{-- Botón para Volver a Mis Pedidos --}}
                 <div class="text-center">
                     <a href="{{ route('myorders') }}" class="btn btn-secondary btn-lg rounded-3">
                         <i class="bi bi-arrow-left-circle me-2"></i> Volver a mis pedidos
@@ -643,7 +639,7 @@
             }
         }
 
-        /* Responsividad de la timeline para móviles */
+
         @media (max-width: 767.98px) {
             .timeline::before {
                 left: 20px;
@@ -657,7 +653,6 @@
                 left: 5px;
             }
 
-            /* Ajustar tamaño de fuente en la timeline */
             .timeline-content h6 {
                 font-size: 1rem;
             }
@@ -667,7 +662,7 @@
             }
         }
 
-        /* Ajustes para las tarjetas de productos en móviles */
+
         @media (max-width: 767.98px) {
             .card-body p {
                 font-size: 0.9rem;

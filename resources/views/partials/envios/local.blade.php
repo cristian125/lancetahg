@@ -193,13 +193,13 @@
                 const calleYColonia = this.closest('label').querySelector('div').childNodes[2]
                     .textContent.trim();
 
-                // Actualiza el mensaje de dirección seleccionada
+
                 mensajeDireccion.innerHTML =
                     `<i class="bi bi-check-circle-fill"></i> Dirección seleccionada: ${direccionSeleccionada} ${calleYColonia}.`;
                 mensajeDireccion.classList.remove('text-danger');
                 mensajeDireccion.classList.add('text-success');
 
-                // Hacer una solicitud AJAX para obtener el nuevo costo de envío
+
                 fetch(`/actualizar-envio`, {
                         method: 'POST',
                         headers: {
@@ -225,14 +225,14 @@
 <style>
     .not-selectable .direccion-radio {
         pointer-events: none;
-        /* Desactiva la posibilidad de hacer clic */
+
         cursor: not-allowed;
-        /* Cambia el cursor a una señal de no permitido */
+
     }
 
     .not-selectable {
         opacity: 0.6;
-        /* Reduce la opacidad para indicar que está deshabilitado */
+
     }
 
     .unique-cart-titleC {

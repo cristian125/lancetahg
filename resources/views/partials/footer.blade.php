@@ -1,7 +1,7 @@
 <!-- Footer - Updated Version -->
 <footer class="pt-3 pt-md-4 pt-xl-5">
 
-    <!-- Logo & Social Media -->
+
     <div class="footer-top">
         <div class="container">
             <div class="row gy-3 align-items-center">

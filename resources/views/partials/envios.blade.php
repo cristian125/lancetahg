@@ -2,7 +2,7 @@
     <div class="container bg-white p-4 w-75 rounded shadow" style="max-width: 900px;">
         <p class="text-center mb-4">A partir de la confirmación de su pago comenzará el procesamiento de su orden. Posteriormente, y sólo entonces, comenzará a correr el tiempo de envío y entrega del paquete.</p>
 
-        <!-- Botones de navegación -->
+
         <ul class="nav nav-tabs justify-content-center" id="envioTabs" role="tablist" style="display: flex; flex-wrap: nowrap;">
             <li class="nav-item flex-fill text-center" role="presentation">
                 <button class="nav-link active d-flex align-items-center justify-content-center" id="tienda-tab" data-bs-toggle="tab" data-bs-target="#tienda" type="button" role="tab" aria-controls="tienda" aria-selected="true">
@@ -25,9 +25,9 @@
         </ul>
         
         
-        <!-- Contenido de las pestañas -->
+
         <div class="tab-content mt-3" id="envioTabsContent">
-            <!-- Recoger en Tienda -->
+        
             <div class="tab-pane fade show active" id="tienda" role="tabpanel" aria-labelledby="tienda-tab">
                 <div class="row">
                     <div class="col-md-6">
@@ -52,7 +52,7 @@
                 </div>
             </div>
 
-            <!-- Envío Local -->
+       
             <div class="tab-pane fade" id="local" role="tabpanel" aria-labelledby="local-tab">
                 <div class="row">
                     <div class="col-md-6">
@@ -75,7 +75,7 @@
                 </div>
             </div>
 
-            <!-- Envío por Cobrar -->
+
             <div class="tab-pane fade" id="cobrar" role="tabpanel" aria-labelledby="cobrar-tab">
                 <div class="row">
                     <div class="col-md-6">

@@ -3,13 +3,13 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function() {
-            // Ocultar el navbar y el footer
+
             $('.navbar').hide();
             $('footer').hide();
             
-            // Botón para redirigir fuera del iframe a la página de pedidos
+
             $('#goOrdersBtn').click(function() {
-                window.top.location.href = "{{ route('myorders') }}"; // Redirigir fuera del iframe
+                window.top.location.href = "{{ route('myorders') }}"; 
             });
         });
     </script>

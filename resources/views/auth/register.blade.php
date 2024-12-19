@@ -31,7 +31,7 @@
 </div>
     <div class="container py-5">
         <div class="row justify-content-center">
-            <!-- Registro de Usuario -->
+
             <div class="col-lg-5 col-md-6 mb-4 mb-lg-0">
                 <div class="card shadow-lg border-0">
                     <div class="card-header bg-primary text-white text-center py-3">

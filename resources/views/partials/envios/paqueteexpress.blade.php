@@ -17,7 +17,7 @@
 
 @endif
         <div class="row">
-            <!-- Columna izquierda: Seleccione su dirección -->
+
             <div class="col-md-6 ">
                 <div id="direccion-selector-container-paqueteria" class="mb-4 p-4 bg-white rounded shadow-sm border border-primary-subtle">
                     <h5 class="mb-4 text-primary "><i class="bi bi-geo-alt-fill me-2"></i>Seleccione su dirección</h5>
@@ -49,7 +49,7 @@
 
             </div>
 
-            <!-- Columna derecha: Información de Envío -->
+
             <div id="shipping-info-paqueteria" class="col-md-6">
 
                 <div id="shipping-info-block-paqueteria" class="mb-4 p-4 bg-white rounded shadow-sm border border-danger-subtle">
@@ -96,7 +96,7 @@
                     success: function(data) {
                         if (data.success) {
                             var shippingCostWithIVA = data.data
-                                .total; // Obtener el costo total con IVA
+                                .total; 
 
                             $('#shipping-info-text-paqueteria').html(
                                 'Costo del envío con IVA: $' + shippingCostWithIVA.toFixed(
@@ -117,7 +117,7 @@
                                         cart_id: cartId,
                                         metodo: 'EnvioPorPaqueteria',
                                         direccion: direccionId,
-                                        shipping_cost_with_iva: shippingCostWithIVA, // Enviar el costo con IVA
+                                        shipping_cost_with_iva: shippingCostWithIVA, 
                                         _token: "{{ csrf_token() }}",
                                     },
                                     dataType: 'json',
@@ -169,7 +169,7 @@
         height: 2.5em;
         transform: rotate(165deg);
         display: none;
-        /* Oculto por defecto */
+
     }
 
     .paqueteria-loader:before,
@@ -243,7 +243,7 @@
                 var direccionId = $(this).val();
                 var cartId = "{{ $cartId }}";
 
-                // Mostrar el loader
+
                 $('#paqueteria-loader').show();
 
                 $.ajax({
@@ -256,12 +256,12 @@
                     },
                     dataType: "json",
                     success: function(data) {
-                        // Ocultar el loader
+                 
                         $('#paqueteria-loader').hide();
 
                         if (data.success) {
                             var shippingCostWithIVA = data.data
-                            .total; // Obtener el costo total con IVA
+                            .total; 
 
                             $('#shipping-info-text-paqueteria').html(
                                 'Costo del envío con IVA: $' + shippingCostWithIVA.toFixed(
@@ -318,7 +318,7 @@
                         }
                     },
                     error: function(error) {
-                        // Ocultar el loader en caso de error
+                    
                         $('#paqueteria-loader').hide();
 
                         $('#shipping-info-text-paqueteria').html(

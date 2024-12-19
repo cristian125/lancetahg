@@ -76,20 +76,23 @@
             });
         </script>
     @endif
-
     <div id="contenedorsup" class="container">
-        <div class="row">
-            <!-- CARROUSEL -->
+        <div class="row justify-content-center">
             @if (isset($carouselImages) && count($carouselImages) > 0)
-                <div class="col-md-7 order-1 order-md-2 align-items-center d-flex justify-content-center mb-2 mb-md-0">
+                @if (isset($gridImages) && count($gridImages) > 0)
+                    <div class="col-md-7 order-1 order-md-2 align-items-center d-flex justify-content-center mb-2 mb-md-0">
+                @else
+                    <!-- No hay imágenes en el grid, mantiene col-md-7 y añade mx-auto para centrar -->
+                    <div class="col-md-7 order-1 order-md-2 align-items-center d-flex justify-content-center mb-2 mb-md-0 mx-auto">
+                @endif
                     <div id="carouselExample" class="carousel slide carousel-custom-size" data-bs-ride="carousel"
                         data-bs-interval="3000">
-                        <!-- Indicadores -->
                         <div class="carousel-indicators">
                             @foreach ($carouselImages as $index => $image)
                                 <button type="button" data-bs-target="#carouselExample"
                                     data-bs-slide-to="{{ $index }}" class="{{ $index == 0 ? 'active' : '' }}"
-                                    aria-current="{{ $index == 0 ? 'true' : 'false' }}" aria-label="Slide {{ $index + 1 }}"></button>
+                                    aria-current="{{ $index == 0 ? 'true' : 'false' }}"
+                                    aria-label="Slide {{ $index + 1 }}"></button>
                             @endforeach
                         </div>
                         <div class="carousel-inner">
@@ -120,36 +123,36 @@
                     </div>
                 </div>
             @endif
-
-            <!-- GRID DE PRODUCTOS -->
-            <div class="col-12 order-2 order-md-1 col-md-5 mt-2 mt-md-4">
-                <div class="row">
-                    @foreach ($gridImages as $gridImage)
-                        <div class="col-6 mb-4 d-flex justify-content-center">
-                            <div class="offer-container">
-                                <a href="{{ url('/producto/' . $gridImage->product_id) }}">
-                                    <img src="{{ asset('storage/' . $gridImage->image_path) }}"
-                                        alt="Imagen {{ $loop->iteration }}" class="img-fluid">
-                                </a>
+        
+            @if (isset($gridImages) && count($gridImages) > 0)
+                <div class="col-12 order-2 order-md-1 col-md-5 mt-2 mt-md-4">
+                    <div class="row">
+                        @foreach ($gridImages as $gridImage)
+                            <div class="col-6 mb-4 d-flex justify-content-center">
+                                <div class="offer-container">
+                                    <a href="{{ url('/producto/' . $gridImage->product_id) }}">
+                                        <img src="{{ asset('storage/' . $gridImage->image_path) }}"
+                                            alt="Imagen {{ $loop->iteration }}" class="img-fluid">
+                                    </a>
+                                </div>
                             </div>
-                        </div>
-                    @endforeach
+                        @endforeach
+                    </div>
                 </div>
-            </div>
+            @endif
         </div>
     </div>
+    
 
-    <!-- Banners Desktop y Mobile -->
+
     @if ($desktopBanner || $mobileBanner)
         <div class="container mt-4">
             <div class="row justify-content-center align-items-center">
                 <div class="col-md-12 text-center">
-                    <!-- Banner Desktop: Visible en pantallas medianas (md) y superiores -->
+                 
                     @if ($desktopBanner)
                         <img src="{{ asset('storage/' . $desktopBanner->image_path) }}" alt="Banner Desktop" class="img-fluid d-none d-md-block">
                     @endif
-
-                    <!-- Banner Mobile: Visible en pantallas pequeñas (sm) y extra pequeñas (xs) -->
                     @if ($mobileBanner)
                         <img src="{{ asset('storage/' . $mobileBanner->image_path) }}" alt="Banner Móvil" class="img-fluid d-block d-md-none">
                     @endif
@@ -158,7 +161,6 @@
         </div>
     @endif
 
-    <!-- CONTENEDOR QUE DIVIDE LAS SECCIONES -->
     <div class="container">
         <div class="row justify-content-center align-items-center">
             <div class="col-md-4 text-center" id="item-centrado">
@@ -167,7 +169,6 @@
         </div>
     </div>
 
-    <!-- Productos Destacados -->
     <div class="container mt-0">
         @foreach ($destacados->chunk(4) as $chunk)
             <div class="row mt-4">
@@ -215,7 +216,7 @@
     </div>
 
     <style>
-        /* Estilos del carrusel */
+
         .carousel-custom-size {
             width: 100%;
             height: auto;
@@ -254,129 +255,129 @@
             color: #252525;
         }
 
-        /* Estilo para los indicadores del carrusel */
+
         .carousel-indicators li {
-            background-color: #005f7f; /* Color de los indicadores */
+            background-color: #005f7f; 
             width: 12px;
             height: 12px;
-            border-radius: 50%; /* Indicadores como puntos */
+            border-radius: 50%; 
         }
 
         .carousel-indicators button {
-            background-color: #444444 !important; /* Color para los indicadores inactivos */
+            background-color: #444444 !important; 
         }
 
         .carousel-indicators .active {
-            background-color: #70cbce !important; /* Color del indicador activo */
+            background-color: #70cbce !important; 
         }
 
         .carousel-control-prev-icon,
         .carousel-control-next-icon {
-            background-color: #333; /* Color de las flechas */
-            border-radius: 50%; /* Forma redondeada */
+            background-color: #333; 
+            border-radius: 50%; 
             width: 40px;
             height: 40px;
         }
 
-        /* Estilo para el contenedor que divide las secciones */
+
         #item-centrado {
-            font-size: 24px; /* Tamaño de fuente grande para destacar el texto */
-            font-weight: bold; /* Negrita para resaltar el texto */
-            color: #005f7f; /* Color del texto */
-            /* Espaciado interno superior e inferior */
-            border-bottom: 2px solid #2396e2; /* Línea inferior para separación visual */
-            margin-top: 40px; /* Margen superior para separación con el contenido anterior */
-            margin-bottom: 40px; /* Margen inferior para separación con el contenido siguiente */
+            font-size: 24px; 
+            font-weight: bold; 
+            color: #005f7f; /
+
+            border-bottom: 2px solid #2396e2; /
+            margin-top: 40px; 
+            margin-bottom: 40px; 
         }
 
-        /* Estilo para el contenedor de la fila */
+      
         .row.justify-content-center.align-items-center {
-            margin: 20px; /* Espacio adicional entre esta fila y el contenido siguiente */
+            margin: 20px; 
         }
         @media (max-width: 700px){
 
             .row.justify-content-center.align-items-center {
-            margin: -20px; /* Espacio adicional entre esta fila y el contenido siguiente */
+            margin: -20px; 
         }
         }
 
-        /* Estilo general para los productos destacados */
+ 
         .product-container {
-            position: relative; /* Necesario para que el botón y otros elementos se posicionen correctamente */
-            overflow: hidden; /* Oculta cualquier cosa que se salga del contenedor */
-            text-align: center; /* Centra todo el contenido dentro del contenedor */
-            padding: 10px; /* Espaciado interno */
+            position: relative;
+            overflow: hidden; 
+            text-align: center; 
+            padding: 10px; 
             background-color: #ffffff;
-            border-radius: 10px; /* Bordes redondeados */
-            transition: all 0.3s ease; /* Transición suave */
-            width: 280px; /* Establece un ancho fijo por defecto */
-            height: 305px; /* Establece una altura constante */
-            margin: 0 auto; /* Centrar el contenedor horizontalmente */
+            border-radius: 10px; 
+            transition: all 0.3s ease; 
+            width: 280px; 
+            height: 305px; 
+            margin: 0 auto; 
         }
 
-        /* Estilo para las imágenes */
+
         .product-container img {
-            width: 100% !important; /* Asegura que la imagen use todo el ancho del contenedor */
-            height: 200px !important; /* Fija la altura de la imagen para mantener proporción cuadrada */
-            object-fit: cover !important; /* Cubre el contenedor con la imagen, recortando si es necesario */
-            border-radius: 5px !important; /* Bordes redondeados para las imágenes */
-            background-color: #f5f5f5; /* Fondo gris claro para mostrar mientras carga la imagen */
+            width: 100% !important; 
+            height: 200px !important; 
+            object-fit: cover !important; 
+            border-radius: 5px !important; 
+            background-color: #f5f5f5; 
         }
 
-        /* Estilo para la información del producto */
+
         .product-info1 {
-            color: #444 !important; /* Color gris oscuro para facilitar la lectura */
+            color: #444 !important; 
             width: 100%;
             height: 35%;
-            font-size: 15px !important; /* Tamaño de fuente más pequeño para la lectura */
-            line-height: 1 !important; /* Espaciado entre líneas para mejor legibilidad */
-            font-weight: 400 !important; /* Peso de fuente regular */
-            /* background-color: #ffffff !important; /* Fondo blanco */
-            padding: 5px !important; /* Espaciado interno */
-            border-radius: 8px !important; /* Bordes redondeados */
-            box-shadow: none !important; /* Sin sombra */
-            text-align: center !important; /* Alinear texto al centro para una presentación más uniforme */
-            text-transform: capitalize; /* Capitalizar texto */
+            font-size: 15px !important; 
+            line-height: 1 !important; 
+            font-weight: 400 !important; 
+           
+            padding: 5px !important; 
+            border-radius: 8px !important; 
+            box-shadow: none !important; 
+            text-align: center !important;
+            text-transform: capitalize; 
         }
 
-        /* Estilo para el número de serie */
+       
         .product-serial {
-            font-size: 18px !important; /* Tamaño de fuente más pequeño */
-            color: #00B398 !important; /* Color azul para destacar */
-            font-weight: bold !important; /* Negrita para enfatizar */
-            margin-bottom: 5px !important; /* Espacio inferior */
-            display: block !important; /* Mantiene el formato en bloque */
+            font-size: 18px !important; 
+            color: #00B398 !important; 
+            font-weight: bold !important;
+            margin-bottom: 5px !important;
+            display: block !important; 
         }
 
-        /* Estilo para el precio del producto */
+
         .product-container .product-price {
             font: 600 21px/26px "Open Sans", sans-serif;
-            font-size: 20px !important; /* Tamaño de fuente adecuado */
-            color: #2396e2 !important; /* Color azul oscuro para el precio */
-            /* font-weight: bold !important; Negrita para destacar el precio */
-            background-color: transparent !important; /* Elimina el fondo */
-            padding: 0 !important; /* Sin espaciado interno */
-            display: block !important; /* Para que el fondo se ajuste al texto */
-            text-align: center !important; /* Centrar el texto */
-            position: relative; /* Posiciona el precio de forma absoluta */
-            bottom: 1%; /* Fija el precio a 10px del fondo del contenedor */
-            left: 0; /* Alinea a la izquierda */
-            right: 0; /* Alinea a la derecha */
-            text-shadow: none !important; /* Sin sombra de texto */
-            border: none !important; /* Sin bordes */
-            letter-spacing: normal !important; /* Espaciado normal entre letras */
+            font-size: 20px !important; 
+            color: #2396e2 !important; 
+          
+            background-color: transparent !important; 
+            padding: 0 !important; 
+            display: block !important; 
+            text-align: center !important; 
+            position: relative; 
+            bottom: 1%; 
+            left: 0; 
+            right: 0; 
+            text-shadow: none !important; 
+            border: none !important; 
+            letter-spacing: normal !important; /
             z-index: 1;
         }
 
-        /* Estilo para el botón */
+
         .product-container button {
             position: absolute;
-            bottom: 10px; /* Espaciado desde el fondo del contenedor */
-            left: 10px; /* Alineado a la izquierda */
-            right: 10px; /* Alineado a la derecha */
-            width: calc(100% - 20px); /* Ajusta el ancho para dar espacio a los márgenes */
+            bottom: 10px; 
+            left: 10px;
+            right: 10px; 
+            width: calc(100% - 20px); 
             padding: 10px;
-            background-color: #ff9900; /* Color naranja del botón */
+            background-color: #ff9900; 
             color: white;
             border: none;
             border-radius: 5px;
@@ -385,28 +386,28 @@
             transition: background-color 0.3s ease;
         }
 
-        /* Efecto hover para el botón */
+
         .product-container button:hover {
-            background-color: #e67e22; /* Cambiar color del botón al pasar el mouse */
+            background-color: #e67e22; 
         }
 
-        /* Efecto hover en el contenedor del producto */
+
         .product-container:hover {
-            transform: translateY(-5px); /* Levantar el contenedor ligeramente */
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Sombra más intensa */
+            transform: translateY(-5px); 
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); 
         }
 
-        /* Superposición para el botón "Ver" */
+
         .product-container .overlay {
             position: absolute;
             margin-top: -10px;
-            left: 50%; /* Centra horizontalmente */
-            top: 65%; /* Ajusta esta posición para mover el rectángulo más arriba */
-            transform: translate(-50%, -50%); /* Centra el rectángulo */
-            background-color: #005f7f88; /* Color azul con transparencia */
+            left: 50%; 
+            top: 65%; 
+            transform: translate(-50%, -50%); 
+            background-color: #005f7f88; 
             color: #ffffff;
-            padding: 9.5px 100%; /* Ajusta el tamaño del rectángulo */
-            border-radius: 5px; /* Bordes redondeados */
+            padding: 9.5px 100%; 
+            border-radius: 5px; 
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.5s ease, visibility 0.5s ease;
@@ -417,15 +418,15 @@
             background-color: #005f7f;
         }
 
-        /* Superposición para el botón "Añadir al Carrito" */
+
         .product-container .overlay-cart {
             position: absolute;
-            left: 50%; /* Centra horizontalmente */
-            top: 83%; /* Ajusta esta posición para mover el rectángulo más abajo */
-            transform: translate(-50%, -50%); /* Centra el rectángulo */
+            left: 50%; 
+            top: 83%; 
+            transform: translate(-50%, -50%); 
             color: white;
-            padding: 3% 100%; /* Ajusta el tamaño del rectángulo */
-            border-radius: 5px; /* Bordes redondeados */
+            padding: 3% 100%; 
+            border-radius: 5px;
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.5s ease, visibility 0.5s ease;
@@ -444,7 +445,7 @@
             text-align: center;
         }
 
-        /* Estilo para el botón "Añadir al Carrito" en el overlay */
+
         .overlay-cart button {
             margin: 0;
             background-color: #00B39888;
@@ -461,69 +462,69 @@
             background-color: #00B398;
         }
 
-        /* Superposición adicional para mostrar la descripción y número de serie */
+       
         .product-container .overlay-info {
             display: none;
             position: absolute;
-            left: 0; /* Alinea el overlay al borde izquierdo del contenedor */
-            right: 0; /* Alinea el overlay al borde derecho del contenedor */
-            top: 50.2%; /* Centra verticalmente el overlay */
-            transform: translateY(-50%); /* Ajusta la posición para mantenerlo centrado */
-            background-color: #00B398; /* Fondo oscuro con transparencia */
+            left: 0; 
+            right: 0; 
+            top: 50.2%;
+            transform: translateY(-50%); 
+            background-color: #00B398; 
             color: white;
             height: 18%;
-            padding: 5px 10px; /* Espaciado interno reducido */
+            padding: 5px 10px; 
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.5s ease, visibility 0.5s ease;
-            text-align: center; /* Centra el texto dentro del overlay */
-            font-size: 11px; /* Tamaño de fuente más pequeño */
-            line-height: 1.2; /* Reduce el espacio entre líneas */
+            text-align: center;
+            font-size: 11px; 
+            line-height: 1.2; 
         }
 
-        /* Mostrar el overlay al hacer hover sobre el contenedor */
+       
         .product-container:hover .overlay-info {
             opacity: 1;
             visibility: visible;
         }
 
-        /* Ajustes específicos para el número de serie y la descripción */
+      
         .overlay-info p {
-            margin: 2px 0; /* Reduce el margen entre el número de serie y la descripción */
+            margin: 2px 0;
         }
 
         .badge-offer {
             position: absolute;
             top: 10px;
-            left: 10px; /* Cambiado de right a left */
+            left: 10px; 
             background-color: #ff0000;
             color: white;
             padding: 5px 10px;
             font-size: 14px;
             font-weight: bold;
             border-radius: 5px;
-            z-index: 10; /* Asegura que el badge esté encima de otros elementos */
+            z-index: 10; 
         }
 
         .badge-offer-destacados {
             position: absolute;
             top: 10px;
-            right: 10px; /* Cambiado a la derecha */
+            right: 10px;
             background-color: #ff0000;
             color: white;
             padding: 5px 10px;
             font-size: 14px;
             font-weight: bold;
             border-radius: 5px;
-            z-index: 10; /* Asegura que el badge esté encima de otros elementos */
+            z-index: 10; 
         }
 
         .icon-small {
-            width: 50px;  /* Ajusta este valor según el tamaño que desees */
-            height: auto;  /* Mantén la proporción de la imagen */
+            width: 50px;  
+            height: auto;  
         }
 
-        /* Mostrar las superposiciones cuando el producto está activo */
+      
         .product-container.active .overlay,
         .product-container.active .overlay-cart,
         .product-container.active .overlay-info {
@@ -531,7 +532,7 @@
             visibility: visible;
         }
 
-        /* Asegurar que las superposiciones no se muestren por defecto en móviles */
+        
         @media (max-width: 1067.98px) {
             .product-container .overlay,
             .product-container .overlay-cart,
@@ -540,7 +541,7 @@
                 visibility: hidden;
             }
 
-            /* Transición suave para las superposiciones */
+            
             .product-container .overlay,
             .product-container .overlay-cart,
             .product-container .overlay-info {
@@ -548,53 +549,52 @@
             }
         }
 
-        /* Opcional: Ajustar el cursor para indicar interactividad */
+        
         @media (hover: none) and (pointer: coarse) {
             .product-container > a {
                 cursor: pointer;
             }
         }
 
-        /* Hacer que el contenedor sea responsivo en pantallas pequeñas */
+       
         @media (max-width: 1067.98px) {
             .product-container {
-                width: 100%; /* Ocupa todo el ancho disponible */
-                max-width: 280px; /* Limita el ancho máximo para mantener la consistencia */
-                margin: 0 auto; /* Centrar el contenedor */
+                width: 100%; 
+                max-width: 280px; 
+                margin: 0 auto; 
             }
         }
     </style>
 
-    <!-- Scripts adicionales al final de la plantilla -->
+    
     <script>
         $(document).ready(function() {
-            // Función mejorada para detectar dispositivos táctiles
+           
             function isTouchDevice() {
                 return window.matchMedia("(hover: none) and (pointer: coarse)").matches;
             }
 
-            if (isTouchDevice()) {
-                // Manejar el evento 'click' en los enlaces de productos
+            if (isTouchDevice()) { Manejar el evento 'click' en los enlaces de productos
                 $('.product-container > a').on('click', function(e) {
                     var $productContainer = $(this).closest('.product-container');
 
                     if ($productContainer.hasClass('active')) {
-                        // Si ya está activo, permitir la navegación
+                        
                         $productContainer.removeClass('active');
-                        // No se previene el comportamiento predeterminado, permitiendo la navegación
+                        
                     } else {
-                        // Si no está activo, prevenir la navegación y activar el producto
+                       
                         e.preventDefault();
 
-                        // Cerrar cualquier otro producto activo
+                        
                         $('.product-container.active').removeClass('active');
 
-                        // Activar el producto seleccionado
+                      
                         $productContainer.addClass('active');
                     }
                 });
 
-                // Cerrar los productos activos al tocar fuera de ellos
+               
                 $(document).on('click touchstart', function(e) {
                     if (!$(e.target).closest('.product-container').length) {
                         $('.product-container.active').removeClass('active');

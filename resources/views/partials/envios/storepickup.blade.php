@@ -14,15 +14,12 @@
     </div>
 @endif
 
-
-    <!-- Fecha y hora de recogida -->
     <div class="bg-light p-4 rounded mb-4 border border-danger">
         <h6 class="text-primary"><i class="bi bi-calendar"></i> Fecha y hora de recogida</h6>
         <p class="text-muted">La tienda se pondrá en contacto con usted para coordinar la fecha y hora de recogida una
             vez que el pedido esté completo.</p>
     </div>
 
-    <!-- Selector de tienda -->
     <div class="form-group mb-4">
         <label for="tienda-selector" class="form-label text-muted">Tiendas disponibles:</label>
         <select id="tienda-selector" class="form-select form-select-lg">
@@ -38,7 +35,7 @@
         </select>
     </div>
 
-    <!-- Detalles de la tienda -->
+
     <div class="bg-light p-3 rounded mb-4">
         <h6 class="text-primary">Detalles de la Tienda</h6>
         <p><strong>Dirección:</strong> <span
@@ -53,14 +50,14 @@
         </p>
     </div>
 
-    <!-- Mapa de la tienda -->
+
     <div class="bg-light p-3 rounded mb-4">
         <iframe id="store-map" src="{{ $storePickupData['tiendas']->first()->google_maps_url }}" width="100%"
             height="360" style="border:0;" allowfullscreen="" loading="lazy"
             referrerpolicy="no-referrer-when-downgrade"></iframe>
     </div>
 
-    <!-- Sección de Confirmación -->
+
     <div id="payment-section" class="bg-light p-4 rounded text-center shadow-sm">
         <form id="storePickupForm" action="{{ route('storepickup.save') }}" method="POST"
             class="d-flex flex-column align-items-center">
@@ -80,7 +77,7 @@
     </div>
 </div>
 
-<!-- Modal -->
+
 <div class="modal fade" id="enviosModal" tabindex="-1" aria-labelledby="enviosModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -105,18 +102,16 @@
         const direccionElement = document.querySelector('.store-address');
         const telefonoElement = document.querySelector('.store-phone');
         const horarioElement = document.querySelector('.store-hours');
-        const storeMapIframe = document.getElementById('store-map'); // Referencia al iframe
+        const storeMapIframe = document.getElementById('store-map'); 
         const paymentSection = document.getElementById('payment-section');
         const storeIdInput = document.getElementById('store_id');
 
-        // Mostrar la sección de pago siempre, sin depender de la fecha y la hora
+
         paymentSection.style.display = 'block';
 
-        // Actualizar la información de la tienda seleccionada
         tiendaSelector.addEventListener('change', function() {
             const selectedOption = this.options[this.selectedIndex];
 
-            // Actualizar la dirección, teléfono y horarios en el HTML
             direccionElement.innerText = selectedOption.getAttribute('data-direccion');
             telefonoElement.innerText = selectedOption.getAttribute('data-telefono');
             horarioElement.innerHTML = `
@@ -124,11 +119,9 @@
             Sábado: ${selectedOption.getAttribute('data-horario-sabado')}
         `;
 
-            // Actualizar la URL del iframe de Google Maps
             const googleMapsUrl = selectedOption.getAttribute('data-google-maps-url');
             storeMapIframe.src = googleMapsUrl;
 
-            // Actualizar el input oculto con el ID de la tienda seleccionada
             storeIdInput.value = tiendaSelector.value;
         });
     });

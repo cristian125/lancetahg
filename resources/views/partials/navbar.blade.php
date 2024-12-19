@@ -964,22 +964,22 @@ document.addEventListener("DOMContentLoaded", function() {
 </script>
 
 <style>
-    /* Bloquear el scroll del body cuando el navbar está abierto */
+
 body.navbar-open {
     overflow: hidden;
 }
 
-/* Asegurar que el navbar sea desplazable */
+
 .navbar-collapse {
-    /* overflow-y: auto; */
-    max-height: 100vh; /* Altura máxima igual a la altura de la ventana */
+
+    max-height: 100vh; 
 }
 
-/* Ajustes específicos para dispositivos móviles */
+
 @media (max-width: 801px) {
     .navbar-collapse {
-        max-height: 80vh; /* Puedes ajustar este valor según tus necesidades */
-    }
+        max-height: 80vh; 
+        }
 }
 
 </style>

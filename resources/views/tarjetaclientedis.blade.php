@@ -61,7 +61,7 @@
         </div>
     </div>
 
-    <!-- Modal -->
+
     <div class="modal fade" id="clienteDistinguidoModal" tabindex="-1" aria-labelledby="clienteDistinguidoModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-lg">
@@ -71,7 +71,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
-                    <!-- Cargar la página web dentro del modal usando un iframe -->
+
                     <iframe src="https://v2.adminhg.lancetahg.com.mx/solicitud-cliente-distinguido/create" width="100%" height="600" frameborder="0"></iframe>
                 </div>
             </div>

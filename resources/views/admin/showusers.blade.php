@@ -234,14 +234,6 @@
     </div>
 </div>
 
-
-
-
-
-
-
-        <!-- Modales de Confirmación para las Acciones Administrativas -->
-
         <!-- Modal Cambiar Contraseña -->
         <div class="modal fade" id="changePasswordModal" tabindex="-1" role="dialog" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
             <div class="modal-dialog" role="document">

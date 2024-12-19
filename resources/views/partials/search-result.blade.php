@@ -19,8 +19,6 @@
             @endif
         </p>
         <hr class="my-4">
-
-        <!-- Contenedor de paginación superior -->
         <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
             <div class="pagination-info order-2 order-lg-1">
                 <span>Mostrando página {{ $productos->currentPage() }} de {{ $productos->lastPage() }}</span>
@@ -32,7 +30,7 @@
             </div>
         </div>
 
-        <!-- Contenedor de botones de ordenamiento y vista -->
+
         <div class="d-flex flex-wrap justify-content-end align-items-center mb-3">
             <div class="btn-group me-2">
                 <button class="btn btn-light sort-price-btn {{ request('sort_price') == 'asc' ? 'active' : '' }}"
@@ -77,7 +75,7 @@
         </div>
 
         <div class="row">
-            <!-- Sidebar de filtros -->
+
             <div class="col-12 col-lg-2 mb-4">
                 <div class="sidebars p-3 shadow-sm rounded bg-light">
                     <h4 class="mb-4">Filtros</h4>
@@ -100,7 +98,6 @@
                             <input type="hidden" name="search" value="{{ request('search') }}">
                     @endif
 
-                    <!-- Filtro de Precio -->
                     <div class="filter-section mb-4">
                         <h5 class="mb-3">Precio</h5>
                         <div class="d-flex justify-content-between mb-2">
@@ -120,7 +117,7 @@
                     </div>
                     </form>
 
-                    <!-- Filtros Aplicados -->
+
                     @if (request('min_price') || request('max_price'))
                         <div class="applied-filters">
                             <h5 class="mb-3">Filtros Aplicados</h5>
@@ -148,10 +145,10 @@
                 </div>
             </div>
 
-            <!-- Contenido principal -->
+
             <div class="col-12 col-lg-10">
                 <div id="productViewContainer" class="animate__animated">
-                    <!-- Vista de cuadrícula -->
+
                     <div class="grid-view d-none">
                         <div class="row">
                             @foreach ($productos as $producto)
@@ -190,7 +187,7 @@
                         </div>
                     </div>
 
-                    <!-- Vista de lista (visible inicialmente) -->
+
                     <div class="list-view">
                         <div class="table-responsive">
                             <table class="table table-hover">
@@ -232,7 +229,7 @@
                     </div>
                 </div>
 
-                <!-- Contenedor de paginación inferior -->
+
                 <div class="d-flex flex-wrap justify-content-between align-items-center mt-4">
                     <div class="pagination-info order-2 order-lg-1">
                         <span>Mostrando página {{ $productos->currentPage() }} de {{ $productos->lastPage() }}</span>
@@ -248,7 +245,7 @@
     </div>
 </div>
 
-<!-- Scripts -->
+
 <script>
     $(document).ready(function() {
         const gridViewBtn = $('#gridViewBtn');
@@ -415,27 +412,26 @@
 </script>
 
 <style>
-    /* Estilo para el precio original (tachado) */
+
     .precio-original {
         color: #ff0000;
         font-size: 0.9em;
     }
 
-    /* Estilo para el precio con descuento */
+
     .precio-con-descuento {
         color: #28a745;
         font-size: 1.2em;
         font-weight: bold;
     }
 
-    /* Estilo para el precio normal */
     .precio-normal {
         color: #333;
         font-size: 1.2em;
         font-weight: bold;
     }
 
-    /* Badge para ofertas */
+
     .badge.bg-danger {
         background-color: #dc3545;
         font-size: 0.9em;
@@ -444,7 +440,6 @@
         display: inline-block;
     }
 
-    /* Estilos para las tarjetas de productos */
     .card {
         border: none;
         border-radius: 10px;
@@ -513,7 +508,7 @@
         font-size: 1.2em;
     }
 
-    /* Estilos para los botones de cambio de vista */
+
     #gridViewBtn.active i,
     #listViewBtn.active i {
         color: #005f7f;
@@ -525,7 +520,7 @@
         color: #666;
     }
 
-    /* Animaciones */
+
     .animate__animated {
         animation-duration: 0.5s;
         animation-fill-mode: both;
@@ -598,7 +593,7 @@
             overflow-x: auto;
         }
 
-        /* Asegurar que el nav tenga suficiente margen y se ajuste */
+
         .pagination-links nav {
             width: 100%;
         }
@@ -680,7 +675,7 @@
         color: #fff;
     }
 
-    /* Estilos para el botón de restablecer ordenamiento */
+
     #resetSortingBtn {
         display: flex;
         align-items: center;
@@ -691,21 +686,20 @@
         margin-right: 5px;
     }
 
-    /* Estilo cuando hay filtros activos */
     .btn-warning {
         background-color: #ffc107;
         color: #212529;
         border-color: #ffc107;
     }
 
-    /* Estilo cuando no hay filtros activos */
+
     .btn-secondary {
         background-color: #6c757d;
         color: #fff;
         border-color: #6c757d;
     }
 
-    /* Estilos adicionales para el paginador responsivo */
+
     .pagination {
         flex-wrap: nowrap;
     }
@@ -721,7 +715,7 @@
             white-space: nowrap;
         }
 
-        /* Opcional: Ajustar el tamaño de los enlaces de paginación */
+
         .pagination li a, .pagination li span {
             padding: 0.5rem 0.75rem;
             font-size: 0.8rem;

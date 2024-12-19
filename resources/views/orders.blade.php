@@ -16,7 +16,7 @@
                 <p><strong>Total con IVA:</strong> ${{ number_format($order->total_con_iva, 2) }}</p>
                 <p><strong>Fecha de Creación:</strong> {{ $order->created_at }}</p>
 
-                <!-- Mostrar productos de la orden -->
+
                 @if(isset($order_items[$order->id]) && $order_items[$order->id]->isNotEmpty())
                     <table class="table table-sm table-hover mt-3">
                         <thead>

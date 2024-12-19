@@ -16,9 +16,16 @@ class OrdersHeaderController extends Controller
     public function showOrdersWithState(Request $request)
     {
 
+        // $orders = DB::table('orders')
+        //     ->where('current_state', 2)
+        //     ->get();
+
+
         $orders = DB::table('orders')
-            ->where('current_state', 2)
-            ->get();
+        ->where('current_state', 2)
+        ->orderBy('created_at', 'desc')
+        ->limit(6)
+        ->get();
 
 
         $orderData = [

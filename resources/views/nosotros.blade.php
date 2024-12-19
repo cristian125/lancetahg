@@ -5,7 +5,6 @@
     <div class="col-lg-10">
         <h1 class="text-center mb-4 display-4">Quiénes somos</h1>
 
-        <!-- Sección con la primera imagen y texto -->
         <div class="row mb-5 align-items-center">
             <div class="col-lg-6 mb-4 mb-lg-0">
                 <img src="{{ asset('storage/img/nosotros/nosotros1.jpeg') }}" class="img-fluid rounded shadow-lg" alt="Imagen de Lanceta HG">
@@ -17,7 +16,6 @@
             </div>
         </div>
 
-        <!-- Sección con el segundo bloque de texto, la segunda imagen y compromiso -->
         <div class="row mb-5 align-items-center">
             <div class="col-lg-6 order-lg-2 mb-4 mb-lg-0">
                 <img src="{{ asset('storage/img/nosotros/nosotros2.jpeg') }}" class="img-fluid rounded shadow-lg" alt="Interior de la tienda Lanceta HG">
@@ -32,7 +30,6 @@
             </div>
         </div>
 
-        <!-- Sección de características -->
         <div class="row mb-5">
             <div class="col-lg-12">
                 <h2 class="mb-3">Características</h2>

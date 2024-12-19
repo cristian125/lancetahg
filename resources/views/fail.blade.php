@@ -21,11 +21,11 @@
                     <h3>Pago Rechazado</h3>
                 </div>
                 <div class="card-body">
-                    <!-- Mensaje principal -->
+
                     <p class="lead">{{ $error }}</p>
 
 
-                    <!-- Botón de redirección -->
+
                     <button id="goHomeBtn" class="btn btn-primary mt-3">Volver al Carrito</button>
                 </div>
             </div>

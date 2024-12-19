@@ -8,12 +8,12 @@
             <div class="text-center">
                 <h2 class="mb-3" style="background-color: #00a4b8; color: white; padding: 10px;">Tarjetas Bancarias</h2>
                 <div class="mb-4">
-                    <!-- Aquí va la imagen del señor en la computadora -->
+
                     <img src="{{ asset('storage/img/formasdepago/tarjeta.png') }}" alt="Tarjetas Bancarias" class="img-fluid">
                 </div>
                 <h3 class="mb-3" style="color: #00a4b8;">Debito o Credito</h3>
                 <div class="mb-4">
-                    <!-- Aquí va la imagen de las tarjetas -->
+
                     <img src="{{ asset('storage/img/formasdepago/form_tarjeta.png') }}" alt="Tarjetas de Crédito" class="img-fluid">
                 </div>
                 <div class="row justify-content-center mb-4">

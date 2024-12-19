@@ -84,7 +84,7 @@
 
             function showMaxStockPopover(button) {
                 if (!(button instanceof jQuery)) {
-                    button = $(button); // Convierte el elemento en un objeto jQuery si no lo es
+                    button = $(button); 
                 }
 
                 button.popover({
@@ -94,7 +94,7 @@
                     customClass: 'popover-warning bg-warning fw-bold'
                 }).popover('show');
 
-                // Oculta automáticamente después de 3 segundos
+                
                 setTimeout(() => {
                     button.popover('dispose');
                 }, 3000);

@@ -2,14 +2,13 @@
 @section('header')
 <script>
     $(document).ready(function() {
-        // Cuando se abre el modal
         $('#enviosModal').on('show.bs.modal', function () {
-            $('nav').hide();  // Oculta el navbar
+            $('nav').hide();  
         });
 
-        // Cuando se cierra el modal
+
         $('#enviosModal').on('hidden.bs.modal', function () {
-            $('nav').show();  // Muestra el navbar nuevamente
+            $('nav').show();  
         });
     });
 </script>

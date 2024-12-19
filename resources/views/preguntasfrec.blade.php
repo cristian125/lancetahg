@@ -20,7 +20,7 @@
     </ul>
 
     <div class="tab-content" id="faqTabsContent">
-        <!-- LancetaHG Tab -->
+
         <div class="tab-pane fade show active" id="lancetaHG" role="tabpanel" aria-labelledby="lancetaHG-tab">
             <div class="accordion" id="accordionLancetaHG">
                 <div class="accordion-item">

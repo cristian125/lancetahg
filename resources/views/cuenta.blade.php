@@ -186,7 +186,7 @@
 
         <div class="card shadow-lg border-0 rounded">
             <div class="card-body p-5">
-                <!-- Sección de encabezado de la cuenta -->
+
                 <div class="row mb-4">
                     <div class="col-12 text-center">
                         <h2 class="bi bi-person-circle"> Cuenta</h2>
@@ -194,7 +194,7 @@
                     </div>
                 </div>
 
-                <!-- Mensajes de estado -->
+
                 <div class="row mb-4">
                     <div class="col-12">
                         @if (session('error'))
@@ -207,12 +207,12 @@
                     </div>
                 </div>
 
-                <!-- Contenedor de la información de la cuenta -->
+
                 <div class="row">
-                    <!-- Sección principal del acordeón -->
+
                     <div class="col-lg-12">
                         <div class="accordion shadow-sm" id="accordionAccount">
-                            <!-- Aquí se incluyen los acordeones personalizados -->
+
                             @foreach ($accordion_files as $file)
                                 @include('partials.accordion.cuenta.' . $file)
                             @endforeach
@@ -221,7 +221,6 @@
                 </div>
             </div>
 
-            <!-- Pie de página de la cuenta -->
             <div class="card-footer bg-light text-center">
                 <hr>
                 <p class="text-muted small mb-0">© {{ date('Y') }} LancetaHG®</p>

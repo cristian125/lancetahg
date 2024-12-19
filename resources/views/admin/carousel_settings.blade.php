@@ -3,8 +3,9 @@
 @section('content')
     <div class="container">
         <h2>Configuración del Carrusel</h2>
+        <p class="text-danger fw-bold">Nota: Las imágenes del carrusel deben estar en formato <strong>JPG</strong>.</p>
 
-        <!-- Mostrar mensajes de éxito o error -->
+
         @if (session('success'))
             <div class="alert alert-success">{{ session('success') }}</div>
         @endif
@@ -12,7 +13,7 @@
             <div class="alert alert-danger">{{ session('error') }}</div>
         @endif
 
-        <!-- Formulario para subir nuevas imágenes al carrusel -->
+
         <form action="{{ route('admin.update_carousel') }}" method="POST" enctype="multipart/form-data">
             @csrf
             <div class="mb-3">
@@ -30,7 +31,7 @@
             </div>
         </form>
 
-        <!-- Mostrar las imágenes actuales del carrusel -->
+
         <h3>Imágenes Actuales del Carrusel</h3>
         <div class="row" id="carouselImagesContainer">
             @if (isset($carouselImages) && count($carouselImages) > 0)
@@ -41,7 +42,7 @@
                                 alt="Imagen del carrusel">
                         </div>
 
-                        <!-- Mostrar el enlace en un campo de texto para modificarlo -->
+
                         <form action="{{ route('admin.update_carousel_image_link', $image->id) }}" method="POST">
                             @csrf
                             @method('PATCH')
@@ -54,18 +55,17 @@
                             <button type="submit" class="btn btn-secondary w-100">Actualizar Enlace</button>
                         </form>
 
-                        <!-- Indicador del estado de la imagen -->
+
                         <p class="text-center mt-2">
                             <span class="badge {{ $image->active ? 'bg-success' : 'bg-danger' }}">
                                 {{ $image->active ? 'Activa' : 'Inactiva' }}
                             </span>
                         </p>
 
-                        <!-- Botón para eliminar la imagen -->
+
                         <button class="btn btn-danger mt-2 w-100" data-bs-toggle="modal"
                             data-bs-target="#deleteModal{{ $image->id }}">Eliminar</button>
 
-                        <!-- Modal de confirmación para eliminar -->
                         <div class="modal fade" id="deleteModal{{ $image->id }}" tabindex="-1"
                             aria-labelledby="deleteModalLabel{{ $image->id }}" aria-hidden="true">
                             <div class="modal-dialog">
@@ -93,7 +93,7 @@
                             </div>
                         </div>
 
-                        <!-- Formulario para activar/desactivar imagen -->
+
                         <form action="{{ route('admin.toggle_carousel_image', $image->id) }}" method="POST">
                             @csrf
                             @method('PATCH')
@@ -110,7 +110,7 @@
         </div>
     </div>
 
-    <!-- Estilos adicionales -->
+
 
     <script>
         $(document).ready(function() {
@@ -133,11 +133,11 @@
         });
     </script>
 
-<!-- Asegúrate de que este script está incluido después de cargar jQuery y SortableJS -->
-<!-- Incluye jQuery -->
+
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-<!-- Incluye SortableJS -->
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
 
 <script>
@@ -148,10 +148,10 @@
             onEnd: function(evt) {
                 var orderedIds = [];
                 $('#carouselImagesContainer .col-md-3').each(function(index, element) {
-                    orderedIds.push($(element).data('id')); // Obtén el ID de la imagen
+                    orderedIds.push($(element).data('id')); 
                 });
 
-                // Enviar el nuevo orden al servidor
+
                 $.ajax({
                     url: "{{ route('admin.update_carousel_order') }}",
                     method: 'POST',

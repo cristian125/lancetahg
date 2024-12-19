@@ -20,15 +20,13 @@
                         <a href="{{ route('admin.showusers', $usuario->id) }}" class="btn btn-info btn-sm" title="Ver Detalles">
                             <i class="fas fa-eye"></i>
                         </a>
-                        <!-- Puedes agregar más acciones aquí si lo deseas -->
                     </td>
                 </tr>
             @endforeach
         </tbody>
     </table>
 
-    <!-- Enlaces de Paginación -->
-    <div class="d-flex justify-content-center">
+     <div class="d-flex justify-content-center">
         {!! $usuarios->links() !!}
     </div>
 @else
