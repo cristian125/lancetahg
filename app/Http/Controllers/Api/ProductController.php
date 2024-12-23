@@ -148,6 +148,8 @@ class ProductController extends Controller
         DB::commit();
         $this->logApiImport('success', 'Productos importados y actualizados exitosamente en itemsdb.');
         $this->desactivarProductosInvalidos();
+         // Llamas a la función
+    $this->desactivarProductosSinCubage();
 
         return response()->json(['message' => 'Productos y precios actualizados exitosamente.'], 200);
     }
@@ -314,6 +316,39 @@ protected function desactivarProductosSinImagen()
         'productos' => $productosSinImagen,
     ]);
 }
+protected function desactivarProductosSinCubage()
+{
+    // 1. Identificar productos que sí están en items_unidades con cubage = 0 o NULL
+    $productosCubageCero = DB::table('items_unidades')
+        ->whereNull('cubage')
+        ->orWhere('cubage', '=', 0)
+        ->pluck('item_no');
+
+    // 2. Identificar productos que ni siquiera tienen fila en items_unidades
+    //    (leftJoin con itemsdb, donde items_unidades.item_no es null)
+    $productosSinFila = DB::table('itemsdb')
+        ->leftJoin('items_unidades', 'itemsdb.no_s', '=', 'items_unidades.item_no')
+        ->whereNull('items_unidades.item_no') 
+        ->pluck('itemsdb.no_s');
+
+    // Combinas ambas colecciones
+    $productosInvalidos = $productosCubageCero->merge($productosSinFila)->unique();
+
+    if ($productosInvalidos->isEmpty()) {
+        Log::info('No se encontraron productos sin cubage o sin fila para desactivar.');
+        return;
+    }
+
+    // 3. Desactivar en itemsdb
+    DB::table('itemsdb')
+        ->whereIn('no_s', $productosInvalidos)
+        ->update(['activo' => 0]);
+
+    Log::info('Productos desactivados por no tener cubage o no tener fila en items_unidades:', [
+        'productos' => $productosInvalidos,
+    ]);
+}
+
 
 
 }

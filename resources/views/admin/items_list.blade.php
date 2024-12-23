@@ -1,14 +1,32 @@
 @extends('admin.index')
 
 @section('content')
-
 <div class="container-fluid py-5">
     <div class="container bg-white p-5 shadow rounded">
+
+        <!-- Mensaje de éxito (si existe) -->
+        @if (session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        <!-- Mensajes de error de validación (si los hay) -->
+        @if($errors->any())
+            <div class="alert alert-danger">
+                <ul>
+                  @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                  @endforeach
+                </ul>
+            </div>
+        @endif
 
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3 class="text-primary">Gestión de Items</h3>
 
             <div class="d-flex">
+                {{-- Formulario de búsqueda (ya existente) --}}
                 <form action="{{ route('admin.items.index') }}" method="GET" class="form-inline">
                     <div class="input-group">
                         <input type="text" name="search" class="form-control" placeholder="Buscar items..." value="{{ request('search') }}">
@@ -25,6 +43,22 @@
                 @endif
             </div>
         </div>
+
+        <!-- NUEVO: Formulario para actualizar order_number_sequence -->
+        <div class="mb-4">
+            <form action="{{ route('admin.orderSequence.update') }}" method="POST" class="d-flex align-items-center">
+                @csrf
+                <label for="order_number_sequence" class="me-2">Secuencia de Orden:</label>
+                <input type="number" name="order_number_sequence" id="order_number_sequence"
+                       class="form-control me-2" style="width:120px;"
+                       value="{{ old('order_number_sequence', $currentOrderSeq) }}">
+                <button type="submit" class="btn btn-primary">
+                    Actualizar
+                </button>
+            </form>
+        </div>
+
+        <!-- Resto de tu tabla de Items -->
         <div class="table-responsive">
             <table class="table table-hover table-striped">
                 <thead class="table-dark">
@@ -77,7 +111,6 @@
         <div class="d-flex justify-content-center mt-4">
             {{ $items->appends(['search' => request('search')])->links('pagination::bootstrap-4') }}
         </div>
-        
 
     </div>
 </div>

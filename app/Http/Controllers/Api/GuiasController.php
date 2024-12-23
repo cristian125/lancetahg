@@ -25,7 +25,7 @@ class GuiasController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        $response = Http::get('http://app.lancetahg.com/api/lancetaweb', [
+        $response = Http::get(env("EXTERNAL_API_URL"), [
             'accion' => 'GUIAS',
             'token' => env('EXTERNAL_API_TOKEN'),
         ]);
@@ -106,7 +106,7 @@ class GuiasController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
     
-        $response = Http::get('http://app.lancetahg.com/api/lancetaweb', [
+        $response = Http::get(env("EXTERNAL_API_URL"), [
             'accion' => 'STATUS',
             'token' => env('EXTERNAL_API_TOKEN'),
         ]);

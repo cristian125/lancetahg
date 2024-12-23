@@ -35,7 +35,7 @@ class UserOrderController extends Controller
     private function getGuia($pedido)
     {
         try {
-            $guiasResponse = Http::get('http://app.lancetahg.com/api/lancetaweb', [
+            $guiasResponse = Http::get(env("EXTERNAL_API_URL"), [
                 'accion' => 'GUIAS',
                 'pedido' => $pedido,
                 'token' => '2235800b9050256bea993e14b2e06181',
@@ -233,7 +233,7 @@ class UserOrderController extends Controller
     public function updateOrderStatus($orderNumber)
     {
         try {
-            $url = "http://app.lancetahg.com/api/lancetaweb?accion=STATUS&token=2235800b9050256bea993e14b2e06181";
+            $url = "http://lan-ec.ddns.me:8084/api/lancetaweb?accion=STATUS&token=2235800b9050256bea993e14b2e06181";
             $response = Http::get($url, [
                 'accion' => 'STATUS',
                 'token' => '2235800b9050256bea993e14b2e06181',

@@ -51,7 +51,7 @@ use App\Http\Controllers\GoogleMerchantController;
 
 /* Google Merchant */
 Route::get('/export-products', [GoogleMerchantController::class, 'exportProducts']);
-Route::get('/items-data', [ProductImportController::class, 'showItemsData'])->name('admin.itemsData');
+
 Route::get('/fetch-guias', [GuiasController::class, 'guiasearch'])->name('admin.fetchGuias');
 
 Route::fallback(function () {
@@ -78,8 +78,8 @@ Route::group(['middleware' => ['web']], function () {
     Route::get('/register', [RegisterController::class, 'showRegistrationForm']);
     Route::post('/register', [RegisterController::class, 'register'])->name('register')->middleware('throttle:5,3');
     // Route::post('/register', [RegisterController::class, 'register'])->name('register');
-    Route::post('/login', [LoginController::class, 'login'])->name('login');
-    // Route::post('/login', [LoginController::class, 'login'])->name('login')->middleware('throttle:5,3');
+    // Route::post('/login', [LoginController::class, 'login'])->name('login');
+    Route::post('/login', [LoginController::class, 'login'])->name('login')->middleware('throttle:5,3');
     Route::get('/producto/img/{id}', [ProductController::class, 'getImage'])->name('producto.imagen');
     Route::get('/ajax-search', [ProductController::class, 'ajaxSearch'])->name('ajax.search');
     Route::get('/search-result', [ProductController::class, 'search'])->name('product.search');
@@ -214,7 +214,7 @@ Route::prefix('AdmLHG9573')->middleware('adminsession')->group(function () {
     Route::get('/', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
     Route::post('/login', [AdminAuthController::class, 'login'])->name('admin.login.post');
     Route::post('/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
-    Route::get('/register', [AdminAuthController::class, 'showRegisterForm'])->name('admin.register');
+    // Route::get('/register', [AdminAuthController::class, 'showRegisterForm'])->name('admin.register');
     Route::post('/register', [AdminAuthController::class, 'register'])->name('admin.register.post');
     Route::middleware(['auth:admin'])->group(function () {
         Route::get('/dashboard', function () {
@@ -261,9 +261,12 @@ Route::prefix('AdmLHG9573')->middleware('adminsession')->group(function () {
             Route::post('/update-admin-role/{id}', [AdminAuthController::class, 'updateAdminRole'])->name('admin.update.admin.role');
             Route::delete('/delete-admin/{id}', [AdminAuthController::class, 'deleteAdmin'])->name('admin.delete.admin');
             Route::match(['get', 'post'], '/config', [AdminConfigController::class, 'configurarMantenimiento'])->name('configadmin');
+            Route::get('/items-data', [ProductImportController::class, 'showItemsData'])->name('admin.itemsData');
         });
 
         Route::middleware('admin.role:superusuario,editor')->group(function () {
+            Route::post('/order-sequence/update', [ItemController::class, 'updateOrderSequence'])->name('admin.orderSequence.update');
+
             Route::get('/items', [ItemController::class, 'index'])->name('admin.items.index');
             Route::get('/items/{id}/edit', [ItemController::class, 'edit'])->name('admin.items.edit');
             Route::put('/items/{id}', [ItemController::class, 'update'])->name('admin.items.update');

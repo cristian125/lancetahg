@@ -45,10 +45,28 @@ class ItemController extends Controller
                 'itemsdb.activo'
             )
             ->paginate(15);
+            $currentOrderSeq = DB::table('order_number_sequence')
+    ->value('current_order_number');
+
 
         // Devolver la vista con los datos
-        return view('admin.items_list', compact('items', 'search'));
+        return view('admin.items_list', compact('items', 'search','currentOrderSeq'));
     }
+    public function updateOrderSequence(Request $request)
+{
+    $request->validate([
+        'order_number_sequence' => 'required|integer|min:0',
+    ]);
+    
+    DB::table('order_number_sequence')
+    ->update(['current_order_number' => $request->input('order_number_sequence')]);
+
+
+    // Redireccionar de vuelta al index con un mensaje de éxito (opcional)
+    return redirect()->route('admin.items.index')
+                     ->with('success', '¡Secuencia de orden actualizada!');
+}
+
 
     public function edit($id)
     {
